@@ -1,3 +1,3 @@
 export class ConstantBase {
-  public static QUEUE_CRAWL_NAME = 'CrawlJob';
+  public static readonly QUEUE_CRAWL_NAME = 'CrawlJob';
 }
