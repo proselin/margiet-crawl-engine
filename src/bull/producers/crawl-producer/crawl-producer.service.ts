@@ -29,6 +29,7 @@ export class CrawlProducerService {
     this.logger.log(`Add ${data.length} Crawl chapter job to the queue! >>`)
     const jobs: JobType[] = data.map((chapterObj) => {
       const jobData = new CrawlChapterJobDataDto();
+      jobData.docId = chapterObj.docId;
       jobData.chapterId = chapterObj.chapterId;
       jobData.chapterURL = chapterObj.chapterURL;
       jobData.chapterNumber = chapterObj.chapterNumber;

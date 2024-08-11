@@ -36,7 +36,7 @@ export class Comic {
   @Prop()
   description: String;
 
-  @Prop(raw(ShortData))
+  @Prop(raw([ShortData]))
   chapters: ShortData[];
 }
 

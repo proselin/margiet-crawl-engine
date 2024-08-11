@@ -8,4 +8,6 @@ export class CrawlChapterJobDataDto {
   chapterNumber: string;
   @IsString()
   chapterURL: string;
+  @IsString()
+  docId: string
 }

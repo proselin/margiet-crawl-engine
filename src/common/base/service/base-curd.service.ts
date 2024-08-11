@@ -1,6 +1,6 @@
 import { IBaseCurl } from './base-curl.service.interface';
 import { Logger, NotFoundException } from '@nestjs/common';
-import { CreateOptions, FilterQuery, HydratedDocument, Model, ProjectionType, QueryOptions } from 'mongoose';
+import { CreateOptions, FilterQuery, HydratedDocument, Model, ObjectId, ProjectionType, QueryOptions } from 'mongoose';
 
 export abstract class BaseCurdService<Entity>
   implements IBaseCurl<Entity>
@@ -15,7 +15,6 @@ export abstract class BaseCurdService<Entity>
 
   // Create
   async createOne(createDto: Record<string, any>, opts?: CreateOptions): Promise<Entity & HydratedDocument<Entity>> {
-    this.logger.log('Creating a new entity');
     const createdEntity = await this.model.create([createDto], opts);
     this.logger.log(`Entity created with ID: ${createdEntity[0]['id']}`);
     return <Entity & HydratedDocument<Entity>>createdEntity[0];
@@ -40,7 +39,7 @@ export abstract class BaseCurdService<Entity>
   }
 
   // Update
-  async findByIdAndUpdate(id: string, updateDto: Record<string, any>, opts: QueryOptions<any>): Promise<Entity & HydratedDocument<Entity>> {
+  async findByIdAndUpdate(id: any, updateDto: Record<string, any>, opts: QueryOptions<any>): Promise<Entity & HydratedDocument<Entity>> {
     const updatedEntity = await this.model
       .findByIdAndUpdate(id, updateDto, opts)
       .exec();

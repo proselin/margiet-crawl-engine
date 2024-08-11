@@ -31,8 +31,8 @@ export class CrawlService {
   ) {}
 
   async handleCrawlEvent(href: string) {
-    const session = await this.connection.startSession();
-    session.startTransaction();
+    // const session = await this.connection.startSession();
+    // session.startTransaction();
     try {
       const rawData = await this.extractInfoFromComicPage(href);
       const comic: Comic = new Comic()
@@ -46,7 +46,7 @@ export class CrawlService {
 
       if (rawData.author) {
         this.logger.debug("Process author >>")
-        const auth = await this.authorService.findAndCreate({name : rawData.author},{}, {session});
+        const auth = await this.authorService.findAndCreate({name : rawData.author},{}, );
         comic.author = {
           name: auth.name.toString(),
           id: auth.id
@@ -57,7 +57,7 @@ export class CrawlService {
         this.logger.debug("Process tags >>")
         comic.tags = []
         for (let tag of rawData.tags) {
-           const tagDoc =  await this.tagService.findAndCreate({name: tag}, {},{ session })
+           const tagDoc =  await this.tagService.findAndCreate({name: tag}, {})
            comic.tags.push({
              name: tag,
              id: tagDoc.id
@@ -67,7 +67,7 @@ export class CrawlService {
 
       if(rawData.status) {
         this.logger.debug("Process status >>")
-        const statusDoc = await this.statusService.findAndCreate({name: rawData.status}, {},{session})
+        const statusDoc = await this.statusService.findAndCreate({name: rawData.status}, {},)
         comic.status = {
           name: rawData.status,
           id: statusDoc.id
@@ -84,14 +84,14 @@ export class CrawlService {
           chapterDocument.images = []
           chapterDocument.chapterNumber = chapter.chapNumber
 
+          const newChapter = await this.chapterService.createOne(chapterDocument)
+
           chapterJobObjects.push({
             chapterId: chapter.dataId,
             chapterNumber: chapter.chapNumber,
-            chapterURL: chapter.url
+            chapterURL: chapter.url,
+            docId: newChapter.id
           })
-
-          const newChapter = await this.chapterService.createOne(chapterDocument, { session: session })
-
           comic.chapters.push({
             name: chapter.chapNumber,
             id: newChapter.id
@@ -99,15 +99,14 @@ export class CrawlService {
         }
       }
 
-      await this.comicService.createOne(comic , {session})
-      await session.commitTransaction()
+      await this.comicService.createOne(comic)
       await this.crawlProducerService.addCrawlChapterJob(chapterJobObjects)
     }catch (e) {
       this.logger.error("Crawl Comic failed >>");
       this.logger.error(e)
-      await session.abortTransaction();
+      // await session.abortTransaction();
     } finally {
-      await session.endSession()
+      // await session.endSession()
     }
 
   }
