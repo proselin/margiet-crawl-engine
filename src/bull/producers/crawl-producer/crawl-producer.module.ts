@@ -1,0 +1,15 @@
+import { Module } from '@nestjs/common';
+import { CrawlProducerService } from './crawl-producer.service';
+import { BullModule } from '@nestjs/bullmq';
+import { ConstantBase } from '@crawl-engine/common/utils/constant.base';
+
+@Module({
+  imports: [
+    BullModule.registerQueue({
+      name: ConstantBase.QUEUE_CRAWL_NAME,
+    }),
+  ],
+  providers: [CrawlProducerService],
+  exports: [CrawlProducerService],
+})
+export class CrawlProducerModule {}
