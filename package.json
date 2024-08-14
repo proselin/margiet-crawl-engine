@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^1.7.0",
+    "@google-cloud/local-auth": "^3.0.1",
     "@nestjs/bullmq": "^10.2.0",
     "@nestjs/common": "^10.0.2",
     "@nestjs/config": "^3.2.3",
@@ -34,8 +35,12 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cookie-parser": "^1.4.6",
+    "googleapis": "^140.0.1",
     "ioredis": "^5.4.1",
     "mongoose": "^8.5.2",
+    "nestjs-puppeteer": "^2.1.0",
+    "puppeteer": "^21.11.0",
+    "puppeteer-extra": "^3.3.6",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
     "tslib": "^2.3.0"

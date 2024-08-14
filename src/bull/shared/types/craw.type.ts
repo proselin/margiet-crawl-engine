@@ -1,6 +1,6 @@
 import { NullAble } from '@crawl-engine/common';
 
-export type InfoFromPageChapter = {
+export type ImageRawDataCrawl = {
   alt: string;
   dataSv1: string;
   dataSv2: string;

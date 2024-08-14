@@ -8,7 +8,7 @@ export type ChapterDocument = HydratedDocument<Chapter>;
 })
 export class Chapter {
   @Prop()
-  chapterId: String;
+  dataId: String;
 
   @Prop()
   chapterNumber: String;

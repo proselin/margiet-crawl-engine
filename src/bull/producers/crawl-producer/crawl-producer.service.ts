@@ -1,20 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bullmq';
+import { JobConstant } from '@crawl-engine/bull/shared';
 import { ConstantBase } from '@crawl-engine/common/utils/constant.base';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bullmq';
-import { CrawlChapterObject } from '@crawl-engine/bull/shared/types';
 import { BulkJobOptions } from 'bullmq/dist/esm/interfaces';
-import { BullConstant } from '@crawl-engine/bull/shared';
 import {
-  CrawlChapterJobDataDto,
-  CrawlChapterJobResultDto,
-} from '@crawl-engine/bull/shared/dto';
-
-export type JobType = {
-  name: string;
-  data: CrawlChapterJobDataDto;
-  opts?: BulkJobOptions;
-};
+  CrawlChapterData,
+  CrawlChapterDataQueueRequest,
+  CrawlComicJobData,
+  CrawlImageData,
+  CrawlImageDataQueueRequest,
+} from '@crawl-engine/bull/shared/types';
 
 @Injectable()
 export class CrawlProducerService {
@@ -22,28 +18,44 @@ export class CrawlProducerService {
 
   constructor(
     @InjectQueue(ConstantBase.QUEUE_CRAWL_NAME)
-    private crawlQueue: Queue<CrawlChapterJobDataDto, CrawlChapterJobResultDto>,
+    private crawlQueue: Queue,
   ) {}
 
-  addCrawlChapterJob(data: CrawlChapterObject[]) {
-    this.logger.log(`Add ${data.length} Crawl chapter job to the queue! >>`)
-    const jobs: JobType[] = data.map((chapterObj) => {
-      const jobData = new CrawlChapterJobDataDto();
-      jobData.docId = chapterObj.docId;
-      jobData.chapterId = chapterObj.chapterId;
-      jobData.chapterURL = chapterObj.chapterURL;
-      jobData.chapterNumber = chapterObj.chapterNumber;
+  async addCrawlComicJob(href: string) {
+    this.logger.log(
+      `Add crawl comic with href ${href} to the queue ${ConstantBase.QUEUE_CRAWL_NAME}`,
+    );
+    const name = JobConstant.CRAWL_COMIC_JOB_NAME;
+    const data: CrawlComicJobData = { href };
+    return await this.crawlQueue.add(name, data);
+  }
+
+  async addCrawlImageJobs(images: CrawlImageData[], options?: BulkJobOptions) {
+    this.logger.log(`Add ${images.length} Crawl image job to the queue! >>`);
+    const jobs: CrawlImageDataQueueRequest[] = images.map((data) => {
       return {
-        name: BullConstant.CRAWL_CHAPTER_JOB_NAME,
-        data: jobData,
-        opts: {
-          delay: 1000,
-        },
+        name: JobConstant.CRAWL_IMAGE_JOB_NAME,
+        data,
+        opts: options,
       };
     });
+    return await this.crawlQueue.addBulk(jobs);
+  }
+
+  async addCrawlChapterJobs(
+    chaptersData: CrawlChapterData[],
+    options?: BulkJobOptions,
+  ) {
     this.logger.log(
-      `Input ${jobs.length} jobs to Queue ${ConstantBase.QUEUE_CRAWL_NAME} data >>>`,
+      `Add ${chaptersData.length} Crawl chapter job to the queue! >>`,
     );
-    return this.crawlQueue.addBulk(jobs);
+    const jobs: CrawlChapterDataQueueRequest[] = chaptersData.map((data) => {
+      return {
+        name: JobConstant.CRAWL_CHAPTER_JOB_NAME,
+        data,
+        opts: options,
+      };
+    });
+    return await this.crawlQueue.addBulk(jobs);
   }
 }
