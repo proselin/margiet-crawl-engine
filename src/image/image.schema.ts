@@ -11,7 +11,10 @@ export class Image {
   url: String | null;
 
   @Prop()
-  bucket: String;
+  driverId: String;
+
+  @Prop()
+  parentFolderId: String;
 
   @Prop()
   position: Number;

@@ -26,6 +26,9 @@
       ],
       "@crawl-engine/craw/*": [
         "src/craw/*"
+      ],
+      "@libs/*": [
+        "src/libs/*"
       ]
     }
   }

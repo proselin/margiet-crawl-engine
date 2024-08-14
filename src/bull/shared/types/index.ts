@@ -1,2 +1,2 @@
 export * from './craw.type';
-export * from './crawl-image-request.type';
+export * from './crawl-comic.type';
