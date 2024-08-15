@@ -14,6 +14,7 @@ import { CrawlImageService } from '@crawl-engine/bull/consumers/craw-consumer/cr
 import { CrawlComicService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-comic.service';
 import { CrawlProducerModule } from '@crawl-engine/bull/producers/crawl-producer';
 import { PuppeteerModule } from 'nestjs-puppeteer';
+import { JobConstant } from '@crawl-engine/bull/shared';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { PuppeteerModule } from 'nestjs-puppeteer';
     BullModule.registerQueue({
       name: ConstantBase.QUEUE_CRAWL_NAME,
     }),
-    PuppeteerModule.forFeature(['page-1']),
+    PuppeteerModule.forFeature([JobConstant.CRAWL_IMAGE_PAGE_NAME]),
     CrawlProducerModule,
     ChapterModule,
     AuthorModule,

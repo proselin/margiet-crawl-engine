@@ -9,7 +9,7 @@ import {
   CrawlChapterDataQueueRequest,
   CrawlComicJobData,
   CrawlImageData,
-  CrawlImageDataQueueRequest,
+  RawImageDataPushJob,
 } from '@crawl-engine/bull/shared/types';
 
 @Injectable()
@@ -30,16 +30,26 @@ export class CrawlProducerService {
     return await this.crawlQueue.add(name, data);
   }
 
-  async addCrawlImageJobs(images: CrawlImageData[], options?: BulkJobOptions) {
-    this.logger.log(`Add ${images.length} Crawl image job to the queue! >>`);
-    const jobs: CrawlImageDataQueueRequest[] = images.map((data) => {
-      return {
-        name: JobConstant.CRAWL_IMAGE_JOB_NAME,
-        data,
-        opts: options,
-      };
-    });
-    return await this.crawlQueue.addBulk(jobs);
+  async addCrawlImageJobs(
+    images: RawImageDataPushJob[],
+    chapterUrl: string,
+    chapterId: string,
+  ) {
+    this.logger.log(
+      `Add a crawl job with ${images.length} image job to the queue! >>`,
+    );
+    const requestQueue: CrawlImageData = {
+      chapterId,
+      chapterUrl,
+      imageData: images,
+    };
+    return await this.crawlQueue.add(
+      JobConstant.CRAWL_IMAGE_JOB_NAME,
+      requestQueue,
+      {
+        delay: 1000,
+      },
+    );
   }
 
   async addCrawlChapterJobs(

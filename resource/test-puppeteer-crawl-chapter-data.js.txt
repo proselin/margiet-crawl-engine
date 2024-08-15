@@ -1,0 +1,89 @@
+const puppeteer = require('puppeteer');
+const { resolve } = require('node:path');
+const { createWriteStream, writeFile, writeFileSync } = require('node:fs');
+const fs = require('node:fs');
+
+const waitTillHTMLRendered = async (page, timeout = 30000) => {
+  const checkDurationMsecs = 1000;
+  const maxChecks = timeout / checkDurationMsecs;
+  let lastHTMLSize = 0;
+  let checkCounts = 1;
+  let countStableSizeIterations = 0;
+  const minStableSizeIterations = 3;
+
+  while (checkCounts++ <= maxChecks) {
+    let html = await page.content();
+    let currentHTMLSize = html.length;
+
+    let bodyHTMLSize = await page.evaluate(
+      () => document.body.innerHTML.length,
+    );
+
+    console.log(
+      'last: ',
+      lastHTMLSize,
+      ' <> curr: ',
+      currentHTMLSize,
+      ' body html size: ',
+      bodyHTMLSize,
+    );
+
+    if (lastHTMLSize != 0 && currentHTMLSize == lastHTMLSize)
+      countStableSizeIterations++;
+    else countStableSizeIterations = 0; //reset the counter
+
+    if (countStableSizeIterations >= minStableSizeIterations) {
+      console.log('Page rendered fully..');
+      break;
+    }
+
+    lastHTMLSize = currentHTMLSize;
+    await page.waitForTimeout(checkDurationMsecs);
+  }
+};
+
+(async () => {
+  const browser = await puppeteer.launch({
+    headless: false,
+    executablePath: '/usr/bin/google-chrome-stable',
+    args: ['incognito'],
+    channel: 'chrome',
+    waitForInitialPage: true,
+  });
+  const page = await browser.newPage();
+  page.on('response', async (response) => {
+    if (
+      response.request().resourceType() === 'image' &&
+      response.status() === 200
+    ) {
+      const url = response.url();
+      if (
+        url.match(/facebook|ads.mxhnkn.pro|\/public\/assets\/images\/|.gif/g)
+      ) {
+        // console.log(`Ignore URL: ${url}`);
+        return;
+      }
+      console.log('Loaded: URL :', url);
+      response.buffer().then((file) => {
+        const fileName = '' + Date.now() + '' + Math.random(1, 1000) + '.jpg';
+        const filePath = resolve(__dirname, fileName);
+        const writeStream = createWriteStream(filePath, { flags: 'wx' });
+        writeStream.write(file);
+      });
+    }
+  });
+
+  await page.goto(
+    'https://nettruyenaa.com/truyen-tranh/nha-vo-dich-voi-chuc-nghiep-vo-nang-va-co-cong-chua-cung-nhau-di-tim-hanh-phuc/chapter-1/2',
+
+    {
+      waitUntil: 'load',
+      timeout: 0,
+    },
+  );
+  await waitTillHTMLRendered(page);
+  await page.waitForSelector('.lozad');
+  await page.$$eval('.page-chapter img.lozad', (img) => {
+    img.forEach((node) => observer.triggerLoad(node));
+  });
+})();

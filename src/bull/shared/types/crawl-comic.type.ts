@@ -12,8 +12,7 @@ export interface CrawlChapterData {
   chapterURL: string;
 }
 
-export interface CrawlImageData extends ImageRawDataCrawl {
-  chapterId: string;
+export interface RawImageDataPushJob extends ImageRawDataCrawl {
   imageId: string;
   position: number;
 }
@@ -24,8 +23,11 @@ export interface JobBulkRequest<dataType = any> {
   opts?: BulkJobOptions;
 }
 
-export interface CrawlImageDataQueueRequest
-  extends JobBulkRequest<CrawlImageData> {}
+export interface CrawlImageData {
+  chapterUrl: string;
+  chapterId: string;
+  imageData: RawImageDataPushJob[];
+}
 
 export interface CrawlChapterDataQueueRequest
   extends JobBulkRequest<CrawlChapterData> {}

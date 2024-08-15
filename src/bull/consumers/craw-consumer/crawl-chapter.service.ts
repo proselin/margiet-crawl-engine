@@ -5,7 +5,10 @@ import { ImageService } from '@crawl-engine/image/image.service';
 import { Injectable, Logger } from '@nestjs/common';
 import axios, { AxiosResponse } from 'axios';
 import { Job } from 'bullmq';
-import { CrawlChapterData } from '@crawl-engine/bull/shared/types';
+import {
+  CrawlChapterData,
+  RawImageDataPushJob,
+} from '@crawl-engine/bull/shared/types';
 import { CrawlProducerService } from '@crawl-engine/bull/producers/crawl-producer';
 import { CrawlImageService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-image.service';
 
@@ -30,22 +33,32 @@ export class CrawlChapterService {
         job.data.chapterURL,
       );
       const chapterImages: string[] = [];
+      const crawlImageJobRequestData: RawImageDataPushJob[] = [];
       for (let i = 0; i < imageRawDataCrawls.length; i++) {
         const image = new Image();
         image.position = i;
         image.url = null;
         const newImage = await this.imageService.createOne(image);
+
         chapterImages.push(newImage.id);
 
-        ths;
+        crawlImageJobRequestData.push({
+          ...imageRawDataCrawls[i],
+          position: i,
+          imageId: newImage.id,
+        });
       }
-
       await this.chapterService.findByIdAndUpdate(
         <string>job.data.chapterId,
         {
           images: chapterImages,
         },
         { upsert: true },
+      );
+      await this.crawlProducerService.addCrawlImageJobs(
+        crawlImageJobRequestData,
+        job.data.chapterURL,
+        job.data.chapterId,
       );
     } catch (e) {
       this.logger.error('Fail job token ' + job.token);
