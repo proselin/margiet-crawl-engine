@@ -18,6 +18,8 @@ import { PuppeteerModule } from 'nestjs-puppeteer';
     PuppeteerModule.forRoot({
       headless: false,
       executablePath: '/usr/bin/google-chrome-stable',
+      channel: 'chrome',
+      waitForInitialPage: true,
     }),
     BullmqConnectModule,
     CrawlConsumerModule,

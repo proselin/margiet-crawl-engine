@@ -1,13 +1,14 @@
-import { getFileExtensionFromContentType } from '@crawl-engine/common';
-import { Injectable, Logger } from '@nestjs/common';
-import { ImageService } from '@crawl-engine/image/image.service';
-import { Job } from 'bullmq';
+import { JobConstant } from '@crawl-engine/bull/shared';
 import { CrawlImageData } from '@crawl-engine/bull/shared/types';
-import { GDUploadFileRequest, GoogleDriveService } from '@libs/google-drive';
-import { ConfigService } from '@nestjs/config';
+import { JobUtils } from '@crawl-engine/bull/shared/utils';
 import { EnvKey } from '@crawl-engine/environment';
-import { InjectPage } from 'nestjs-puppeteer';
-import { Page } from 'puppeteer';
+import { ImageService } from '@crawl-engine/image/image.service';
+import { GDUploadFileRequest, GoogleDriveService } from '@libs/google-drive';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Job } from 'bullmq';
+import { InjectBrowser, InjectPage } from 'nestjs-puppeteer';
+import { Browser, Page } from 'puppeteer';
 
 @Injectable()
 export class CrawlImageService {
@@ -17,55 +18,92 @@ export class CrawlImageService {
     private imageService: ImageService,
     private googleDriveService: GoogleDriveService,
     private configService: ConfigService,
-    @InjectPage('page-1')
+    @InjectPage(JobConstant.CRAWL_IMAGE_PAGE_NAME)
     private page: Page,
+    @InjectBrowser()
+    private browser: Browser,
   ) {}
 
   async handleCrawlJob(job: Job<CrawlImageData>) {
-    try {
-      this.logger.log(`Start crawl job ${job.token}}`);
-      const imageData = job.data;
-      const newDriveImage = await this.uploadFileToDrive(imageData);
-      await this.imageService.findByIdAndUpdate(
-        imageData.imageId,
-        {
-          url: newDriveImage.fileUrl,
-        },
-        { upsert: true },
-      );
-    } catch (e) {
-      this.logger.error(e);
-      console.trace(e);
-      throw e;
-    }
+    return new Promise<void>(async (resolve) => {
+      try {
+        this.logger.log(`Start crawl job image ${job.token}}`);
+        //Setup response listener
+        if (this.page.isClosed()) {
+          this.page = await this.browser.newPage();
+        }
+        let count = 0;
+        this.page.on('response', async (response) => {
+          if (
+            response.request().resourceType() !== 'image' ||
+            response.status() !== HttpStatus.OK
+          ) {
+            return;
+          }
+          const url = response.url();
+          const currentRawResponseImage = job.data.imageData.find((raw) => {
+            return raw.dataSv1 == url || raw.dataSv2 == url;
+          });
+          if (!currentRawResponseImage) {
+            return;
+          }
+          this.logger.log('Crawl Data: ' + url);
+          const file = await response.buffer();
+          const contentType = response.headers()?.['content-type'];
+          const fileName = await this.createFileName(
+            contentType,
+            job.data.chapterId,
+            currentRawResponseImage.position,
+          );
+          const gbUploadResponse = await this.uploadFileToDrive(
+            file,
+            contentType,
+            fileName,
+          );
+          await this.updateImageDocument(
+            currentRawResponseImage.imageId,
+            gbUploadResponse.fileUrl,
+          );
+          count++;
+
+          if (count == job.data.imageData.length) {
+            resolve();
+          }
+        });
+
+        await this.page.goto(job.data.chapterUrl, {
+          timeout: 0,
+          waitUntil: 'load',
+        });
+        await JobUtils.waitTillHTMLRendered(this.page);
+        await this.page.waitForSelector('.lozad');
+        await this.page.$$eval('.page-chapter img.lozad', (img) => {
+          /*
+            Observer is create from lozad lib
+            See lozad on npm for more
+           */
+
+          img.forEach((node) => {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            observer.triggerLoad(node);
+            setTimeout(() => {
+              node.scrollIntoView();
+            }, 1000);
+          });
+        });
+        // Close page and clear session
+      } catch (e) {
+        this.logger.error(e);
+        console.trace(e);
+        throw e;
+      }
+    });
   }
 
-  private async uploadFileToDrive(imageData: CrawlImageData) {
+  async uploadFileToDrive(file: Buffer, contentType: string, fileName: string) {
     try {
-      const response: any = await new Promise(async (resolve, reject) => {
-        const res1 = await this.page.goto(imageData.dataSv1).then((res) => {
-          if (res.status() == 200) {
-            resolve(res);
-          }
-          return null;
-        });
-        if (!res1) {
-          this.page.goto(imageData.dataSv2).then((res) => {
-            if (res.status() == 200) {
-              resolve(res);
-            }
-            reject(res);
-          });
-        }
-      });
-      const contentType = response?.headers?.['content-type'];
-      const extension = getFileExtensionFromContentType(contentType);
-      if (!extension) {
-        throw new Error('Unsupported content type');
-      }
-      const fileName = `chapter-${imageData.chapterId}-img-${imageData.position}-${Date.now()}.${extension}`;
-
-      const body = GoogleDriveService.bufferToStream(await response.buffer());
+      const body = GoogleDriveService.bufferToStream(file);
 
       const requestUploadFile: GDUploadFileRequest = {
         body: body,
@@ -74,13 +112,50 @@ export class CrawlImageService {
         folderId: this.configService.get(EnvKey.G_FOLDER_ID),
       };
 
-      const result = this.googleDriveService.uploadFile(requestUploadFile);
+      const result =
+        await this.googleDriveService.uploadFile(requestUploadFile);
 
       this.logger.log(
-        'File uploaded to Google Drive: ' + JSON.stringify(result),
+        `[${this.uploadFileToDrive.name}]:: ` +
+          'File uploaded to Google Drive: ' +
+          JSON.stringify(result),
       );
       return result;
     } catch (e) {
+      throw e;
+    }
+  }
+
+  private async createFileName(
+    contentType: string,
+    chapterId: string,
+    position: number,
+  ) {
+    const extension = JobUtils.getFileExtensionFromContentType(contentType);
+    if (!extension) {
+      throw new Error('Unsupported content type');
+    }
+    const startWith = `chapter${chapterId}-img-${position}`;
+    const hash = Date.now() + Math.random();
+    return `${startWith}-${hash}.${extension}`;
+  }
+
+  private async updateImageDocument(imageId: string, uploadedUrl: string) {
+    try {
+      await this.imageService.findByIdAndUpdate(
+        imageId,
+        {
+          url: uploadedUrl,
+        },
+        { upsert: true },
+      );
+      this.logger.log(
+        `[${this.uploadFileToDrive.name}]: Update image url for id: ${imageId}`,
+      );
+    } catch (e) {
+      this.logger.error(
+        `[${this.uploadFileToDrive.name}]: Failed to update image ${imageId}`,
+      );
       throw e;
     }
   }
