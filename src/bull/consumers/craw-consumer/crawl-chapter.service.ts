@@ -10,7 +10,6 @@ import {
   RawImageDataPushJob,
 } from '@crawl-engine/bull/shared/types';
 import { CrawlProducerService } from '@crawl-engine/bull/producers/crawl-producer';
-import { CrawlImageService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-image.service';
 
 @Injectable()
 export class CrawlChapterService {
@@ -19,7 +18,6 @@ export class CrawlChapterService {
   constructor(
     private chapterService: ChapterService,
     private imageService: ImageService,
-    private crawlImageService: CrawlImageService,
     private crawlProducerService: CrawlProducerService,
   ) {}
 

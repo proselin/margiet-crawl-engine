@@ -4,14 +4,19 @@ import { JobUtils } from '@crawl-engine/bull/shared/utils';
 import { EnvKey } from '@crawl-engine/environment';
 import { ImageService } from '@crawl-engine/image/image.service';
 import { GDUploadFileRequest, GoogleDriveService } from '@libs/google-drive';
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  BeforeApplicationShutdown,
+  HttpStatus,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Job } from 'bullmq';
 import { InjectBrowser, InjectPage } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
 
 @Injectable()
-export class CrawlImageService {
+export class CrawlImageService implements BeforeApplicationShutdown {
   private logger = new Logger(CrawlImageService.name);
 
   constructor(
@@ -124,6 +129,10 @@ export class CrawlImageService {
     } catch (e) {
       throw e;
     }
+  }
+
+  async beforeApplicationShutdown() {
+    await this.browser.close();
   }
 
   private async createFileName(
