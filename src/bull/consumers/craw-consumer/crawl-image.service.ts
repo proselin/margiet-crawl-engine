@@ -14,6 +14,7 @@ import { ConfigService } from '@nestjs/config';
 import { Job } from 'bullmq';
 import { InjectBrowser, InjectPage } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
+import { HttpException } from '@nestjs/common/exceptions/http.exception';
 
 @Injectable()
 export class CrawlImageService implements BeforeApplicationShutdown {
@@ -30,14 +31,18 @@ export class CrawlImageService implements BeforeApplicationShutdown {
   ) {}
 
   async handleCrawlJob(job: Job<CrawlImageData>) {
-    return new Promise<void>(async (resolve) => {
-      try {
-        this.logger.log(`Start crawl job image ${job.token}}`);
-        //Setup response listener
-        if (this.page.isClosed()) {
-          this.page = await this.browser.newPage();
-        }
+    try {
+      this.logger.log(`Start crawl job image ${job.token}}`);
+      //Setup response listener
+      if (this.page.isClosed()) {
+        this.page = await this.browser.newPage();
+      }
+      return new Promise<void>(async (resolve) => {
         let count = 0;
+        let timeoutRerun;
+        const retry = 3;
+        let currentRetryCount = 0;
+
         this.page.on('response', async (response) => {
           if (
             response.request().resourceType() !== 'image' ||
@@ -70,39 +75,56 @@ export class CrawlImageService implements BeforeApplicationShutdown {
             gbUploadResponse.fileUrl,
           );
           count++;
-
+          if (timeoutRerun) {
+            clearTimeout(timeoutRerun);
+            if (retry != currentRetryCount) {
+              setTimeout(() => {
+                this.triggerLoad(this.page);
+              }, 6000);
+            } else {
+              throw new HttpException(
+                {
+                  message: 'Crawl Image could not be retrieved',
+                },
+                500,
+              );
+            }
+            currentRetryCount++;
+          }
           if (count == job.data.imageData.length) {
+            clearTimeout(timeoutRerun);
             resolve();
           }
         });
-
         await this.page.goto(job.data.chapterUrl, {
           timeout: 0,
           waitUntil: 'load',
         });
         await JobUtils.waitTillHTMLRendered(this.page);
-        await this.page.waitForSelector('.lozad');
-        await this.page.$$eval('.page-chapter img.lozad', (img) => {
-          /*
-            Observer is create from lozad lib
-            See lozad on npm for more
-           */
+        await this.triggerLoad(this.page);
+      });
+    } catch (e) {
+      this.logger.error(e);
+      console.trace(e);
+      throw e;
+    }
+  }
 
-          img.forEach((node) => {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            observer.triggerLoad(node);
-            setTimeout(() => {
-              node.scrollIntoView();
-            }, 1000);
-          });
-        });
-        // Close page and clear session
-      } catch (e) {
-        this.logger.error(e);
-        console.trace(e);
-        throw e;
-      }
+  async triggerLoad(page: Page) {
+    await page.$$eval('.page-chapter img.lozad', (img) => {
+      /*
+        Observer is create from lozad lib
+        See lozad on npm for more
+       */
+
+      img.forEach((node) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        observer.triggerLoad(node);
+        setTimeout(() => {
+          node.scrollIntoView();
+        }, 1000);
+      });
     });
   }
 
