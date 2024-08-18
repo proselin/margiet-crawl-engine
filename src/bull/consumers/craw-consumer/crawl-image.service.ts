@@ -28,6 +28,8 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     private imageService: ImageService,
     private googleDriveService: GoogleDriveService,
     private configService: ConfigService,
+    @InjectPage(JobConstant.CRAWL_IMAGE_PAGE_NAME)
+    private page: Page,
     @InjectBrowser()
     private browser: Browser,
   ) {}
