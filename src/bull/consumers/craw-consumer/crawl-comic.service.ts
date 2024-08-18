@@ -1,6 +1,10 @@
 import { AuthorService } from '@crawl-engine/author/author.service';
 import { CrawlProducerService } from '@crawl-engine/bull/producers/crawl-producer';
 import { CrawlRawData } from '@crawl-engine/bull/shared';
+import {
+  CrawlChapterData,
+  CrawlComicJobData,
+} from '@crawl-engine/bull/shared/types';
 import { Chapter } from '@crawl-engine/chapter/chapter.schema';
 import { ChapterService } from '@crawl-engine/chapter/chapter.service';
 import { Comic } from '@crawl-engine/comic/comic.schema';
@@ -10,10 +14,6 @@ import { StatusService } from '@crawl-engine/status/status.service';
 import { TagService } from '@crawl-engine/tag/tag.service';
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
-import {
-  CrawlChapterData,
-  CrawlComicJobData,
-} from '@crawl-engine/bull/shared/types';
 import { Job } from 'bullmq';
 
 @Injectable()
