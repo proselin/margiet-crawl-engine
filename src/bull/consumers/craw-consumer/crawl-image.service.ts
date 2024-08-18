@@ -1,5 +1,8 @@
 import { JobConstant } from '@crawl-engine/bull/shared';
-import { CrawlImageData } from '@crawl-engine/bull/shared/types';
+import {
+  CrawlImageData,
+  RawImageDataPushJob,
+} from '@crawl-engine/bull/shared/types';
 import { JobUtils } from '@crawl-engine/bull/shared/utils';
 import { EnvKey } from '@crawl-engine/environment';
 import { ImageService } from '@crawl-engine/image/image.service';
@@ -14,7 +17,6 @@ import { ConfigService } from '@nestjs/config';
 import { Job } from 'bullmq';
 import { InjectBrowser, InjectPage } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
-import { HttpException } from '@nestjs/common/exceptions/http.exception';
 
 @Injectable()
 export class CrawlImageService implements BeforeApplicationShutdown {
@@ -38,69 +40,17 @@ export class CrawlImageService implements BeforeApplicationShutdown {
         this.page = await this.browser.newPage();
       }
       return new Promise<void>(async (resolve) => {
-        let count = 0;
-        let timeoutRerun;
-        const retry = 3;
-        let currentRetryCount = 0;
-
-        this.page.on('response', async (response) => {
-          if (
-            response.request().resourceType() !== 'image' ||
-            response.status() !== HttpStatus.OK
-          ) {
-            return;
-          }
-          const url = response.url();
-          const currentRawResponseImage = job.data.imageData.find((raw) => {
-            return raw.dataSv1 == url || raw.dataSv2 == url;
-          });
-          if (!currentRawResponseImage) {
-            return;
-          }
-          this.logger.log('Crawl Data: ' + url);
-          const file = await response.buffer();
-          const contentType = response.headers()?.['content-type'];
-          const fileName = await this.createFileName(
-            contentType,
-            job.data.chapterId,
-            currentRawResponseImage.position,
-          );
-          const gbUploadResponse = await this.uploadFileToDrive(
-            file,
-            contentType,
-            fileName,
-          );
-          await this.updateImageDocument(
-            currentRawResponseImage.imageId,
-            gbUploadResponse.fileUrl,
-          );
-          count++;
-          if (timeoutRerun) {
-            clearTimeout(timeoutRerun);
-            if (retry != currentRetryCount) {
-              setTimeout(() => {
-                this.triggerLoad(this.page);
-              }, 6000);
-            } else {
-              throw new HttpException(
-                {
-                  message: 'Crawl Image could not be retrieved',
-                },
-                500,
-              );
-            }
-            currentRetryCount++;
-          }
-          if (count == job.data.imageData.length) {
-            clearTimeout(timeoutRerun);
-            resolve();
-          }
-        });
+        await this.setupRequestInterceptor();
+        this.listenToResponse(
+          job.data.imageData,
+          job.data.chapterId,
+          job.token,
+          resolve,
+        );
         await this.page.goto(job.data.chapterUrl, {
           timeout: 0,
-          waitUntil: 'load',
+          waitUntil: 'networkidle0',
         });
-        await JobUtils.waitTillHTMLRendered(this.page);
         await this.triggerLoad(this.page);
       });
     } catch (e) {
@@ -110,21 +60,87 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     }
   }
 
+  listenToResponse(
+    images: RawImageDataPushJob[],
+    chapterId: string,
+    token: string,
+    resolve: Function,
+  ) {
+    // Count which image has been crawled
+    // From 1 -> image.length
+    let crawledImageCount = 0;
+    this.page.on('response', async (response) => {
+      if (
+        response.request().resourceType() !== 'image' ||
+        response.status() !== HttpStatus.OK
+      ) {
+        return;
+      }
+      const url = response.url();
+      const currentRawResponseImage = this.getImageRawDataByUrl(url, images);
+      if (!currentRawResponseImage) {
+        return;
+      }
+      this.logger.log('Has response image url : ' + url);
+      const file = await response.buffer();
+      const contentType = response.headers()?.['content-type'];
+      const fileName = await this.createFileName(
+        contentType,
+        chapterId,
+        currentRawResponseImage.position,
+      );
+      const gbUploadResponse = await this.uploadFileToDrive(
+        file,
+        contentType,
+        fileName,
+      );
+      await this.updateImageDocument(
+        currentRawResponseImage.imageId,
+        gbUploadResponse.fileUrl,
+      );
+      crawledImageCount++;
+      if (crawledImageCount == images.length) {
+        await this.page.close();
+        this.logger.log(
+          `Crawl Complete ${images.length} images with token ${token}`,
+        );
+        this.logger.log(`Close page`);
+        resolve();
+      }
+    });
+  }
+
+  getImageRawDataByUrl(imageUrl: string, images: RawImageDataPushJob[]) {
+    return (
+      images.find((raw) => {
+        return raw.dataSv1 == imageUrl || raw.dataSv2 == imageUrl;
+      }) ?? null
+    );
+  }
+
+  async setupRequestInterceptor() {
+    await this.page.setRequestInterception(true);
+    this.page.on('request', (request) => {
+      const url = request.url();
+      if (url.match(/ads.mxhnkn.pro|facebook|affiliateBanner|.gif/g)) {
+        request.abort('aborted');
+      } else request.continue();
+    });
+  }
+
   async triggerLoad(page: Page) {
-    await page.$$eval('.page-chapter img.lozad', (img) => {
+    await page.$$eval('.page-chapter img.lozad', async (imgs) => {
       /*
         Observer is create from lozad lib
         See lozad on npm for more
        */
-
-      img.forEach((node) => {
+      for (const node of imgs) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         observer.triggerLoad(node);
-        setTimeout(() => {
-          node.scrollIntoView();
-        }, 1000);
-      });
+        await new Promise((_) => setTimeout(_, 1000));
+        node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     });
   }
 
