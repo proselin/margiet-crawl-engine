@@ -1,4 +1,3 @@
-import { JobConstant } from '@crawl-engine/bull/shared';
 import {
   CrawlImageData,
   RawImageDataPushJob,
@@ -15,42 +14,41 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Job } from 'bullmq';
-import { InjectBrowser, InjectPage } from 'nestjs-puppeteer';
+import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
+import { v1 } from 'uuid';
 
 @Injectable()
 export class CrawlImageService implements BeforeApplicationShutdown {
   private logger = new Logger(CrawlImageService.name);
 
+  private page: Page;
+
   constructor(
     private imageService: ImageService,
     private googleDriveService: GoogleDriveService,
     private configService: ConfigService,
-    @InjectPage(JobConstant.CRAWL_IMAGE_PAGE_NAME)
-    private page: Page,
     @InjectBrowser()
     private browser: Browser,
   ) {}
 
   async handleCrawlJob(job: Job<CrawlImageData>) {
     try {
-      this.logger.log(`Start crawl job image ${job.token}}`);
+      this.logger.log(
+        `Start crawl job image ${job.token} with ChapterUrl ${job.data.chapterUrl}`,
+      );
       //Setup response listener
-      if (this.page.isClosed()) {
+      if (!this.page || this.page?.isClosed()) {
         this.page = await this.browser.newPage();
       }
       return new Promise<void>(async (resolve) => {
         await this.setupRequestInterceptor();
-        this.listenToResponse(
-          job.data.imageData,
-          job.data.chapterId,
-          job.token,
-          resolve,
-        );
+        this.listenToResponse(job, resolve);
         await this.page.goto(job.data.chapterUrl, {
           timeout: 0,
-          waitUntil: 'networkidle0',
+          waitUntil: 'load',
         });
+        await JobUtils.waitTillHTMLRendered(this.page);
         await this.triggerLoad(this.page);
       });
     } catch (e) {
@@ -60,15 +58,20 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     }
   }
 
-  listenToResponse(
-    images: RawImageDataPushJob[],
-    chapterId: string,
-    token: string,
-    resolve: Function,
-  ) {
+  listenToResponse(job: Job<CrawlImageData>, resolve: Function) {
     // Count which image has been crawled
     // From 1 -> image.length
     let crawledImageCount = 0;
+
+    const doFinished = async () => {
+      await this.page.close();
+      this.logger.log(
+        `Crawl Complete ${job.data.imageData.length} images with token ${job.token}`,
+      );
+      this.logger.log(`Close page`);
+      resolve();
+    };
+
     this.page.on('response', async (response) => {
       if (
         response.request().resourceType() !== 'image' ||
@@ -77,7 +80,10 @@ export class CrawlImageService implements BeforeApplicationShutdown {
         return;
       }
       const url = response.url();
-      const currentRawResponseImage = this.getImageRawDataByUrl(url, images);
+      const currentRawResponseImage = this.getImageRawDataByUrl(
+        url,
+        job.data.imageData,
+      );
       if (!currentRawResponseImage) {
         return;
       }
@@ -86,7 +92,7 @@ export class CrawlImageService implements BeforeApplicationShutdown {
       const contentType = response.headers()?.['content-type'];
       const fileName = await this.createFileName(
         contentType,
-        chapterId,
+        job.data.chapterId,
         currentRawResponseImage.position,
       );
       const gbUploadResponse = await this.uploadFileToDrive(
@@ -99,13 +105,9 @@ export class CrawlImageService implements BeforeApplicationShutdown {
         gbUploadResponse.fileUrl,
       );
       crawledImageCount++;
-      if (crawledImageCount == images.length) {
-        await this.page.close();
-        this.logger.log(
-          `Crawl Complete ${images.length} images with token ${token}`,
-        );
-        this.logger.log(`Close page`);
-        resolve();
+
+      if (crawledImageCount == job.data.imageData.length) {
+        await doFinished();
       }
     });
   }
@@ -128,7 +130,7 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     });
   }
 
-  async triggerLoad(page: Page) {
+  async triggerLoad(page: Page = this.page) {
     await page.$$eval('.page-chapter img.lozad', async (imgs) => {
       /*
         Observer is create from lozad lib
@@ -182,8 +184,8 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     if (!extension) {
       throw new Error('Unsupported content type');
     }
-    const startWith = `chapter${chapterId}-img-${position}`;
-    const hash = Date.now() + Math.random();
+    const startWith = `c-${chapterId}-i-${position}`;
+    const hash = v1();
     return `${startWith}-${hash}.${extension}`;
   }
 

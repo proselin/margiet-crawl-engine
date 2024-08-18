@@ -80,6 +80,9 @@ export class CrawlChapterService {
     for (const pageChapter of pageChapterMatch) {
       rs.push(this.extractImageDataFromChapterPage(pageChapter));
     }
+    if (!rs.length || rs.every((r) => r.dataSv1 == null)) {
+      throw new Error('No images , Invalid chapter');
+    }
     return rs;
   }
 
