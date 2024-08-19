@@ -1,12 +1,15 @@
-import { IBaseCurl } from './base-curl.service.interface';
+import { IBaseCurl } from '@crawl-engine/common';
 import { Logger, NotFoundException } from '@nestjs/common';
 import {
   CreateOptions,
   FilterQuery,
   HydratedDocument,
   Model,
+  MongooseUpdateQueryOptions,
   ProjectionType,
   QueryOptions,
+  UpdateQuery,
+  UpdateWithAggregationPipeline,
 } from 'mongoose';
 
 export abstract class BaseCurdService<Entity> implements IBaseCurl<Entity> {
@@ -18,9 +21,25 @@ export abstract class BaseCurdService<Entity> implements IBaseCurl<Entity> {
     this.model = model;
   }
 
+  async findOne(
+    filter?: FilterQuery<Entity>,
+    projection?: ProjectionType<Entity> | null,
+    options?: QueryOptions<Entity> | null,
+  ) {
+    return this.model.findOne(filter, projection, options);
+  }
+
+  async updateOne(
+    filter?: FilterQuery<Entity>,
+    update?: UpdateQuery<Entity> | UpdateWithAggregationPipeline,
+    options?: (Record<string, any> & MongooseUpdateQueryOptions<Entity>) | null,
+  ) {
+    return this.model.updateOne(filter, update, options);
+  }
+
   // Create
   async createOne(
-    createDto: Record<string, any>,
+    createDto: Entity | Record<any, any>,
     opts?: CreateOptions,
   ): Promise<Entity & HydratedDocument<Entity>> {
     const createdEntity = await this.model.create([createDto], opts);
@@ -52,7 +71,7 @@ export abstract class BaseCurdService<Entity> implements IBaseCurl<Entity> {
   async findByIdAndUpdate(
     id: any,
     updateDto: Record<string, any>,
-    opts: QueryOptions<any>,
+    opts?: QueryOptions<any>,
   ): Promise<Entity & HydratedDocument<Entity>> {
     const updatedEntity = await this.model
       .findByIdAndUpdate(id, updateDto, opts)
