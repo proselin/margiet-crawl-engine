@@ -15,8 +15,7 @@ import { PuppeteerModule } from 'nestjs-puppeteer';
       validate: () => envValidation(Environment),
     }),
     PuppeteerModule.forRoot({
-      headless: false,
-      executablePath: '/usr/bin/google-chrome-stable',
+      headless: true,
       channel: 'chrome',
       waitForInitialPage: true,
     }),
