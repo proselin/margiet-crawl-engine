@@ -13,7 +13,6 @@ import { TagModule } from '@crawl-engine/tag/tag.module';
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { PuppeteerModule } from 'nestjs-puppeteer';
-import { CrawlChapterService } from './crawl-chapter.service';
 import { CrawlJobProcessor } from './crawl-job.processor';
 
 @Module({
@@ -31,11 +30,6 @@ import { CrawlJobProcessor } from './crawl-job.processor';
     TagModule,
     ImageModule,
   ],
-  providers: [
-    CrawlJobProcessor,
-    CrawlChapterService,
-    CrawlImageService,
-    CrawlComicService,
-  ],
+  providers: [CrawlJobProcessor, CrawlImageService, CrawlComicService],
 })
 export class CrawlConsumerModule {}
