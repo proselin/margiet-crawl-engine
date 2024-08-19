@@ -2,8 +2,8 @@ import { AuthorService } from '@crawl-engine/author/author.service';
 import { CrawlProducerService } from '@crawl-engine/bull/producers/crawl-producer';
 import { CrawlRawData } from '@crawl-engine/bull/shared';
 import {
-  CrawlChapterData,
   CrawlComicJobData,
+  CrawlImageData,
 } from '@crawl-engine/bull/shared/types';
 import { Chapter } from '@crawl-engine/chapter/chapter.schema';
 import { ChapterService } from '@crawl-engine/chapter/chapter.service';
@@ -77,7 +77,7 @@ export class CrawlComicService {
         };
       }
 
-      const crawlChapterData: CrawlChapterData[] = [];
+      const crawlImageData: CrawlImageData[] = [];
       if (rawData.chapters) {
         comic.chapters = [];
         this.logger.debug('Process chapters >>');
@@ -95,17 +95,15 @@ export class CrawlComicService {
             id: newChapter.id,
           });
 
-          crawlChapterData.push({
-            dataId: chapter.dataId,
+          crawlImageData.push({
             chapterId: newChapter.id,
-            chapterNumber: chapter.chapNumber,
-            chapterURL: chapter.url,
+            chapterUrl: chapter.url,
           });
         }
       }
 
       await this.comicService.createOne(comic);
-      await this.crawlProducerService.addCrawlChapterJobs(crawlChapterData);
+      await this.crawlProducerService.addCrawlImageJobs(crawlImageData);
     } catch (e) {
       this.logger.error('Crawl Comic failed >>');
       this.logger.error(e);
