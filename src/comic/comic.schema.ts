@@ -38,6 +38,9 @@ export class Comic {
 
   @Prop(raw([ShortData]))
   chapters: ShortData[];
+
+  @Prop()
+  thumbUrl: string;
 }
 
 export const ComicSchema = SchemaFactory.createForClass(Comic);

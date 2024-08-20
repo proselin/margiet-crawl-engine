@@ -1,6 +1,6 @@
 import { AuthorService } from '@crawl-engine/author/author.service';
 import { CrawlProducerService } from '@crawl-engine/bull/producers/crawl-producer';
-import { CrawlRawData } from '@crawl-engine/bull/shared';
+import { ComicChapterPre, CrawlRawData } from '@crawl-engine/bull/shared';
 import {
   CrawlComicJobData,
   CrawlImageData,
@@ -13,8 +13,11 @@ import { InvalidComicInformation } from '@crawl-engine/common';
 import { StatusService } from '@crawl-engine/status/status.service';
 import { TagService } from '@crawl-engine/tag/tag.service';
 import { Injectable, Logger } from '@nestjs/common';
-import axios from 'axios';
 import { Job } from 'bullmq';
+import { InjectBrowser } from 'nestjs-puppeteer';
+import { Browser, Page } from 'puppeteer';
+import { CrawlUploadService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-upload.service';
+import { v1 } from 'uuid';
 
 @Injectable()
 export class CrawlComicService {
@@ -27,11 +30,21 @@ export class CrawlComicService {
     private readonly statusService: StatusService,
     private readonly tagService: TagService,
     private readonly crawlProducerService: CrawlProducerService,
+    private readonly uploadService: CrawlUploadService,
+    @InjectBrowser()
+    private browser: Browser,
   ) {}
 
   async handleCrawlJob(job: Job<CrawlComicJobData>) {
     try {
-      const rawData = await this.extractInfoFromComicPage(job.data.href);
+      const page = await this.browser.newPage();
+      await this.abortAllOutRequest(page, job.data.href);
+      await page.goto(job.data.href, {
+        waitUntil: 'domcontentloaded',
+        timeout: 0,
+      });
+      const rawData = await this.extractInfoFromComicPage(page);
+      await page.evaluate('document.write()');
       const comic: Comic = new Comic();
       if (rawData.name) {
         comic.name = rawData.name;
@@ -42,7 +55,7 @@ export class CrawlComicService {
       }
 
       if (rawData.author) {
-        this.logger.debug('Process author >>');
+        this.logger.log('Process author >>');
         const auth = await this.authorService.findAndCreate(
           { name: rawData.author },
           {},
@@ -54,7 +67,7 @@ export class CrawlComicService {
       }
 
       if (rawData.tags) {
-        this.logger.debug('Process tags >>');
+        this.logger.log('Process tags >>');
         comic.tags = [];
         for (const tag of rawData.tags) {
           const tagDoc = await this.tagService.findAndCreate({ name: tag }, {});
@@ -66,7 +79,7 @@ export class CrawlComicService {
       }
 
       if (rawData.status) {
-        this.logger.debug('Process status >>');
+        this.logger.log('Process status >>');
         const statusDoc = await this.statusService.findAndCreate(
           { name: rawData.status },
           {},
@@ -80,7 +93,7 @@ export class CrawlComicService {
       const crawlImageData: CrawlImageData[] = [];
       if (rawData.chapters) {
         comic.chapters = [];
-        this.logger.debug('Process chapters >>');
+        this.logger.log('Process chapters >>');
         for (const chapter of rawData.chapters) {
           const chapterDocument = new Chapter();
           chapterDocument.dataId = chapter.dataId;
@@ -102,6 +115,10 @@ export class CrawlComicService {
         }
       }
 
+      if (rawData.thumbUrl) {
+        comic.thumbUrl = await this.getThumbImage(page, rawData.thumbUrl);
+      }
+
       await this.comicService.createOne(comic);
       await this.crawlProducerService.addCrawlImageJobs(crawlImageData);
     } catch (e) {
@@ -110,70 +127,67 @@ export class CrawlComicService {
     }
   }
 
-  async extractInfoFromComicPage(comicPath: string): Promise<CrawlRawData> {
+  async extractInfoFromComicPage(page: Page): Promise<CrawlRawData> {
     let crawResult: CrawlRawData;
-    const res = await axios.get(comicPath);
-    const htmlContent = res.data;
-
-    if (!htmlContent) {
-      throw new InvalidComicInformation();
-    }
 
     try {
-      const author = htmlContent
-        .match(
-          /(?<=<li class="author row">.+<p class="col-xs-8">).+?(?=<\/p>)/,
-        )!
-        .toString()
-        .trim();
-      const status = htmlContent
-        .match(
-          /(?<=<li class="status row">.+<p class="col-xs-8">).+?(?=<\/p>)/,
-        )!
-        .toString()
-        .trim();
-      const tags = Array.from(
-        htmlContent
-          .match(
-            /(?<=<li class="kind row">.+<p class="col-xs-8">).+?(?=<\/p>)/,
-          )!
-          .toString()
-          .matchAll(/<a[^>]*>(.*?)<\/a>/g),
-        (m) => m[1],
+      const author = await page.$eval('.status.row .col-xs-8', (ele) =>
+        ele.textContent.trim(),
       );
-      const title = htmlContent.match(
-        /(?<=<h1 class="title-detail">)(.+?)(?=<\/h1>)/,
-      )![0];
-      const chapterElement: string[] =
-        htmlContent.match(
-          /(?<=<div class="col-xs-5 chapter">).+?(?=<\/div>)/g,
-        ) ?? [];
+      const status = await page.$eval('.status.row .col-xs-8', (ele) =>
+        ele.textContent.trim(),
+      );
+      const tags = await page.$$eval('.kind.row .col-xs-8 a', (eles) =>
+        eles.map((ele) => ele.textContent.trim()),
+      );
+      const title = await page.$eval('h1.title-detail', (ele) => {
+        return ele.textContent.trim();
+      });
+      const chapters: ComicChapterPre[] = await page.$$eval(
+        '.col-xs-5.chapter a',
+        (eles) =>
+          eles.map((ele) => {
+            return {
+              dataId: ele.dataset.id,
+              url: ele.href,
+              chapNumber: ele.textContent.match(/([\d.]+)/g)[0],
+            };
+          }),
+      );
 
+      const thumbUrl = await page.$eval('img.image-thumb', (ele) => {
+        return ele.src;
+      });
       crawResult = {
         author,
         status,
         name: title,
         tags,
-        totalChapter: chapterElement.length,
-        chapters: [],
+        totalChapter: chapters.length,
+        chapters,
+        thumbUrl,
       };
-
-      Array.from(chapterElement).forEach((chapter) => {
-        const href = chapter.match(/.(?<=href=".)(.*?)(?=")/)![0];
-        const dataId = chapter.match(/(?<=data-id=")(.*?)(?=")/)![0];
-        const chapterNumber = chapter.match(
-          /(?<=<a.+?>.+)([\d.]+)(?=<\/a>)/,
-        )![0];
-        crawResult.chapters.push({
-          dataId,
-          chapNumber: chapterNumber,
-          url: href,
-        });
-      });
     } catch (e) {
       throw new InvalidComicInformation();
     }
 
     return crawResult;
+  }
+
+  async getThumbImage(page: Page, thumbUrl: string) {
+    return this.uploadService
+      .crawlAndUploadImageToDriver(page, `thumb-${v1()}`, [thumbUrl])
+      .then((res) => {
+        return res.fileUrl;
+      });
+  }
+
+  private async abortAllOutRequest(page: Page, originURl: string) {
+    await page.setRequestInterception(true);
+    page.on('request', (request) => {
+      const url = request.url();
+      if (url == originURl) request.continue();
+      else request.abort('internetdisconnected');
+    });
   }
 }
