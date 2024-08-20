@@ -6,10 +6,7 @@ import { Chapter } from '@crawl-engine/chapter/chapter.schema';
 
 @Injectable()
 export class ChapterService extends BaseCurdService<Chapter> {
-  constructor(
-    @InjectModel(Chapter.name) protected readonly model: Model<Chapter>,
-  ) {
+  constructor(@InjectModel(Chapter.name) readonly model: Model<Chapter>) {
     super(new Logger(ChapterService.name), model);
   }
-
 }

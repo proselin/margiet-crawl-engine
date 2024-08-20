@@ -14,6 +14,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { PuppeteerModule } from 'nestjs-puppeteer';
 import { CrawlJobProcessor } from './crawl-job.processor';
+import { CrawlUploadService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-upload.service';
 
 @Module({
   imports: [
@@ -30,6 +31,11 @@ import { CrawlJobProcessor } from './crawl-job.processor';
     TagModule,
     ImageModule,
   ],
-  providers: [CrawlJobProcessor, CrawlImageService, CrawlComicService],
+  providers: [
+    CrawlJobProcessor,
+    CrawlImageService,
+    CrawlComicService,
+    CrawlUploadService,
+  ],
 })
 export class CrawlConsumerModule {}

@@ -3,6 +3,7 @@ import { Image } from '@crawl-engine/image/image.schema';
 import mongoose, { HydratedDocument } from 'mongoose';
 
 export type ChapterDocument = HydratedDocument<Chapter>;
+
 @Schema({
   timestamps: true,
 })
@@ -20,6 +21,9 @@ export class Chapter {
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Image' }],
   })
   images: Image[];
+
+  @Prop()
+  thumbUrl: string;
 }
 
 export const ChapterSchema = SchemaFactory.createForClass(Chapter);

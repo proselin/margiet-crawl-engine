@@ -23,5 +23,6 @@ export type CrawlRawData = {
   status: string;
   totalChapter: number;
   tags: string[];
+  thumbUrl: string;
   chapters: ComicChapterPre[];
 };
