@@ -1,7 +1,6 @@
 import { JobConstant } from '@crawl-engine/bull/shared';
 import { CrawlImageData } from '@crawl-engine/bull/shared/types';
 import { ChapterService } from '@crawl-engine/chapter/chapter.service';
-import { Image as ImageDoc } from '@crawl-engine/image/image.schema';
 import { ImageService } from '@crawl-engine/image/image.service';
 import { BeforeApplicationShutdown, Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
@@ -47,7 +46,6 @@ export class CrawlImageService implements BeforeApplicationShutdown {
       await this.page.setRequestInterception(false);
       this.page.off('request');
 
-      const newImages: ImageDoc[] = [];
       for (let index = 0; index < imgSvData.length; index++) {
         const imageUploadedInfo =
           await this.crawlUploadService.crawlAndUploadImageToDriver(
@@ -59,18 +57,17 @@ export class CrawlImageService implements BeforeApplicationShutdown {
           imageUploadedInfo.fileUrl,
           index,
         );
-        newImages.push(newImage);
+
+        await this.updateChapter(
+          {
+            images: newImage,
+          },
+          job.data.chapterId,
+        );
       }
 
-      await this.updateChapter(
-        {
-          images: newImages,
-        },
-        job.data.chapterId,
-      );
       return {
         chapterId: job.data.chapterId,
-        newImages,
       };
     } catch (e) {
       this.logger.error(e);
