@@ -24,12 +24,11 @@ export class CrawlUploadService {
     const contentType = responseSvData.headers?.['content-type'];
     const fileName = await this.generateFileName(prefixFileName, contentType);
 
-    const gbUploadResponse = await this.uploadFileToDrive(
+    return await this.uploadFileToDrive(
       responseSvData.buffer,
       contentType,
       fileName,
     );
-    return gbUploadResponse;
   }
 
   private async uploadFileToDrive(
@@ -65,7 +64,7 @@ export class CrawlUploadService {
   private async handleImageUrls(page: Page, imageUrls: string[]) {
     return new Promise<{ buffer: Buffer; headers: Record<string, string> }>(
       async (resolve, reject) => {
-        const urlSet = new Set<string>(...imageUrls);
+        const urlSet = new Set<string>(imageUrls);
         page.off('response');
         page.off('request');
         let timeoutRequest = null;
@@ -77,6 +76,7 @@ export class CrawlUploadService {
           ) {
             return;
           }
+
           this.logger.log('Had response on url ' + response.url());
           if (timeoutRequest) {
             clearTimeout(timeoutRequest);
@@ -88,19 +88,22 @@ export class CrawlUploadService {
           page.off('response', handlingResponse);
         };
         page.on('response', handlingResponse);
-        timeoutRequest = setTimeout(() => {
-          this.logger.error(
-            `Timeout dont have request on ${JSON.stringify(imageUrls)} `,
-          );
-          page.off('response', handlingResponse);
-          reject(`Timeout dont have request on ${JSON.stringify(imageUrls)}`);
-        }, 10000 * urlSet.size);
-        await this.constructHTMLImage(urlSet, page);
+        timeoutRequest = setTimeout(
+          () => {
+            this.logger.error(
+              `Timeout dont have request on ${JSON.stringify(imageUrls)} `,
+            );
+            page.off('response', handlingResponse);
+            reject(`Timeout dont have request on ${JSON.stringify(imageUrls)}`);
+          },
+          20000 * (urlSet.size || 1),
+        );
+        await this.constructHTMLImage(imageUrls, page);
       },
     );
   }
 
-  private constructHTMLImage(imageUrls: Set<string>, page: Page) {
+  private constructHTMLImage(imageUrls: string[], page: Page) {
     return page.evaluate((urls) => {
       return new Promise<void>((resolve, reject) => {
         const imgElement = document.createElement('img');
@@ -110,19 +113,19 @@ export class CrawlUploadService {
           resolve();
         });
         imgElement.addEventListener('error', (ev) => {
-          if (urls.size == 0) {
+          if (urls.length == 0) {
             console.error(imgElement.src);
             reject(ev);
             return;
           }
-          urls.delete(imgElement.src);
+          urls.splice(0, 1);
           imgElement.src = urls[0];
         });
 
         // Assign URL
         imgElement.src = urls[0];
       });
-    }, imageUrls);
+    }, Array.from(imageUrls));
   }
 
   private async generateFileName(prefixFileName: string, contentType: string) {

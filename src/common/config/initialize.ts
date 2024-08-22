@@ -1,9 +1,12 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
-import cookieParser from 'cookie-parser';
-import { LoggingInterceptor, TimeoutInterceptor, TransformInterceptor } from '../intercept';
+import * as cookieParser from 'cookie-parser';
+import {
+  LoggingInterceptor,
+  TimeoutInterceptor,
+  TransformInterceptor,
+} from '../intercept';
 import { Versions } from '../constant';
-import { Module } from '@nestjs/core/injector/module';
 
 export async function createApp(appModule: any) {
   const app = await NestFactory.create(appModule);
@@ -18,7 +21,7 @@ export async function createApp(appModule: any) {
 
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: Versions.V1
+    defaultVersion: Versions.V1,
   });
 
   app.use(cookieParser());

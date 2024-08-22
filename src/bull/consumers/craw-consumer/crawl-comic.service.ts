@@ -38,7 +38,7 @@ export class CrawlComicService {
   async handleCrawlJob(job: Job<CrawlComicJobData>) {
     try {
       const page = await this.browser.newPage();
-      await this.abortAllOutRequest(page, job.data.href);
+      await this.abortRequest(page, [job.data.href]);
       await page.goto(job.data.href, {
         waitUntil: 'domcontentloaded',
         timeout: 0,
@@ -116,9 +116,10 @@ export class CrawlComicService {
       }
 
       if (rawData.thumbUrl) {
+        this.logger.log('Process thumb image >>');
         comic.thumbUrl = await this.getThumbImage(page, rawData.thumbUrl);
       }
-
+      this.logger.log('Process create new comic >>');
       await this.comicService.createOne(comic);
       await this.crawlProducerService.addCrawlImageJobs(crawlImageData);
     } catch (e) {
@@ -131,6 +132,10 @@ export class CrawlComicService {
     let crawResult: CrawlRawData;
 
     try {
+      // const source = await page.content();
+      // const thumbUrl = source.match(
+      //   /(?<=class=['"]image-thumb['"].onerror=['"].+?['"].src=['"])(.+?)(?=['"])/g,
+      // )[0];
       const author = await page.$eval('.status.row .col-xs-8', (ele) =>
         ele.textContent.trim(),
       );
@@ -155,9 +160,6 @@ export class CrawlComicService {
           }),
       );
 
-      const thumbUrl = await page.$eval('img.image-thumb', (ele) => {
-        return ele.src;
-      });
       crawResult = {
         author,
         status,
@@ -165,7 +167,7 @@ export class CrawlComicService {
         tags,
         totalChapter: chapters.length,
         chapters,
-        thumbUrl,
+        thumbUrl: null,
       };
     } catch (e) {
       throw new InvalidComicInformation();
@@ -182,12 +184,19 @@ export class CrawlComicService {
       });
   }
 
-  private async abortAllOutRequest(page: Page, originURl: string) {
+  private async abortRequest(page: Page, ignoreUrls: string[]) {
     await page.setRequestInterception(true);
     page.on('request', (request) => {
       const url = request.url();
-      if (url == originURl) request.continue();
-      else request.abort('internetdisconnected');
+      if (
+        ignoreUrls.includes(url) ||
+        (request.resourceType() == 'image' &&
+          (url.endsWith('.png') || url.endsWith('.jpg')))
+      ) {
+        request.continue();
+        return;
+      }
+      request.abort('internetdisconnected');
     });
   }
 }
