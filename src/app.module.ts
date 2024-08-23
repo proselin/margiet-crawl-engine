@@ -7,6 +7,7 @@ import { CrawlProducerModule } from '@crawl-engine/bull/producers/crawl-producer
 import { MargietDbModule } from '@crawl-engine/database';
 import { BullmqConnectModule } from '@crawl-engine/common/connection/bullmq';
 import { PuppeteerModule } from 'nestjs-puppeteer';
+import { CrawlModule } from '@crawl-engine/crawl';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { PuppeteerModule } from 'nestjs-puppeteer';
     CrawlConsumerModule,
     CrawlProducerModule,
     MargietDbModule,
+    CrawlModule,
   ],
 })
 export class AppModule {}
