@@ -7,9 +7,16 @@ import {
   TransformInterceptor,
 } from '../intercept';
 import { Versions } from '../constant';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
 
 export async function createApp(appModule: any) {
-  const app = await NestFactory.create(appModule);
+  const app = await NestFactory.create<NestFastifyApplication>(
+    appModule,
+    new FastifyAdapter({ logger: true }),
+  );
 
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 
