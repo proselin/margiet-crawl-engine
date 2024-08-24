@@ -16,7 +16,7 @@ export class LoggingInterceptor implements NestInterceptor {
     const className = context.getClass().name;
 
     Logger.log(
-      `[${uuid}:${frsys}][${handler}]:[${type}]:: Incoming request ${className} \n Params ${JSON.stringify(request.params)} \n  Body ${JSON.stringify(request.body)} \n`,
+      `[${uuid}:${frsys}][${handler}]:[${type}]::Request on \n Params ${JSON.stringify(request.params)} \n  Body ${JSON.stringify(request.body)} \n`,
       className,
     );
     const now = Date.now();
@@ -24,7 +24,7 @@ export class LoggingInterceptor implements NestInterceptor {
       tap({
         next: () => {
           Logger.log(
-            `[${uuid}:${frsys}][${handler}]:[${type}]::Request complete in ${Date.now() - now}ms`,
+            `[${uuid}:${frsys}][${handler}]:[${type}]::Complete in ${Date.now() - now} ms`,
             className,
           );
         },

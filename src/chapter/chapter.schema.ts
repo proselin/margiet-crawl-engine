@@ -23,7 +23,10 @@ export class Chapter {
   images: Image[];
 
   @Prop()
-  thumbUrl: string;
+  name: String;
+
+  @Prop()
+  position: Number;
 }
 
 export const ChapterSchema = SchemaFactory.createForClass(Chapter);

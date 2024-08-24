@@ -1,14 +1,10 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument, ObjectId } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
+import { Image } from '@crawl-engine/image/image.schema';
 
 export const ShortData: Record<string, any> = {
   name: { type: String },
   id: { type: mongoose.Schema.Types.ObjectId },
-};
-
-export type ShortData = {
-  name: string;
-  id: string | ObjectId;
 };
 
 export type ComicDocument = HydratedDocument<Comic>;
@@ -18,29 +14,67 @@ export type ComicDocument = HydratedDocument<Comic>;
   autoIndex: true,
 })
 export class Comic {
-  @Prop(raw(ShortData))
-  tags: ShortData[];
+  @Prop(
+    raw({
+      name: String,
+      id: String,
+    }),
+  )
+  tags: {
+    name: string;
+    id: string;
+  }[];
 
   @Prop()
-  name: string;
+  name: String;
 
   @Prop()
   chapterCount: Number;
 
-  @Prop(raw(ShortData))
-  author: ShortData;
+  @Prop(
+    raw({
+      name: String,
+      id: String,
+    }),
+  )
+  author: {
+    name: string;
+    id: string;
+  };
 
-  @Prop(raw(ShortData))
-  status: ShortData;
+  @Prop(
+    raw({
+      name: String,
+      id: String,
+    }),
+  )
+  status: {
+    name: string;
+    id: string;
+  };
 
   @Prop()
   description: String;
 
-  @Prop(raw([ShortData]))
-  chapters: ShortData[];
+  @Prop(
+    raw([
+      {
+        name: String,
+        id: String,
+        position: Number,
+      },
+    ]),
+  )
+  chapters: {
+    name: string;
+    id: string;
+  }[];
 
-  @Prop()
-  thumbUrl: string;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Image',
+  })
+  thumbUrl: Image;
 }
 
 export const ComicSchema = SchemaFactory.createForClass(Comic);

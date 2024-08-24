@@ -2,7 +2,6 @@ import { AuthorModule } from '@crawl-engine/author/author.module';
 import { CrawlComicService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-comic.service';
 import { CrawlImageService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-image.service';
 import { CrawlProducerModule } from '@crawl-engine/bull/producers/crawl-producer';
-import { JobConstant } from '@crawl-engine/bull/shared';
 import { ChapterModule } from '@crawl-engine/chapter/chapter.module';
 import { ComicModule } from '@crawl-engine/comic/comic.module';
 import { GoogleDriveApiModule } from '@crawl-engine/common/connection/google-drive-api';
@@ -12,9 +11,9 @@ import { StatusModule } from '@crawl-engine/status/status.module';
 import { TagModule } from '@crawl-engine/tag/tag.module';
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
-import { PuppeteerModule } from 'nestjs-puppeteer';
 import { CrawlJobProcessor } from './crawl-job.processor';
 import { CrawlUploadService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-upload.service';
+import { CrawlChapterService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-chapter.service';
 
 @Module({
   imports: [
@@ -22,7 +21,6 @@ import { CrawlUploadService } from '@crawl-engine/bull/consumers/craw-consumer/c
     BullModule.registerQueue({
       name: ConstantBase.QUEUE_CRAWL_NAME,
     }),
-    PuppeteerModule.forFeature([JobConstant.CRAWL_IMAGE_PAGE_NAME]),
     CrawlProducerModule,
     ChapterModule,
     AuthorModule,
@@ -36,6 +34,7 @@ import { CrawlUploadService } from '@crawl-engine/bull/consumers/craw-consumer/c
     CrawlImageService,
     CrawlComicService,
     CrawlUploadService,
+    CrawlChapterService,
   ],
 })
 export class CrawlConsumerModule {}
