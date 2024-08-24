@@ -1,11 +1,7 @@
 import { AuthorService } from '@crawl-engine/author/author.service';
 import { CrawlProducerService } from '@crawl-engine/bull/producers/crawl-producer';
 import { ComicChapterPre, CrawlRawData } from '@crawl-engine/bull/shared';
-import {
-  CrawlComicJobData,
-  CrawlImageData,
-} from '@crawl-engine/bull/shared/types';
-import { Chapter } from '@crawl-engine/chapter/chapter.schema';
+import { CrawlComicJobData } from '@crawl-engine/bull/shared/types';
 import { ChapterService } from '@crawl-engine/chapter/chapter.service';
 import { Comic } from '@crawl-engine/comic/comic.schema';
 import { ComicService } from '@crawl-engine/comic/comic.service';
@@ -17,7 +13,6 @@ import { Job } from 'bullmq';
 import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
 import { CrawlUploadService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-upload.service';
-import { v1 } from 'uuid';
 
 @Injectable()
 export class CrawlComicService {
@@ -36,8 +31,9 @@ export class CrawlComicService {
   ) {}
 
   async handleCrawlJob(job: Job<CrawlComicJobData>) {
+    const page = await this.browser.newPage();
     try {
-      const page = await this.browser.newPage();
+      await page.setJavaScriptEnabled(false);
       await this.abortRequest(page, [job.data.href]);
       await page.goto(job.data.href, {
         waitUntil: 'domcontentloaded',
@@ -90,41 +86,39 @@ export class CrawlComicService {
         };
       }
 
-      const crawlImageData: CrawlImageData[] = [];
-      if (rawData.chapters) {
-        comic.chapters = [];
-        this.logger.log('Process chapters >>');
-        for (const chapter of rawData.chapters) {
-          const chapterDocument = new Chapter();
-          chapterDocument.dataId = chapter.dataId;
-          chapterDocument.images = [];
-          chapterDocument.chapterNumber = chapter.chapNumber;
+      comic.chapters = [];
+      comic.thumbUrl = null;
 
-          const newChapter =
-            await this.chapterService.createOne(chapterDocument);
-
-          comic.chapters.push({
-            name: chapter.chapNumber,
-            id: newChapter.id,
-          });
-
-          crawlImageData.push({
-            chapterId: newChapter.id,
-            chapterUrl: chapter.url,
-          });
-        }
-      }
+      this.logger.log('Process create new comic >>');
+      const createdComic = await this.comicService.createOne(comic);
 
       if (rawData.thumbUrl) {
-        this.logger.log('Process thumb image >>');
-        comic.thumbUrl = await this.getThumbImage(page, rawData.thumbUrl);
+        await this.crawlProducerService.addCrawlImageJobs([
+          {
+            isCrawlThumb: true,
+            imageUrls: [rawData.thumbUrl],
+            comicId: createdComic.id,
+            goto: job.data.href,
+          },
+        ]);
       }
-      this.logger.log('Process create new comic >>');
-      await this.comicService.createOne(comic);
-      await this.crawlProducerService.addCrawlImageJobs(crawlImageData);
+
+      await this.crawlProducerService.addCrawlChapterJobs(
+        rawData.chapters.map((chapter, index) => {
+          return {
+            url: chapter.url,
+            chapNumber: chapter.chapNumber,
+            dataId: chapter.dataId,
+            comicId: createdComic.id,
+            position: index,
+          };
+        }),
+      );
+      await page.close();
     } catch (e) {
       this.logger.error('Crawl Comic failed >>');
       this.logger.error(e);
+      await page.close();
     }
   }
 
@@ -132,10 +126,10 @@ export class CrawlComicService {
     let crawResult: CrawlRawData;
 
     try {
-      // const source = await page.content();
-      // const thumbUrl = source.match(
-      //   /(?<=class=['"]image-thumb['"].onerror=['"].+?['"].src=['"])(.+?)(?=['"])/g,
-      // )[0];
+      const thumbUrl = await page.$eval(
+        '.detail-info .col-image > img.image-thumb',
+        (ele) => ele.src,
+      );
       const author = await page.$eval('.status.row .col-xs-8', (ele) =>
         ele.textContent.trim(),
       );
@@ -149,7 +143,7 @@ export class CrawlComicService {
         return ele.textContent.trim();
       });
       const chapters: ComicChapterPre[] = await page.$$eval(
-        '.col-xs-5.chapter a',
+        '#desc > li > .chapter > a',
         (eles) =>
           eles.map((ele) => {
             return {
@@ -167,21 +161,13 @@ export class CrawlComicService {
         tags,
         totalChapter: chapters.length,
         chapters,
-        thumbUrl: null,
+        thumbUrl,
       };
     } catch (e) {
       throw new InvalidComicInformation();
     }
 
     return crawResult;
-  }
-
-  async getThumbImage(page: Page, thumbUrl: string) {
-    return this.uploadService
-      .crawlAndUploadImageToDriver(page, `thumb-${v1()}`, [thumbUrl])
-      .then((res) => {
-        return res.fileUrl;
-      });
   }
 
   private async abortRequest(page: Page, ignoreUrls: string[]) {

@@ -35,24 +35,4 @@ export class Environment implements Partial<IEnvironment> {
   @IsString()
   @IsNotEmpty()
   [EnvKey.DATASOURCE_MARGIET_URI]: string;
-
-  @IsString()
-  @IsNotEmpty()
-  [EnvKey.DATASOURCE_MARGIET_USERNAME]: string;
-
-  @IsString()
-  @IsNotEmpty()
-  [EnvKey.DATASOURCE_MARGIET_PWD]: string;
-
-  @IsString()
-  @IsNotEmpty()
-  [EnvKey.DATASOURCE_MARGIET_DBNAME]: string;
-
-  @IsString()
-  @IsNotEmpty()
-  [EnvKey.DATASOURCE_MARGIET_HOST]: string;
-
-  @IsString()
-  @IsNotEmpty()
-  [EnvKey.DATASOURCE_MARGIET_PORT]: string;
 }
