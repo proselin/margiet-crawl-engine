@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { Environment } from './environment';
 import { envValidation } from './common';
 import { CrawlConsumerModule } from '@crawl-engine/bull/consumers/craw-consumer';
@@ -26,17 +26,11 @@ import { LoggerModule } from 'nestjs-pino';
         },
       },
     }),
-    PuppeteerModule.forRootAsync({
-      inject: [ConfigService],
-      isGlobal: true,
-      useFactory: (_: ConfigService) => {
-        return {
-          headless: false,
-          devtools: true,
-          channel: 'chrome',
-          waitForInitialPage: true,
-        };
-      },
+    PuppeteerModule.forRoot({
+      headless: 'new',
+      devtools: true,
+      channel: 'chrome',
+      waitForInitialPage: true,
     }),
     BullmqConnectModule,
     CrawlConsumerModule,

@@ -6,10 +6,12 @@ export type CrawlImageData = CrawlThumbImage | CrawlChapterImages;
 
 export interface CrawlChapterImages {
   isCrawlThumb: false;
-  imageUrls: string[];
   chapterId: string;
-  position: number;
   goto: string;
+  images: {
+    imageUrls: string[];
+    position: number;
+  }[];
 }
 
 export interface CrawlThumbImage {

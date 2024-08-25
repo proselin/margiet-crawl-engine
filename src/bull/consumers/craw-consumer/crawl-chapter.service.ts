@@ -23,13 +23,15 @@ export class CrawlChapterService {
   async handleCrawlJob(job: Job<CrawlChapterData>) {
     const page = await this.browser.newPage();
     await page.setJavaScriptEnabled(false);
+    await page.setRequestInterception(true);
     await this.abortRequest(page, [job.data.url]);
     try {
       await page.goto(job.data.url, {
         waitUntil: 'domcontentloaded',
         timeout: 0,
       });
-
+      page.off('request');
+      await page.setRequestInterception(false);
       const imgServerUrls = await page.$$eval('.page-chapter img', (imgs) =>
         imgs.map((img) => {
           return [img.dataset.sv1, img.dataset.sv2];
@@ -60,17 +62,19 @@ export class CrawlChapterService {
         },
       );
 
-      await this.crawlProducerService.addCrawlImageJobs(
-        imgServerUrls.map((imageUrls, index) => {
-          return {
-            isCrawlThumb: false,
-            imageUrls,
-            chapterId: createdChapter.id,
-            goto: job.data.url,
-            position: index,
-          };
-        }),
-      );
+      await this.crawlProducerService.addCrawlImageJobs([
+        {
+          isCrawlThumb: false,
+          chapterId: createdChapter.id,
+          goto: job.data.url,
+          images: imgServerUrls.map((imageUrls, index) => {
+            return {
+              imageUrls,
+              position: index,
+            };
+          }),
+        },
+      ]);
       return createdChapter.id;
     } catch (e) {
     } finally {
@@ -79,7 +83,6 @@ export class CrawlChapterService {
   }
 
   private async abortRequest(page: Page, ignoreUrls: string[]) {
-    await page.setRequestInterception(true);
     page.on('request', (request) => {
       const url = request.url();
       if (
