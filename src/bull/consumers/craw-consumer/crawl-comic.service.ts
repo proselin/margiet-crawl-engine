@@ -2,7 +2,6 @@ import { AuthorService } from '@crawl-engine/author/author.service';
 import { CrawlProducerService } from '@crawl-engine/bull/producers/crawl-producer';
 import { ComicChapterPre, CrawlRawData } from '@crawl-engine/bull/shared';
 import { CrawlComicJobData } from '@crawl-engine/bull/shared/types';
-import { ChapterService } from '@crawl-engine/chapter/chapter.service';
 import { Comic } from '@crawl-engine/comic/comic.schema';
 import { ComicService } from '@crawl-engine/comic/comic.service';
 import { InvalidComicInformation } from '@crawl-engine/common';
@@ -12,20 +11,17 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
-import { CrawlUploadService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-upload.service';
 
 @Injectable()
 export class CrawlComicService {
   private logger = new Logger(CrawlComicService.name);
 
   constructor(
-    private readonly chapterService: ChapterService,
     private readonly authorService: AuthorService,
     private readonly comicService: ComicService,
     private readonly statusService: StatusService,
     private readonly tagService: TagService,
     private readonly crawlProducerService: CrawlProducerService,
-    private readonly uploadService: CrawlUploadService,
     @InjectBrowser()
     private browser: Browser,
   ) {}
@@ -34,11 +30,14 @@ export class CrawlComicService {
     const page = await this.browser.newPage();
     try {
       await page.setJavaScriptEnabled(false);
+      await page.setRequestInterception(true);
       await this.abortRequest(page, [job.data.href]);
       await page.goto(job.data.href, {
         waitUntil: 'domcontentloaded',
         timeout: 0,
       });
+      page.off('request');
+      await page.setRequestInterception(false);
       const rawData = await this.extractInfoFromComicPage(page);
       await page.evaluate('document.write()');
       const comic: Comic = new Comic();
@@ -171,7 +170,6 @@ export class CrawlComicService {
   }
 
   private async abortRequest(page: Page, ignoreUrls: string[]) {
-    await page.setRequestInterception(true);
     page.on('request', (request) => {
       const url = request.url();
       if (

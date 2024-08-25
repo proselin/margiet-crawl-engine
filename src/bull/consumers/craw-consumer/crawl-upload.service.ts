@@ -31,6 +31,73 @@ export class CrawlUploadService {
     );
   }
 
+  async crawlAndUploadMulti(
+    page: Page,
+    prefixFileName: string,
+    data: {
+      imageUrls: string[];
+      position: number;
+    }[],
+  ): Promise<any[]> {
+    page.off('response');
+    page.off('request');
+
+    return new Promise(async (resolve) => {
+      const flags = data.map((z) => {
+        const urlFlags: Record<string, boolean> = {};
+        z.imageUrls.forEach((url) => (urlFlags[url] = true));
+        return {
+          position: z.position,
+          urlFlags,
+          isAllCheck: false,
+          GUrl: null,
+        };
+      });
+      page.on('response', async (response) => {
+        const currentFlag = flags.find((flag) =>
+          flag.urlFlags.hasOwnProperty(response.url()),
+        );
+        if (
+          response.request().resourceType() !== 'image' ||
+          response.status() !== HttpStatus.OK
+        ) {
+          currentFlag.urlFlags[response.url()] = false;
+          return;
+        }
+        const contentType = response.headers?.['content-type'];
+        const fileName = await this.generateFileName(
+          prefixFileName,
+          contentType,
+        );
+        currentFlag.urlFlags[response.url()] = true;
+        currentFlag.GUrl = await this.uploadFileToDrive(
+          await response.buffer(),
+          contentType,
+          fileName,
+        );
+        if (
+          flags.every((flag) => {
+            if (flag.isAllCheck) {
+              return true;
+            }
+            if (
+              Object.values(flag.urlFlags).filter((val) => !!val).length > 0
+            ) {
+              flag.isAllCheck = true;
+              return true;
+            }
+            return false;
+          })
+        ) {
+          resolve(flags);
+        }
+      });
+      for (const w of data) {
+        await this.constructHTMLImage(w.imageUrls, page);
+      }
+    });
+  }
+
   private async uploadFileToDrive(
     file: Buffer,
     contentType: string,
@@ -85,7 +152,6 @@ export class CrawlUploadService {
             buffer: await response.buffer(),
             headers: response.headers(),
           });
-          page.off('response', handlingResponse);
         };
         page.on('response', handlingResponse);
         timeoutRequest = setTimeout(

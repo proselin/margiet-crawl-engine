@@ -3,7 +3,10 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { ConstantBase } from '@crawl-engine/common/utils/constant.base';
 import { JobConstant } from '@crawl-engine/bull/shared';
-import { CrawlComicJobData } from '@crawl-engine/bull/shared/types';
+import {
+  CrawlComicJobData,
+  CrawlImageData,
+} from '@crawl-engine/bull/shared/types';
 
 @Injectable()
 export class CrawlService {
@@ -25,5 +28,9 @@ export class CrawlService {
     const name = JobConstant.CRAWL_COMIC_JOB_NAME;
     const data: CrawlComicJobData = { href };
     return await this.crawlQueue.add(name, data);
+  }
+
+  addCrawlImagesJob(data: CrawlImageData) {
+    return this.crawlQueue.add(JobConstant.CRAWL_IMAGE_JOB_NAME, data);
   }
 }
