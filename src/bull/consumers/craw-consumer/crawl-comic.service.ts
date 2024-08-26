@@ -11,6 +11,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
+import { CrawlImageService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-image.service';
 
 @Injectable()
 export class CrawlComicService {
@@ -24,6 +25,7 @@ export class CrawlComicService {
     private readonly crawlProducerService: CrawlProducerService,
     @InjectBrowser()
     private browser: Browser,
+    private crawlImageService: CrawlImageService,
   ) {}
 
   async handleCrawlJob(job: Job<CrawlComicJobData>) {
@@ -92,14 +94,11 @@ export class CrawlComicService {
       const createdComic = await this.comicService.createOne(comic);
 
       if (rawData.thumbUrl) {
-        await this.crawlProducerService.addCrawlImageJobs([
-          {
-            isCrawlThumb: true,
-            imageUrls: [rawData.thumbUrl],
-            comicId: createdComic.id,
-            goto: job.data.href,
-          },
-        ]);
+        await this.crawlImageService.handleCrawlThumbUrl(page, {
+          imageUrls: [rawData.thumbUrl],
+          comicId: createdComic.id,
+          goto: job.data.href,
+        });
       }
 
       await this.crawlProducerService.addCrawlChapterJobs(

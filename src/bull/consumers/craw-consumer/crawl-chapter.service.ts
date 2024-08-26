@@ -7,6 +7,7 @@ import { Chapter } from '@crawl-engine/chapter/chapter.schema';
 import { ChapterService } from '@crawl-engine/chapter/chapter.service';
 import { CrawlProducerService } from '@crawl-engine/bull/producers/crawl-producer';
 import { ComicService } from '@crawl-engine/comic/comic.service';
+import { CrawlImageService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-image.service';
 
 @Injectable()
 export class CrawlChapterService {
@@ -18,6 +19,7 @@ export class CrawlChapterService {
     private comicService: ComicService,
     @InjectBrowser()
     private readonly browser: Browser,
+    private readonly crawlImageService: CrawlImageService,
   ) {}
 
   async handleCrawlJob(job: Job<CrawlChapterData>) {
@@ -30,8 +32,10 @@ export class CrawlChapterService {
         waitUntil: 'domcontentloaded',
         timeout: 0,
       });
+
       page.off('request');
       await page.setRequestInterception(false);
+
       const imgServerUrls = await page.$$eval('.page-chapter img', (imgs) =>
         imgs.map((img) => {
           return [img.dataset.sv1, img.dataset.sv2];
@@ -62,9 +66,9 @@ export class CrawlChapterService {
         },
       );
 
-      await this.crawlProducerService.addCrawlImageJobs([
+      const rs = await this.crawlImageService.handleCrawlAndUploadChapterImage(
+        page,
         {
-          isCrawlThumb: false,
           chapterId: createdChapter.id,
           goto: job.data.url,
           images: imgServerUrls.map((imageUrls, index) => {
@@ -74,9 +78,14 @@ export class CrawlChapterService {
             };
           }),
         },
-      ]);
-      return createdChapter.id;
+      );
+      return {
+        chapterId: createdChapter.id,
+        images: rs,
+      };
     } catch (e) {
+      this.logger.error(`Crawl job ${job.token} Fail :=`);
+      this.logger.error(e);
     } finally {
       await page.close();
     }
@@ -85,15 +94,11 @@ export class CrawlChapterService {
   private async abortRequest(page: Page, ignoreUrls: string[]) {
     page.on('request', (request) => {
       const url = request.url();
-      if (
-        ignoreUrls.includes(url) ||
-        (request.resourceType() == 'image' &&
-          (url.endsWith('.png') || url.endsWith('.jpg')))
-      ) {
+      if (ignoreUrls.includes(url)) {
         request.continue();
         return;
       }
-      request.abort('internetdisconnected');
+      request.abort('blockedbyclient');
     });
   }
 

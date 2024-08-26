@@ -1,12 +1,10 @@
 import {
   CrawlChapterImages,
-  CrawlImageData,
   CrawlThumbImage,
 } from '@crawl-engine/bull/shared/types';
 import { ChapterService } from '@crawl-engine/chapter/chapter.service';
 import { ImageService } from '@crawl-engine/image/image.service';
 import { BeforeApplicationShutdown, Injectable, Logger } from '@nestjs/common';
-import { Job } from 'bullmq';
 import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
 import { CrawlUploadService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-upload.service';
@@ -22,47 +20,6 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     @InjectBrowser()
     private browser: Browser,
   ) {}
-
-  async handleCrawlJob(job: Job<CrawlImageData>) {
-    const page = await this.browser.newPage();
-    try {
-      this.logger.log(
-        `Process crawl job image ${job.token} with ChapterUrl ${job.data.goto}`,
-      );
-      await page.setRequestInterception(true);
-      await this.abortRequest(page, job.data.goto);
-      await page.goto(job.data.goto, {
-        timeout: 0,
-        waitUntil: 'domcontentloaded',
-      });
-
-      await page.evaluate('document.write()');
-      page.off('request');
-      await page.setRequestInterception(false);
-
-      if (!job.data.isCrawlThumb) {
-        return await this.handleUploadChapterImage(
-          page,
-          job.data as CrawlChapterImages,
-        ).then(async (r) => {
-          await page.close();
-          return r;
-        });
-      }
-      return await this.handleCrawlThumbUrl(
-        page,
-        job.data as CrawlThumbImage,
-      ).then(async (r) => {
-        await page.close();
-        return r;
-      });
-    } catch (e) {
-      this.logger.error(e);
-      console.trace(e);
-      await page.close();
-      throw e;
-    }
-  }
 
   async handleCrawlThumbUrl(page: Page, jobData: CrawlThumbImage) {
     const imageUploadedInfo =
@@ -88,7 +45,10 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     };
   }
 
-  async handleUploadChapterImage(page: Page, jobData: CrawlChapterImages) {
+  async handleCrawlAndUploadChapterImage(
+    page: Page,
+    jobData: CrawlChapterImages,
+  ) {
     const rs: {
       id: string;
     }[] = [];
@@ -114,6 +74,7 @@ export class CrawlImageService implements BeforeApplicationShutdown {
       rs.push({
         id: newImage.id,
       });
+      return rs;
     }
   }
 
