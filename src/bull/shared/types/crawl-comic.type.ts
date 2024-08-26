@@ -2,10 +2,7 @@ export interface CrawlComicJobData {
   href: string;
 }
 
-export type CrawlImageData = CrawlThumbImage | CrawlChapterImages;
-
 export interface CrawlChapterImages {
-  isCrawlThumb: false;
   chapterId: string;
   goto: string;
   images: {
@@ -15,7 +12,6 @@ export interface CrawlChapterImages {
 }
 
 export interface CrawlThumbImage {
-  isCrawlThumb: true;
   imageUrls: string[];
   comicId: string;
   goto: string;
