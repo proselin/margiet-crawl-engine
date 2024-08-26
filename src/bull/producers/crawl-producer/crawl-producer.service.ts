@@ -3,10 +3,7 @@ import { ConstantBase } from '@crawl-engine/common/utils/constant.base';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bullmq';
-import {
-  CrawlChapterData,
-  CrawlImageData,
-} from '@crawl-engine/bull/shared/types';
+import { CrawlChapterData } from '@crawl-engine/bull/shared/types';
 
 @Injectable()
 export class CrawlProducerService {
@@ -25,21 +22,6 @@ export class CrawlProducerService {
       jobData.map((data) => {
         return {
           name: JobConstant.CRAWL_CHAPTER_JOB_NAME,
-          data,
-          opts: {
-            delay: 1000,
-          },
-        };
-      }),
-    );
-  }
-
-  async addCrawlImageJobs(jobData: CrawlImageData[]) {
-    this.logger.log(`Add ${jobData.length} crawl image jobs to the queue! >>`);
-    return await this.crawlQueue.addBulk(
-      jobData.map((data) => {
-        return {
-          name: JobConstant.CRAWL_IMAGE_JOB_NAME,
           data,
           opts: {
             delay: 1000,
