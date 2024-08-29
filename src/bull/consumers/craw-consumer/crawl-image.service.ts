@@ -8,6 +8,7 @@ import { BeforeApplicationShutdown, Injectable, Logger } from '@nestjs/common';
 import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
 import { CrawlUploadService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-upload.service';
+import { Image } from '@crawl-engine/image/image.schema';
 
 @Injectable()
 export class CrawlImageService implements BeforeApplicationShutdown {
@@ -25,33 +26,17 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     const imageUploadedInfo =
       await this.crawlUploadService.crawlAndUploadImageToDriver(
         page,
-        `cm-${jobData.comicId}`,
+        `cm-${Date.now()}`,
         jobData.imageUrls,
       );
-    const newImage = await this.createImageDocument(
-      imageUploadedInfo.fileUrl,
-      0,
-    );
-
-    await this.updateComic(
-      {
-        thumbUrl: newImage,
-      },
-      jobData.comicId,
-    );
-
-    return {
-      id: newImage.id,
-    };
+    return this.createImageDocument(imageUploadedInfo.fileUrl, 0);
   }
 
   async handleCrawlAndUploadChapterImage(
     page: Page,
     jobData: CrawlChapterImages,
   ) {
-    const rs: {
-      id: string;
-    }[] = [];
+    const rs: Image[] = [];
     for (const image of jobData.images) {
       const imageUploadedInfo =
         await this.crawlUploadService.crawlAndUploadImageToDriver(
@@ -71,11 +56,9 @@ export class CrawlImageService implements BeforeApplicationShutdown {
         jobData.chapterId,
       );
 
-      rs.push({
-        id: newImage.id,
-      });
-      return rs;
+      rs.push(newImage);
     }
+    return rs;
   }
 
   async updateChapter(pushModel: Record<string, any>, chapterId: string) {
@@ -83,17 +66,6 @@ export class CrawlImageService implements BeforeApplicationShutdown {
       return await this.chapterService.findByIdAndUpdate(
         { _id: chapterId },
         { $push: pushModel },
-      );
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  async updateComic(pushModel: Record<string, any>, comicId: string) {
-    try {
-      return await this.chapterService.findByIdAndUpdate(
-        { _id: comicId },
-        { $set: pushModel },
       );
     } catch (e) {
       throw e;
@@ -108,11 +80,6 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     page.on('request', (request) => {
       const url = request.url();
       if (url == originURl) {
-        request.continue();
-        return;
-      }
-
-      if (url.includes('clobberprocurertightwad')) {
         request.continue();
         return;
       }

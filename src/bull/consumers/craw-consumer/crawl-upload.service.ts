@@ -24,11 +24,7 @@ export class CrawlUploadService {
     const contentType = responseSvData.headers?.['content-type'];
     const fileName = await this.generateFileName(prefixFileName, contentType);
 
-    return await this.uploadFileToDrive(
-      responseSvData.buffer,
-      contentType,
-      fileName,
-    );
+    return this.uploadFileToDrive(responseSvData.buffer, contentType, fileName);
   }
 
   async crawlAndUploadMulti(
@@ -131,67 +127,83 @@ export class CrawlUploadService {
   private async handleImageUrls(page: Page, imageUrls: string[]) {
     return new Promise<{ buffer: Buffer; headers: Record<string, string> }>(
       async (resolve, reject) => {
-        const urlSet = new Set<string>(imageUrls);
-        page.off('response');
-        page.off('request');
-        let timeoutRequest = null;
-        const handlingResponse = async (response: HTTPResponse) => {
-          if (
-            response.request().resourceType() !== 'image' ||
-            response.status() !== HttpStatus.OK ||
-            !urlSet.has(response.url())
-          ) {
-            return;
-          }
+        try {
+          const urlSet = new Set<string>(imageUrls);
+          page.off('response');
+          page.off('request');
+          let timeoutRequest = null;
+          page.once('response', async (response: HTTPResponse) => {
+            if (
+              response.request().resourceType() !== 'image' ||
+              response.status() !== HttpStatus.OK ||
+              !urlSet.has(response.url())
+            ) {
+              return;
+            }
 
-          this.logger.log('Had response on url ' + response.url());
-          if (timeoutRequest) {
-            clearTimeout(timeoutRequest);
-          }
-          resolve({
-            buffer: await response.buffer(),
-            headers: response.headers(),
+            this.logger.log('Had response on url := ' + response.url());
+            timeoutRequest && clearTimeout(timeoutRequest);
+            const buffer = await response.buffer();
+            resolve({
+              buffer,
+              headers: response.headers(),
+            });
+            page.off('response');
           });
-        };
-        page.on('response', handlingResponse);
-        timeoutRequest = setTimeout(
-          () => {
-            this.logger.error(
-              `Timeout dont have request on ${JSON.stringify(imageUrls)} `,
-            );
-            page.off('response', handlingResponse);
-            reject(`Timeout dont have request on ${JSON.stringify(imageUrls)}`);
-          },
-          20000 * (urlSet.size || 1),
-        );
-        await this.constructHTMLImage(imageUrls, page);
+          timeoutRequest = setTimeout(
+            () => {
+              this.logger.error(
+                `Timeout dont have request on ${JSON.stringify(imageUrls)} `,
+              );
+              page.off('response');
+              reject(
+                `Timeout dont have request on ${JSON.stringify(imageUrls)}`,
+              );
+            },
+            15000 * (urlSet.size || 1),
+          );
+          await this.constructHTMLImage(imageUrls, page);
+          this.logger.log(`${this.handleImageUrls.name}:= Loaded Image`);
+        } catch (e) {
+          this.logger.error(
+            `Crawl Image fail url := ${JSON.stringify(imageUrls)}`,
+          );
+          console.trace(e);
+          reject(e);
+        }
       },
     );
   }
 
   private constructHTMLImage(imageUrls: string[], page: Page) {
-    return page.evaluate((urls) => {
-      return new Promise<void>((resolve, reject) => {
-        const imgElement = document.createElement('img');
-        imgElement.setAttribute('referrerpolicy', 'origin');
-        imgElement.addEventListener('load', (e) => {
-          console.log('Loaded Image', e);
-          resolve();
-        });
-        imgElement.addEventListener('error', (ev) => {
-          if (urls.length == 0) {
-            console.error(imgElement.src);
-            reject(ev);
-            return;
-          }
-          urls.splice(0, 1);
+    try {
+      return page.evaluate((urls) => {
+        return new Promise<void>((resolve, reject) => {
+          const imgElement = document.createElement('img');
+          imgElement.setAttribute('referrerpolicy', 'origin');
+          imgElement.addEventListener('load', (e) => {
+            console.log('Loaded Image', e);
+            resolve();
+          });
+          imgElement.addEventListener('error', (ev) => {
+            if (urls.length == 0) {
+              console.error(imgElement.src);
+              reject(ev);
+              return;
+            }
+            urls.splice(0, 1);
+            imgElement.src = urls[0];
+          });
+
+          // Assign URL
           imgElement.src = urls[0];
         });
-
-        // Assign URL
-        imgElement.src = urls[0];
-      });
-    }, Array.from(imageUrls));
+      }, Array.from(imageUrls));
+    } catch (e) {
+      this.logger.error(`Construct Image error ${e}`);
+      this.logger.error(e);
+      console.trace(e);
+    }
   }
 
   private async generateFileName(prefixFileName: string, contentType: string) {

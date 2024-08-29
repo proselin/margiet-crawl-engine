@@ -10,12 +10,7 @@ import { Module } from '@nestjs/common';
       useFactory: (configService): MongooseModuleFactoryOptions => {
         return {
           appName: 'Margiet',
-          uri:
-            'mongodb://' +
-            `${configService.get(EnvKey.DATASOURCE_MARGIET_HOST, 'localhost')}:` +
-            `${configService.get(EnvKey.DATASOURCE_MARGIET_PORT, 27017)}`,
-          user: configService.get(EnvKey.DATASOURCE_MARGIET_USERNAME, 'root'),
-          pass: configService.get(EnvKey.DATASOURCE_MARGIET_PWD, 'example'),
+          uri: configService.get(EnvKey.DATASOURCE_MARGIET_URI),
           dbName: configService.get(
             EnvKey.DATASOURCE_MARGIET_DBNAME,
             'nestjs_db',

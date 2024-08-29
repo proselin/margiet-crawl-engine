@@ -13,7 +13,6 @@ export interface CrawlChapterImages {
 
 export interface CrawlThumbImage {
   imageUrls: string[];
-  comicId: string;
   goto: string;
 }
 
