@@ -5,7 +5,6 @@ import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
 import { Chapter } from '@crawl-engine/chapter/chapter.schema';
 import { ChapterService } from '@crawl-engine/chapter/chapter.service';
-import { CrawlProducerService } from '@crawl-engine/bull/producers/crawl-producer';
 import { ComicService } from '@crawl-engine/comic/comic.service';
 import { CrawlImageService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-image.service';
 
@@ -15,7 +14,6 @@ export class CrawlChapterService {
 
   constructor(
     private chapterService: ChapterService,
-    private crawlProducerService: CrawlProducerService,
     private comicService: ComicService,
     @InjectBrowser()
     private readonly browser: Browser,
@@ -65,7 +63,6 @@ export class CrawlChapterService {
           },
         },
       );
-
       const rs = await this.crawlImageService.handleCrawlAndUploadChapterImage(
         page,
         {
@@ -79,6 +76,9 @@ export class CrawlChapterService {
           }),
         },
       );
+      setTimeout(async () => {
+        await page.close();
+      });
       return {
         chapterId: createdChapter.id,
         images: rs,
@@ -86,7 +86,6 @@ export class CrawlChapterService {
     } catch (e) {
       this.logger.error(`Crawl job ${job.token} Fail :=`);
       this.logger.error(e);
-    } finally {
       await page.close();
     }
   }

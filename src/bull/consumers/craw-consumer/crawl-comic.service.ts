@@ -32,14 +32,19 @@ export class CrawlComicService {
     const page = await this.browser.newPage();
     try {
       await page.setJavaScriptEnabled(false);
+
       await page.setRequestInterception(true);
+
       await this.abortRequest(page, [job.data.href]);
+
       await page.goto(job.data.href, {
         waitUntil: 'domcontentloaded',
         timeout: 0,
       });
+
       page.off('request');
       await page.setRequestInterception(false);
+
       const rawData = await this.extractInfoFromComicPage(page);
       await page.evaluate('document.write()');
       const comic: Comic = new Comic();
@@ -88,18 +93,21 @@ export class CrawlComicService {
       }
 
       comic.chapters = [];
-      comic.thumbUrl = null;
-
-      this.logger.log('Process create new comic >>');
-      const createdComic = await this.comicService.createOne(comic);
 
       if (rawData.thumbUrl) {
-        await this.crawlImageService.handleCrawlThumbUrl(page, {
-          imageUrls: [rawData.thumbUrl],
-          comicId: createdComic.id,
-          goto: job.data.href,
-        });
+        comic.thumbUrl = null;
+        this.logger.log('Process crawl image thumb url');
+        comic.thumbUrl = await this.crawlImageService.handleCrawlThumbUrl(
+          page,
+          {
+            imageUrls: [rawData.thumbUrl],
+            goto: job.data.href,
+          },
+        );
       }
+
+      this.logger.log('Process create new comic');
+      const createdComic = await this.comicService.createOne(comic);
 
       await this.crawlProducerService.addCrawlChapterJobs(
         rawData.chapters.map((chapter, index) => {
@@ -171,11 +179,7 @@ export class CrawlComicService {
   private async abortRequest(page: Page, ignoreUrls: string[]) {
     page.on('request', (request) => {
       const url = request.url();
-      if (
-        ignoreUrls.includes(url) ||
-        (request.resourceType() == 'image' &&
-          (url.endsWith('.png') || url.endsWith('.jpg')))
-      ) {
+      if (ignoreUrls.includes(url)) {
         request.continue();
         return;
       }

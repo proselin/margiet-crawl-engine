@@ -15,7 +15,6 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { PuppeteerModule } from 'nestjs-puppeteer';
 import { CrawlJobProcessor } from './crawl-job.processor';
-import { JobConstant } from '@crawl-engine/bull/shared';
 
 @Module({
   imports: [
@@ -23,7 +22,7 @@ import { JobConstant } from '@crawl-engine/bull/shared';
     BullModule.registerQueue({
       name: ConstantBase.QUEUE_CRAWL_NAME,
     }),
-    PuppeteerModule.forFeature([JobConstant.CRAWL_IMAGE_PAGE_NAME]),
+    PuppeteerModule.forFeature([]),
     CrawlProducerModule,
     ChapterModule,
     AuthorModule,
