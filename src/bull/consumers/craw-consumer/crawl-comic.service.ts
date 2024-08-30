@@ -120,11 +120,9 @@ export class CrawlComicService {
           };
         }),
       );
-      await page.close();
     } catch (e) {
       this.logger.error('Crawl Comic failed >>');
       this.logger.error(e);
-      await page.close();
     }
   }
 

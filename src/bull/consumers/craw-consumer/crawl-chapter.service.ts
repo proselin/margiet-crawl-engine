@@ -76,9 +76,6 @@ export class CrawlChapterService {
           }),
         },
       );
-      setTimeout(async () => {
-        await page.close();
-      });
       return {
         chapterId: createdChapter.id,
         images: rs,
@@ -86,7 +83,6 @@ export class CrawlChapterService {
     } catch (e) {
       this.logger.error(`Crawl job ${job.token} Fail :=`);
       this.logger.error(e);
-      await page.close();
     }
   }
 

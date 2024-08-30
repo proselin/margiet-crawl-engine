@@ -1,14 +1,14 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { Environment } from './environment';
-import { envValidation } from './common';
 import { CrawlConsumerModule } from '@crawl-engine/bull/consumers/craw-consumer';
 import { CrawlProducerModule } from '@crawl-engine/bull/producers/crawl-producer';
-import { MargietDbModule } from '@crawl-engine/database';
 import { BullmqConnectModule } from '@crawl-engine/common/connection/bullmq';
-import { PuppeteerModule } from 'nestjs-puppeteer';
 import { CrawlModule } from '@crawl-engine/crawl';
+import { MargietDbModule } from '@crawl-engine/database';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
+import { PuppeteerModule } from 'nestjs-puppeteer';
+import { envValidation } from './common';
+import { Environment } from './environment';
 
 @Module({
   imports: [
@@ -27,7 +27,7 @@ import { LoggerModule } from 'nestjs-pino';
       },
     }),
     PuppeteerModule.forRoot({
-      headless: 'new',
+      headless: false,
       devtools: true,
       channel: 'chrome',
       waitForInitialPage: true,
