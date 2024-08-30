@@ -132,7 +132,7 @@ export class CrawlUploadService {
           page.off('response');
           page.off('request');
           let timeoutRequest = null;
-          page.once('response', async (response: HTTPResponse) => {
+          page.on('response', async (response: HTTPResponse) => {
             if (
               response.request().resourceType() !== 'image' ||
               response.status() !== HttpStatus.OK ||
@@ -160,7 +160,7 @@ export class CrawlUploadService {
                 `Timeout dont have request on ${JSON.stringify(imageUrls)}`,
               );
             },
-            15000 * (urlSet.size || 1),
+            20000 * (urlSet.size || 1),
           );
           await this.constructHTMLImage(imageUrls, page);
           this.logger.log(`${this.handleImageUrls.name}:= Loaded Image`);
@@ -178,26 +178,22 @@ export class CrawlUploadService {
   private constructHTMLImage(imageUrls: string[], page: Page) {
     try {
       return page.evaluate((urls) => {
-        return new Promise<void>((resolve, reject) => {
-          const imgElement = document.createElement('img');
-          imgElement.setAttribute('referrerpolicy', 'origin');
-          imgElement.addEventListener('load', (e) => {
-            console.log('Loaded Image', e);
-            resolve();
-          });
-          imgElement.addEventListener('error', (ev) => {
-            if (urls.length == 0) {
-              console.error(imgElement.src);
-              reject(ev);
-              return;
-            }
-            urls.splice(0, 1);
-            imgElement.src = urls[0];
-          });
-
-          // Assign URL
+        const imgElement = document.createElement('img');
+        imgElement.setAttribute('referrerpolicy', 'origin');
+        imgElement.addEventListener('load', (e) => {
+          console.log('Loaded Image', e);
+        });
+        imgElement.addEventListener('error', (ev) => {
+          if (urls.length == 0) {
+            console.error(imgElement.src);
+            return;
+          }
+          urls.splice(0, 1);
           imgElement.src = urls[0];
         });
+
+        // Assign URL
+        imgElement.src = urls[0];
       }, Array.from(imageUrls));
     } catch (e) {
       this.logger.error(`Construct Image error ${e}`);
