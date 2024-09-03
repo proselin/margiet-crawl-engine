@@ -5,10 +5,11 @@ import { CrawlModule } from '@crawl-engine/crawl';
 import { MargietDbModule } from '@crawl-engine/database';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { LoggerModule } from 'nestjs-pino';
 import { PuppeteerModule } from 'nestjs-puppeteer';
 import { envValidation } from './common';
 import { Environment } from './environment';
+import { WinstonLoggerModule } from './common/logger/winston';
+import { MinioConnectModule } from '@crawl-engine/common/connection/minio';
 
 @Module({
   imports: [
@@ -16,18 +17,9 @@ import { Environment } from './environment';
       isGlobal: true,
       validate: () => envValidation(Environment),
     }),
-    LoggerModule.forRoot({
-      pinoHttp: {
-        transport: {
-          target: 'pino-pretty',
-          options: {
-            singleLine: true,
-          },
-        },
-      },
-    }),
+    WinstonLoggerModule,
     PuppeteerModule.forRoot({
-      headless: false,
+      headless: 'new',
       devtools: true,
       channel: 'chrome',
       waitForInitialPage: true,
