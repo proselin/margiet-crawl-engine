@@ -120,7 +120,7 @@ export abstract class BaseCurdService<Entity> implements IBaseCurl<Entity> {
     return updatedEntity;
   }
 
-  async findAndCreate(
+  async findOrCreate(
     conditionOrData: Record<string, any>,
     projection: Record<string, any> = {},
     opts?: QueryOptions<any>,

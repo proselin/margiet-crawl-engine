@@ -8,7 +8,6 @@ import { EnvKey } from './environment';
 async function bootstrap() {
   const app = await createApp(AppModule);
   const configService = app.get(ConfigService);
-  app.connectMicroservice({});
   const port = +configService.get(EnvKey.SERVER_PORT);
   const host = configService.get(EnvKey.SERVER_HOST);
   const prefix = configService.get(EnvKey.SERVER_PREFIX);
