@@ -3,20 +3,20 @@ export interface CrawlComicJobData {
 }
 
 /**
- * Cập nhật thông tin cho comic 
+ * Cập nhật thông tin cho comic
  */
 export interface UpdateComicJobData {
-  /**  
-   * 
+  /**
+   *
    * @description là id của comic có tồn tại trong hệ thống
    */
-  comicId: string; 
+  comicId: string;
   /**
    * @description NewUrl chỉ có giá trị khi muốn thay thế originUrl trong comicSchema
    * @default null
-   * @see Comic 
+   * @see Comic
    */
-  newUrl: string | null
+  newUrl: string | null;
 }
 
 export interface CrawlChapterImages {

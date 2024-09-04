@@ -1,4 +1,4 @@
-import { NullAble } from '@crawl-engine/common';
+import { NullAble } from '@common';
 
 export type ImageRawDataCrawl = {
   alt: string;
@@ -25,4 +25,10 @@ export type CrawlRawData = {
   tags: string[];
   thumbUrl: string;
   chapters: ComicChapterPre[];
+};
+
+export type UploadMinioResponse = {
+  fileUrl: string;
+  fileName: string;
+  bucketName: string;
 };

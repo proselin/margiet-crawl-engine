@@ -1,8 +1,5 @@
-import { EnvKey } from '@crawl-engine/environment';
-import {
-  GoogleDriveModule,
-  GoogleDriveService,
-} from '@crawl-engine/libs/google-drive';
+import { EnvKey } from '@/environment';
+import { GoogleDriveModule, GoogleDriveService } from '@/libs/google-drive';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 

@@ -1,19 +1,18 @@
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { Page } from 'puppeteer';
-import { GDUploadFileRequest, GoogleDriveService } from '@libs/google-drive';
-import { ConfigService } from '@nestjs/config';
-import { JobUtils } from '@crawl-engine/bull/shared/utils';
-import { v1 } from 'uuid';
-import { EnvKey } from '@crawl-engine/environment';
-import { Client as MinioClient } from 'minio';
+import { UploadMinioResponse } from '@/bull/shared';
+import { JobUtils } from '@/bull/shared/utils';
+import { EnvKey } from '@/environment';
 import { InjectMinio } from '@libs/minio';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Client as MinioClient } from 'minio';
+import { nanoid } from 'nanoid';
+import { Page } from 'puppeteer';
 
 @Injectable()
 export class CrawlUploadService {
   private logger = new Logger(CrawlUploadService.name);
 
   constructor(
-    private googleDriveService: GoogleDriveService,
     private configService: ConfigService,
     @InjectMinio() private readonly minioClient: MinioClient,
   ) {}
@@ -27,21 +26,12 @@ export class CrawlUploadService {
     const contentType = responseSvData.headers?.['content-type'];
     const fileName = await this.generateFileName(prefixFileName, contentType);
 
-    const putTo = this.configService.get(EnvKey.SAVE_STRATEGIES, "MINIO")
-    switch (putTo) {
-      case 'MINIO': {
-        return this.uploadToMinio(
-          responseSvData.buffer,
-          contentType,
-          fileName,
-          this.configService.get(EnvKey.MINIO_BUCKET)
-        )
-      }
-      case "DRIVE": {
-        return this.uploadFileToDrive(responseSvData.buffer, contentType, fileName)
-      }
-      default: throw new Error("Dont understand strategies")
-    }
+    return this.uploadToMinio(
+      responseSvData.buffer,
+      contentType,
+      fileName,
+      this.configService.get(EnvKey.MINIO_BUCKET),
+    );
   }
 
   async crawlAndUploadMulti(
@@ -74,124 +64,51 @@ export class CrawlUploadService {
           contentType,
         );
 
-        const putTo = this.configService.get(EnvKey.SAVE_STRATEGIES, "MINIO")
-        switch (putTo) {
-          case 'MINIO': {
-            return this.uploadToMinio(
-              buffer,
-              contentType,
-              fileName,
-              this.configService.get(EnvKey.MINIO_BUCKET)
-            )
-          }
-          case "DRIVE": {
-            return this.uploadFileToDrive(buffer, contentType, fileName).then(
-              (r) => {
-                return {
-                  ...r,
-                  position: rawCrawlData.position,
-                };
-              },
-            );
-          }
-          default: throw new Error("Dont understand strategies")
-        }
+        return this.uploadToMinio(
+          buffer,
+          contentType,
+          fileName,
+          this.configService.get(EnvKey.MINIO_BUCKET),
+        );
       }),
     );
   }
 
-  private async uploadFileToDrive(
+  async uploadToMinio(
     file: Buffer,
     contentType: string,
     fileName: string,
-    folderId?: string,
-  ) {
+    bucketName: string,
+  ): Promise<UploadMinioResponse> {
     try {
-      const body = GoogleDriveService.bufferToStream(file);
-
-      const requestUploadFile: GDUploadFileRequest = {
-        body: body,
+      await this.checkBucketIsExist(bucketName);
+      // await this.setBucketPolicyPublic(bucketName)
+      await this.minioClient.putObject(bucketName, fileName, file, undefined, {
+        'Content-Type': contentType,
+      });
+      this.logger.log(`Put Object to Minio Complete with name ${fileName}`);
+      const fileUrl = await this.getObjectUrl(bucketName, fileName);
+      return {
         fileName,
-        mimeType: contentType,
-        folderId: folderId ?? this.configService.get(EnvKey.G_FOLDER_ID),
+        bucketName,
+        fileUrl,
       };
-
-      const result =
-        await this.googleDriveService.uploadFile(requestUploadFile);
-
-      this.logger.log(
-        `[${this.uploadFileToDrive.name}]:: ` +
-          'File uploaded to Google Drive: ' +
-          JSON.stringify(result),
-      );
-      return result;
     } catch (e) {
       throw e;
     }
   }
 
-  async uploadToMinio(file: Buffer, contentType: string, fileName: string, bucketName: string) {
-    try {
-
-      await this.checkBucketIsExist(bucketName);
-      // await this.setBucketPolicyPublic(bucketName)
-      await this.minioClient.putObject(bucketName, fileName, file, undefined, {
-        'Content-Type': contentType,
-      })
-      this.logger.log(`Put Object to Minio Complete with name ${fileName}`)
-      const fileUrl = await this.getObjectUrl(bucketName, fileName)
-      return {
-        fileUrl,
-      }
-    } catch (e) {
-      throw e;
+  async checkBucketIsExist(bucket: string) {
+    const existed = await this.minioClient.bucketExists(bucket);
+    if (!existed) {
+      throw new Error(
+        `Dont existed bucket name ${this.configService.get(EnvKey.MINIO_BUCKET)} create new one`,
+      );
     }
   }
 
   private getObjectUrl(bucketName: string, objectName: string) {
     return this.minioClient.presignedGetObject(bucketName, objectName);
-  }
-
-  // async setBucketPolicyPublic(bucketName: string) {
-  //   const isPublic = this.isBucketPublic(bucketName)
-  //   if(isPublic) return
-  //     const policy = {
-  //       Version: new Date().toISOString(),
-  //       Statement: [
-  //         {
-  //           Effect: 'Allow',
-  //           Principal: '*',
-  //           Action: 's3:GetObject',
-  //           Resource: `arn:aws:s3:::${bucketName}/*`,
-  //         },
-  //       ],
-  //     };
-  //
-  //     await this.minioClient.setBucketPolicy(bucketName, JSON.stringify(policy));
-  // }
-
-
-  async isBucketPublic(bucketName: string): Promise<boolean> {
-    try {
-      const policy = await this.minioClient.getBucketPolicy(bucketName);
-      const policyDoc = JSON.parse(policy);
-
-      return policyDoc.Statement.some((statement: any) =>
-        statement.Effect === 'Allow' &&
-        statement.Principal === '*' &&
-        statement.Action === 's3:GetObject' &&
-        statement.Resource === `arn:aws:s3:::${bucketName}/*`
-      );
-    } catch (error) {
-      throw new Error(`Failed to check bucket policy: ${error.message}`);
-    }
-  }
-
-  async checkBucketIsExist(bucket: string) {
-    const existed = await this.minioClient.bucketExists(bucket)
-    if (!existed) {
-     throw new Error(`Dont existed bucket name ${ this.configService.get(EnvKey.MINIO_BUCKET)} create new one`)
-    }
   }
 
   private async handleImageUrls(page: Page, imageUrls: string[]) {
@@ -238,7 +155,7 @@ export class CrawlUploadService {
         imgElement.addEventListener('load', (e) => {
           console.log('Loaded Image', e);
         });
-        imgElement.addEventListener('error', (ev) => {
+        imgElement.addEventListener('error', () => {
           if (urls.length == 0) {
             console.error(imgElement.src);
             return;
@@ -262,7 +179,7 @@ export class CrawlUploadService {
     if (!extension) {
       throw new Error('Unsupported content type');
     }
-    const hash = v1();
+    const hash = nanoid(10);
     return `${prefixFileName}-${hash}.${extension}`;
   }
 }

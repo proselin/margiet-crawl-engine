@@ -1,11 +1,7 @@
-import { CrawlUploadService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-upload.service';
-import {
-  CrawlChapterImages,
-  CrawlThumbImage,
-} from '@crawl-engine/bull/shared/types';
-import { ChapterService } from '@crawl-engine/chapter/chapter.service';
-import { Image } from '@crawl-engine/image/image.schema';
-import { ImageService } from '@crawl-engine/image/image.service';
+import { CrawlUploadService } from '@/bull/consumers/craw-consumer/crawl-upload.service';
+import { CrawlChapterImages, CrawlThumbImage } from '@/bull/shared/types';
+import { ChapterService } from '@/chapter/chapter.service';
+import { ImageService } from '@/image/image.service';
 import { BeforeApplicationShutdown, Injectable, Logger } from '@nestjs/common';
 import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
@@ -36,19 +32,32 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     page: Page,
     jobData: CrawlChapterImages,
   ) {
-    const uploadedImages = await this.crawlUploadService.crawlAndUploadMulti(page, `c-${jobData.chapterId}`, jobData.images)
-    const newImages = await this.imageService.model.create(uploadedImages.map((uploadedImage, i) => {
+    const uploadedImages = await this.crawlUploadService.crawlAndUploadMulti(
+      page,
+      `c-${jobData.chapterId}`,
+      jobData.images,
+    );
+    const newImages = await this.imageService.model.insertMany(
+      uploadedImages.map((uploadedImage, i) => {
         return {
           url: uploadedImage.fileUrl,
+          minioInfo: {
+            url: uploadedImage.fileUrl,
+            fileName: uploadedImage.fileName,
+            bucketName: uploadedImage.bucketName,
+          },
           position: i,
-        }
-      }), {
-      ordered: true
-    })
+        };
+      }),
+    );
+    this.logger.verbose(JSON.stringify(newImages));
     this.logger.log(`Create ${newImages.length} uploaded images`);
-    await this.updateChapter({
-      images: newImages.map((r) => r.id)
-    }, jobData.chapterId)
+    await this.updateChapter(
+      {
+        images: newImages.map((r) => r.id),
+      },
+      jobData.chapterId,
+    );
     this.logger.log(`Update chapter id ${jobData.chapterId}`);
     return newImages;
   }

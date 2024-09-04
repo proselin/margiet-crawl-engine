@@ -1,17 +1,17 @@
-import { AuthorService } from '@crawl-engine/author/author.service';
-import { CrawlProducerService } from '@crawl-engine/bull/producers/crawl-producer';
-import { ComicChapterPre, CrawlRawData } from '@crawl-engine/bull/shared';
-import { CrawlComicJobData, UpdateComicJobData } from '@crawl-engine/bull/shared/types';
-import { Comic } from '@crawl-engine/comic/comic.schema';
-import { ComicService } from '@crawl-engine/comic/comic.service';
-import { InvalidComicInformation } from '@crawl-engine/common';
-import { StatusService } from '@crawl-engine/status/status.service';
-import { TagService } from '@crawl-engine/tag/tag.service';
+import { AuthorService } from '@/author/author.service';
+import { CrawlProducerService } from '@/bull/producers/crawl-producer';
+import { ComicChapterPre, CrawlRawData } from '@/bull/shared';
+import { CrawlComicJobData, UpdateComicJobData } from '@/bull/shared/types';
+import { Comic } from '@/comic/comic.schema';
+import { ComicService } from '@/comic/comic.service';
+import { InvalidComicInformation } from '@common';
+import { StatusService } from '@/status/status.service';
+import { TagService } from '@/tag/tag.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
-import { CrawlImageService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-image.service';
+import { CrawlImageService } from '@/bull/consumers/craw-consumer/crawl-image.service';
 import mongoose from 'mongoose';
 
 @Injectable()
@@ -27,12 +27,12 @@ export class CrawlComicService {
     @InjectBrowser()
     private browser: Browser,
     private crawlImageService: CrawlImageService,
-  ) { }
+  ) {}
 
   async handleCrawlJob(job: Job<CrawlComicJobData>) {
     const page = await this.browser.newPage();
     try {
-      await this.preparePage(page, job.data.href)
+      await this.preparePage(page, job.data.href);
       const rawData = await this.extractInfoFromComicPage(page);
       await page.evaluate('document.write()');
 
@@ -49,34 +49,38 @@ export class CrawlComicService {
       }
 
       if (rawData.author) {
-        await this.updateComicAuthor(comic, rawData.author)
+        await this.updateComicAuthor(comic, rawData.author);
       }
 
       if (rawData.tags) {
-        await this.updateComicTags(comic, rawData.tags)
+        await this.updateComicTags(comic, rawData.tags);
       }
 
       if (rawData.status) {
-        await this.updateComicStatus(comic, rawData.status)
+        await this.updateComicStatus(comic, rawData.status);
       }
 
       comic.chapters = [];
 
       if (rawData.thumbUrl) {
-        await this.updateThumbImageComic(comic, page, rawData.thumbUrl, job.data.href)
+        await this.updateThumbImageComic(
+          comic,
+          page,
+          rawData.thumbUrl,
+          job.data.href,
+        );
       }
 
       this.logger.log('Process create new comic');
       const createdComic = await this.comicService.createOne(comic);
       await this.addJobCrawlChapters(rawData.chapters, createdComic.id);
-
     } catch (e) {
       this.logger.error('Crawl Comic failed >>');
       this.logger.error(e);
     } finally {
       setTimeout(async () => {
-        await page.close()
-      }, 30000)
+        await page.close();
+      }, 30000);
     }
   }
 
@@ -126,8 +130,8 @@ export class CrawlComicService {
               chapNumber: ele.textContent.match(/([\d.]+)/g)[0],
             };
           }),
-      )
-      chapters.sort((a, b) => +a.chapNumber - +b.chapNumber )
+      );
+      chapters.sort((a, b) => +a.chapNumber - +b.chapNumber);
 
       crawResult = {
         author,
@@ -161,13 +165,15 @@ export class CrawlComicService {
    * @param job job from bullmq
    */
   public async handleUpdateComic(job: Job<UpdateComicJobData>) {
-    this.logger.log(`[${this.handleUpdateComic.name}]::= Update comic`)
-    const comic = await this.comicService.model.findOne({
-      _id: new mongoose.Types.ObjectId(job.data.comicId)
-    }).exec()
+    this.logger.log(`[${this.handleUpdateComic.name}]::= Update comic`);
+    const comic = await this.comicService.model
+      .findOne({
+        _id: new mongoose.Types.ObjectId(job.data.comicId),
+      })
+      .exec();
 
     if (!comic) {
-      throw new Error("Dont exist comicId: " + job.data.comicId)
+      throw new Error('Dont exist comicId: ' + job.data.comicId);
     }
 
     const page = await this.browser.newPage();
@@ -177,11 +183,13 @@ export class CrawlComicService {
         comic.originUrl = job.data.newUrl;
       }
 
-      await this.preparePage(page, comic.originUrl as string)
+      await this.preparePage(page, comic.originUrl as string);
 
       const rawData = await this.extractInfoFromComicPage(page);
       const lastedChapter = comic.chapterCount;
-      this.logger.log(`[${this.handleUpdateComic.name}]::= Found comic and update what it changed`)
+      this.logger.log(
+        `[${this.handleUpdateComic.name}]::= Found comic and update what it changed`,
+      );
 
       await page.evaluate('document.write()');
 
@@ -190,7 +198,7 @@ export class CrawlComicService {
       }
 
       if (rawData.status != comic.status.name) {
-        await this.updateComicStatus(comic, rawData.status)
+        await this.updateComicStatus(comic, rawData.status);
       }
 
       if (rawData.totalChapter) {
@@ -198,29 +206,29 @@ export class CrawlComicService {
       }
 
       if (rawData.author != comic.author.name) {
-        await this.updateComicAuthor(comic, rawData.author)
+        await this.updateComicAuthor(comic, rawData.author);
       }
 
       if (rawData.tags) {
-        await this.updateComicTags(comic, rawData.tags)
+        await this.updateComicTags(comic, rawData.tags);
       }
 
       if (rawData.totalChapter > lastedChapter) {
-        await this.addJobCrawlChapters(rawData.chapters.filter((_, i) => i > lastedChapter), comic.id)
+        await this.addJobCrawlChapters(
+          rawData.chapters.filter((_, i) => i > lastedChapter),
+          comic.id,
+        );
       }
 
-      await comic.save()
-
+      await comic.save();
     } catch (e) {
-      this.logger.error(`[${this.handleUpdateComic.name}]::= Fail`)
-      this.logger.error(e)
-
+      this.logger.error(`[${this.handleUpdateComic.name}]::= Fail`);
+      this.logger.error(e);
     } finally {
       setTimeout(async () => {
-        await page.close()
+        await page.close();
       }, 30000);
     }
-
   }
 
   private addJobCrawlChapters(chapters: ComicChapterPre[], comicId: string) {
@@ -236,7 +244,6 @@ export class CrawlComicService {
       }),
     );
   }
-
 
   private async updateComicStatus(comic: Comic, status: string) {
     this.logger.log(`[${this.updateComicStatus.name}]:= Process comic status `);
@@ -262,28 +269,26 @@ export class CrawlComicService {
     }
   }
 
-
   private async updateComicAuthor(comic: Comic, author: string) {
     this.logger.log(`[${this.updateComicStatus.name}]:= Process comic author `);
-    const auth = await this.authorService.findOrCreate(
-      { name: author },
-      {},
-    );
+    const auth = await this.authorService.findOrCreate({ name: author }, {});
     comic.author = {
       name: auth.name.toString(),
       id: auth.id,
     };
   }
 
-  private async updateThumbImageComic(comic: Comic, page: Page, thumbUrl: string, goto: string) {
+  private async updateThumbImageComic(
+    comic: Comic,
+    page: Page,
+    thumbUrl: string,
+    goto: string,
+  ) {
     comic.thumbUrl = null;
     this.logger.log('Process crawl image thumb url');
-    comic.thumbUrl = await this.crawlImageService.handleCrawlThumbUrl(
-      page,
-      {
-        imageUrls: [thumbUrl],
-        goto,
-      },
-    );
+    comic.thumbUrl = await this.crawlImageService.handleCrawlThumbUrl(page, {
+      imageUrls: [thumbUrl],
+      goto,
+    });
   }
 }

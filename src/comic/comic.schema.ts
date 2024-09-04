@@ -1,11 +1,11 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
-import { Image } from '@crawl-engine/image/image.schema';
+import { Image } from '@/image/image.schema';
 
-const {String, Number, ObjectId} =  mongoose.Schema.Types
+const { String, Number, ObjectId } = mongoose.Schema.Types;
 
 export type ComicDocument = HydratedDocument<Comic>;
- 
+
 @Schema({
   timestamps: true,
   autoIndex: true,
@@ -23,12 +23,12 @@ export class Comic {
   }[];
 
   @Prop({
-      type: String
-    })
+    type: String,
+  })
   name: string;
 
   @Prop({
-    type: Number
+    type: Number,
   })
   chapterCount: number;
 
@@ -55,7 +55,7 @@ export class Comic {
   };
 
   @Prop({
-    type: String
+    type: String,
   })
   description: string;
 
@@ -71,7 +71,7 @@ export class Comic {
   chapters: {
     name: string;
     id: string;
-    position: number,
+    position: number;
   }[];
 
   @Prop({
@@ -83,7 +83,7 @@ export class Comic {
   @Prop({
     type: String,
   })
-  originUrl: string
+  originUrl: string;
 }
 
 export const ComicSchema = SchemaFactory.createForClass(Comic);

@@ -1,5 +1,5 @@
-import { JobConstant } from '@crawl-engine/bull/shared';
-import { ConstantBase } from '@crawl-engine/common/utils/constant.base';
+import { JobConstant } from '@/bull/shared';
+import { ConstantBase } from '@common/utils/constant.base';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
@@ -7,9 +7,9 @@ import {
   CrawlChapterData,
   CrawlComicJobData,
   UpdateComicJobData,
-} from '@crawl-engine/bull/shared/types';
+} from '@/bull/shared/types';
 import { CrawlComicService } from './crawl-comic.service';
-import { CrawlChapterService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-chapter.service';
+import { CrawlChapterService } from '@/bull/consumers/craw-consumer/crawl-chapter.service';
 
 @Injectable()
 @Processor(ConstantBase.QUEUE_CRAWL_NAME)
@@ -23,7 +23,9 @@ export class CrawlJobProcessor extends WorkerHost {
     super();
   }
 
-  async process(job: Job<CrawlComicJobData | CrawlChapterData | UpdateComicJobData>): Promise<any> {
+  async process(
+    job: Job<CrawlComicJobData | CrawlChapterData | UpdateComicJobData>,
+  ): Promise<any> {
     this.logger.log(`Start process ${job.name} with token ${job.token} >>`);
     switch (job.name) {
       case JobConstant.CRAWL_COMIC_JOB_NAME: {

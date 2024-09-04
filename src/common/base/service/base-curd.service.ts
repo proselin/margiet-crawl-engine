@@ -1,4 +1,4 @@
-import { IBaseCurl } from '@crawl-engine/common';
+import { IBaseCurl } from '@common';
 import { Logger, NotFoundException } from '@nestjs/common';
 import {
   CreateOptions,
