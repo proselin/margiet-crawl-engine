@@ -83,6 +83,10 @@ export class CrawlChapterService {
     } catch (e) {
       this.logger.error(`Crawl job ${job.token} Fail :=`);
       this.logger.error(e);
+    } finally {
+      setTimeout(async () => {
+        await page.close()
+      }, 30000)
     }
   }
 

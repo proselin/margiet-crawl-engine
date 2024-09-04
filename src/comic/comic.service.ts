@@ -6,7 +6,7 @@ import { Comic } from '@crawl-engine/comic/comic.schema';
 
 @Injectable()
 export class ComicService extends BaseCurdService<Comic> {
-  constructor(@InjectModel(Comic.name) protected readonly model: Model<Comic>) {
+  constructor(@InjectModel(Comic.name) public readonly model: Model<Comic>) {
     super(new Logger(ComicService.name), model);
   }
 }
