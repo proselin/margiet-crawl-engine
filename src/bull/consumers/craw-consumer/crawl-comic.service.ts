@@ -4,7 +4,7 @@ import { ComicChapterPre, CrawlRawData } from '@/bull/shared';
 import { CrawlComicJobData, UpdateComicJobData } from '@/bull/shared/types';
 import { Comic } from '@/comic/comic.schema';
 import { ComicService } from '@/comic/comic.service';
-import { InvalidComicInformation } from '@common';
+import { InvalidComicInformation } from '@/common';
 import { StatusService } from '@/status/status.service';
 import { TagService } from '@/tag/tag.service';
 import { Injectable, Logger } from '@nestjs/common';
@@ -86,6 +86,7 @@ export class CrawlComicService {
 
   async preparePage(page: Page, goto: string) {
     await page.setJavaScriptEnabled(false);
+    await page.setCacheEnabled(false);
 
     await page.setRequestInterception(true);
 
@@ -93,7 +94,7 @@ export class CrawlComicService {
 
     await page.goto(goto, {
       waitUntil: 'domcontentloaded',
-      timeout: 0,
+      timeout: 30000,
     });
 
     page.off('request');
@@ -227,7 +228,7 @@ export class CrawlComicService {
     } finally {
       setTimeout(async () => {
         await page.close();
-      }, 30000);
+      }, 2000);
     }
   }
 

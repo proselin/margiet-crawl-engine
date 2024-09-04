@@ -5,6 +5,8 @@ import { ImageService } from '@/image/image.service';
 import { BeforeApplicationShutdown, Injectable, Logger } from '@nestjs/common';
 import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection } from 'mongoose';
 
 @Injectable()
 export class CrawlImageService implements BeforeApplicationShutdown {
@@ -16,6 +18,7 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     private crawlUploadService: CrawlUploadService,
     @InjectBrowser()
     private browser: Browser,
+    @InjectConnection() private connection: Connection
   ) {}
 
   async handleCrawlThumbUrl(page: Page, jobData: CrawlThumbImage) {
@@ -36,10 +39,7 @@ export class CrawlImageService implements BeforeApplicationShutdown {
       page,
       `c-${jobData.chapterId}`,
       jobData.images,
-    );
-    const newImages = await this.imageService.model.insertMany(
-      uploadedImages.map((uploadedImage, i) => {
-        return {
+    ).then(r => r.map((uploadedImage, i) => ({
           url: uploadedImage.fileUrl,
           minioInfo: {
             url: uploadedImage.fileUrl,
@@ -47,14 +47,15 @@ export class CrawlImageService implements BeforeApplicationShutdown {
             bucketName: uploadedImage.bucketName,
           },
           position: i,
-        };
-      }),
-    );
+        })
+    ));
+
+    const newImages = await this.imageService.model.insertMany(uploadedImages).catch(e => this.logger.error(e))
     this.logger.verbose(JSON.stringify(newImages));
-    this.logger.log(`Create ${newImages.length} uploaded images`);
+    this.logger.log(`Create ${uploadedImages.length} uploaded images`);
     await this.updateChapter(
       {
-        images: newImages.map((r) => r.id),
+        images: newImages,
       },
       jobData.chapterId,
     );

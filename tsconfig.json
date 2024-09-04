@@ -21,9 +21,6 @@
       "@/*": [
         "src/*"
       ],
-      "@common/*": [
-        "src/common/*"
-      ],
       "@craw/*": [
         "src/craw/*"
       ],

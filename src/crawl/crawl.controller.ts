@@ -2,7 +2,7 @@ import { BadRequestException, Controller, Get, Req } from '@nestjs/common';
 import { ApiProperty, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { CrawlService } from './crawl.service';
-import { Versions } from '@common';
+import { Versions } from '@/common';
 
 @ApiTags('crawl')
 @Controller({
@@ -49,4 +49,21 @@ export class CrawlController {
       (newUrl as string) || null,
     );
   }
+
+
+  @Get('/sync')
+  @ApiProperty({
+    description: 'recrawl comic',
+  })
+  @ApiQuery({
+    name: 'comicId',
+    description: 'id of comic ',
+  })
+  public async sync(@Req() request: Request) {
+    const { chapterId } = request.query;
+    return await this.service.addSyncChapterJob(
+      chapterId as string
+    );
+  }
+
 }

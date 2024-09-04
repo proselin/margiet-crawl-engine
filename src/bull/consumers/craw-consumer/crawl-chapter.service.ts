@@ -7,6 +7,8 @@ import { Chapter } from '@/chapter/chapter.schema';
 import { ChapterService } from '@/chapter/chapter.service';
 import { ComicService } from '@/comic/comic.service';
 import { CrawlImageService } from '@/bull/consumers/craw-consumer/crawl-image.service';
+import { CrawlProducerService } from '@/bull/producers/crawl-producer';
+import { create } from 'domain';
 
 @Injectable()
 export class CrawlChapterService {
@@ -18,11 +20,13 @@ export class CrawlChapterService {
     @InjectBrowser()
     private readonly browser: Browser,
     private readonly crawlImageService: CrawlImageService,
+    private readonly producer: CrawlProducerService
   ) {}
 
   async handleCrawlJob(job: Job<CrawlChapterData>) {
     const page = await this.browser.newPage();
     await page.setJavaScriptEnabled(false);
+    await page.setCacheEnabled(false);
     await page.setRequestInterception(true);
     await this.abortRequest(page, [job.data.url]);
     try {
@@ -48,6 +52,8 @@ export class CrawlChapterService {
           job.data.position,
         ),
       );
+
+      await this.producer.addSyncChapterJob(createdChapter.id);
 
       await this.comicService.findAndUpdate(
         {

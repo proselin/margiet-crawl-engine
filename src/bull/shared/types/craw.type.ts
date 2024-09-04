@@ -1,4 +1,4 @@
-import { NullAble } from '@common';
+import { NullAble } from '@/common';
 
 export type ImageRawDataCrawl = {
   alt: string;

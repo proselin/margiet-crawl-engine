@@ -2,7 +2,7 @@ import { CrawlConsumerModule } from '@/bull/consumers/craw-consumer';
 import { CrawlProducerModule } from '@/bull/producers/crawl-producer';
 import { CrawlModule } from '@/crawl';
 import { MargietDbModule } from '@/database';
-import { BullmqConnectModule } from '@common/connection/bullmq';
+import { BullmqConnectModule } from '@/common/connection/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PuppeteerModule } from 'nestjs-puppeteer';
