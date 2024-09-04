@@ -114,7 +114,6 @@ export class CrawlUploadService {
   private async handleImageUrls(page: Page, imageUrls: string[]) {
     try {
       const urlSet = new Set<string>(imageUrls);
-      page.off('request');
 
       setTimeout(async () => {
         await this.constructHTMLImage(imageUrls, page);
@@ -144,6 +143,7 @@ export class CrawlUploadService {
       this.logger.error(`Crawl Image fail url := ${JSON.stringify(imageUrls)}`);
       this.logger.error(e);
       console.trace(e);
+      throw e
     }
   }
 

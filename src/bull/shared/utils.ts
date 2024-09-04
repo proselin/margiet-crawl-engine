@@ -1,3 +1,4 @@
+import { extname } from 'path';
 import { Page } from 'puppeteer';
 
 export class JobUtils {

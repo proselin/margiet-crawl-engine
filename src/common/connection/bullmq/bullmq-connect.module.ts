@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { RedisConfig } from '@common';
+import { RedisConfig } from '@/common';
 import { BullModule } from '@nestjs/bullmq';
 
 @Module({

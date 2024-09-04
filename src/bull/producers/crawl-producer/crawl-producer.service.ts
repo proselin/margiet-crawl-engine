@@ -1,5 +1,5 @@
 import { JobConstant } from '@/bull/shared';
-import { ConstantBase } from '@common/utils/constant.base';
+import { ConstantBase } from '@/common/utils/constant.base';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bullmq';
@@ -12,6 +12,8 @@ export class CrawlProducerService {
   constructor(
     @InjectQueue(ConstantBase.QUEUE_CRAWL_NAME)
     private crawlQueue: Queue,
+    @InjectQueue(ConstantBase.QUEUE_UPLOAD_NAME)
+    private uploadQueue: Queue,
   ) {}
 
   async addCrawlChapterJobs(jobData: CrawlChapterData[]) {
@@ -29,5 +31,10 @@ export class CrawlProducerService {
         };
       }),
     );
+  }
+  async addSyncChapterJob(chapterId: string) {
+    return this.uploadQueue.add("SYNC_CHAPTER", {
+      id: chapterId
+    })
   }
 }

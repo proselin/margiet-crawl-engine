@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Job, Queue } from 'bullmq';
-import { ConstantBase } from '@common/utils/constant.base';
+import { ConstantBase } from '@/common/utils/constant.base';
 import { JobConstant } from '@/bull/shared';
 import { CrawlComicJobData, UpdateComicJobData } from '@/bull/shared/types';
 
@@ -12,6 +12,8 @@ export class CrawlService {
   constructor(
     @InjectQueue(ConstantBase.QUEUE_CRAWL_NAME)
     private crawlQueue: Queue,
+    @InjectQueue(ConstantBase.QUEUE_UPLOAD_NAME)
+    private uploadQueue: Queue,
   ) {}
 
   /**
@@ -44,5 +46,11 @@ export class CrawlService {
     return this.crawlQueue.add(name, data, {
       delay: 3000,
     });
+  }
+
+   async addSyncChapterJob(chapterId: string) {
+    return this.uploadQueue.add("SYNC_CHAPTER", {
+      id: chapterId
+    })
   }
 }
