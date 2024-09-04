@@ -24,7 +24,7 @@ export class CrawlImageService implements BeforeApplicationShutdown {
 
   async handleCrawlThumbUrl(page: Page, jobData: CrawlThumbImage) {
     const imageUploadedInfo =
-      await this.crawlUploadService.crawlAndUploadImageToDriver(
+      await this.crawlUploadService.crawlAndUploadImageToStore(
         page,
         `cm-${Date.now()}`,
         jobData.imageUrls,
@@ -36,29 +36,21 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     page: Page,
     jobData: CrawlChapterImages,
   ) {
-    const rs: Image[] = [];
-    for (const image of jobData.images) {
-      const imageUploadedInfo =
-        await this.crawlUploadService.crawlAndUploadImageToDriver(
-          page,
-          `c-${jobData.chapterId}-i-${image.position}`,
-          image.imageUrls,
-        );
-      const newImage = await this.createImageDocument(
-        imageUploadedInfo.fileUrl,
-        image.position,
-      );
-
-      await this.updateChapter(
-        {
-          images: newImage,
-        },
-        jobData.chapterId,
-      );
-
-      rs.push(newImage);
-    }
-    return rs;
+    const uploadedImages = await this.crawlUploadService.crawlAndUploadMulti(page, `c-${jobData.chapterId}`, jobData.images)
+    const newImages = await this.imageService.model.create(uploadedImages.map((uploadedImage, i) => {
+        return {
+          url: uploadedImage.fileUrl,
+          position: i,
+        }
+      }), {
+      ordered: true
+    })
+    this.logger.log(`Create ${newImages.length} uploaded images`);
+    await this.updateChapter({
+      images: newImages.map((r) => r.id)
+    }, jobData.chapterId)
+    this.logger.log(`Update chapter id ${jobData.chapterId}`);
+    return newImages;
   }
 
   async updateChapter(pushModel: Record<string, any>, chapterId: string) {

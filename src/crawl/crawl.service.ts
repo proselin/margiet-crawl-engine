@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
+import { Job, Queue } from 'bullmq';
 import { ConstantBase } from '@crawl-engine/common/utils/constant.base';
 import { JobConstant } from '@crawl-engine/bull/shared';
-import { CrawlComicJobData } from '@crawl-engine/bull/shared/types';
+import { CrawlComicJobData, UpdateComicJobData } from '@crawl-engine/bull/shared/types';
 
 @Injectable()
 export class CrawlService {
@@ -25,5 +25,19 @@ export class CrawlService {
     const name = JobConstant.CRAWL_COMIC_JOB_NAME;
     const data: CrawlComicJobData = { href };
     return await this.crawlQueue.add(name, data);
+  }
+
+  /**
+   * @description Update comic by re crawl
+   * @param comicId id of updated comic
+   * @returns Job
+   */
+  async updateCrawlComicJob(comicId: string, newUrl: string | null): Promise<Job> {
+    this.logger.log(`Add Update comic jobs with comicId : ${comicId} to queue  ${ConstantBase.QUEUE_CRAWL_NAME}`)
+    const name = JobConstant.UPDATE_COMIC_JOB_NAME
+    const data: UpdateComicJobData = {comicId, newUrl}
+    return this.crawlQueue.add(name, data, {
+      delay: 3000
+    });
   }
 }

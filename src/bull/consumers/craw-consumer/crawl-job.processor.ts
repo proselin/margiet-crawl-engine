@@ -6,6 +6,7 @@ import { Job } from 'bullmq';
 import {
   CrawlChapterData,
   CrawlComicJobData,
+  UpdateComicJobData,
 } from '@crawl-engine/bull/shared/types';
 import { CrawlComicService } from './crawl-comic.service';
 import { CrawlChapterService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-chapter.service';
@@ -22,7 +23,7 @@ export class CrawlJobProcessor extends WorkerHost {
     super();
   }
 
-  async process(job: Job<CrawlComicJobData | CrawlChapterData>): Promise<any> {
+  async process(job: Job<CrawlComicJobData | CrawlChapterData | UpdateComicJobData>): Promise<any> {
     this.logger.log(`Start process ${job.name} with token ${job.token} >>`);
     switch (job.name) {
       case JobConstant.CRAWL_COMIC_JOB_NAME: {
@@ -33,6 +34,11 @@ export class CrawlJobProcessor extends WorkerHost {
       case JobConstant.CRAWL_CHAPTER_JOB_NAME: {
         return await this.crawlChapterService.handleCrawlJob(
           job as Job<CrawlChapterData>,
+        );
+      }
+      case JobConstant.UPDATE_COMIC_JOB_NAME: {
+        return await this.crawlComicService.handleUpdateComic(
+          job as Job<UpdateComicJobData>,
         );
       }
       default: {
