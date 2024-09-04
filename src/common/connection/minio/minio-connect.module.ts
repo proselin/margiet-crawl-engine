@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EnvKey } from '@crawl-engine/environment';
+import { EnvKey } from '@/environment';
 import { NestMinioModule } from '@libs/minio';
 
 @Module({

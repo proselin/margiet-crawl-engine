@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ImageService } from './image.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ImageSchema } from '@crawl-engine/image/image.schema';
+import { ImageSchema } from '@/image/image.schema';
 
 @Module({
   imports: [

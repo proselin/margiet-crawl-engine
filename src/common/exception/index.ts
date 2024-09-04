@@ -1,1 +1,1 @@
-export * from "./claw.exception"
+export * from './claw.exception';

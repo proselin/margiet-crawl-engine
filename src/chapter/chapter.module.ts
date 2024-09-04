@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ChapterService } from './chapter.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Chapter, ChapterSchema } from '@crawl-engine/chapter/chapter.schema';
+import { Chapter, ChapterSchema } from '@/chapter/chapter.schema';
 
 @Module({
   imports: [

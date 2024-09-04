@@ -1,9 +1,9 @@
-import { JobConstant } from '@crawl-engine/bull/shared';
-import { ConstantBase } from '@crawl-engine/common/utils/constant.base';
+import { JobConstant } from '@/bull/shared';
+import { ConstantBase } from '@common/utils/constant.base';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bullmq';
-import { CrawlChapterData } from '@crawl-engine/bull/shared/types';
+import { CrawlChapterData } from '@/bull/shared/types';
 
 @Injectable()
 export class CrawlProducerService {
@@ -30,6 +30,4 @@ export class CrawlProducerService {
       }),
     );
   }
-
-  
 }

@@ -1,15 +1,14 @@
-import { CrawlConsumerModule } from '@crawl-engine/bull/consumers/craw-consumer';
-import { CrawlProducerModule } from '@crawl-engine/bull/producers/crawl-producer';
-import { BullmqConnectModule } from '@crawl-engine/common/connection/bullmq';
-import { CrawlModule } from '@crawl-engine/crawl';
-import { MargietDbModule } from '@crawl-engine/database';
+import { CrawlConsumerModule } from '@/bull/consumers/craw-consumer';
+import { CrawlProducerModule } from '@/bull/producers/crawl-producer';
+import { CrawlModule } from '@/crawl';
+import { MargietDbModule } from '@/database';
+import { BullmqConnectModule } from '@common/connection/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PuppeteerModule } from 'nestjs-puppeteer';
 import { envValidation } from './common';
-import { Environment } from './environment';
 import { WinstonLoggerModule } from './common/logger/winston';
-import { MinioConnectModule } from '@crawl-engine/common/connection/minio';
+import { Environment } from './environment';
 
 @Module({
   imports: [

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { CrawlController } from './crawl.controller';
 import { CrawlService } from './crawl.service';
 import { BullModule } from '@nestjs/bullmq';
-import { ConstantBase } from '@crawl-engine/common/utils/constant.base';
+import { ConstantBase } from '@common/utils/constant.base';
 
 @Module({
   imports: [

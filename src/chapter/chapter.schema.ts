@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Image } from '@crawl-engine/image/image.schema';
+import { Image } from '@/image/image.schema';
 import mongoose, { HydratedDocument } from 'mongoose';
 
 export type ChapterDocument = HydratedDocument<Chapter>;

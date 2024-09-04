@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { BaseCurdService } from '@crawl-engine/common';
+import { BaseCurdService } from '@common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { Status } from '@crawl-engine/status/status.schema';
+import { Status } from '@/status/status.schema';
 
 @Injectable()
 export class StatusService extends BaseCurdService<Status> {
@@ -11,5 +11,4 @@ export class StatusService extends BaseCurdService<Status> {
   ) {
     super(new Logger(StatusService.name), model);
   }
-
 }

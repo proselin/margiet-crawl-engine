@@ -2,7 +2,7 @@ import { BadRequestException, Controller, Get, Req } from '@nestjs/common';
 import { ApiProperty, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { CrawlService } from './crawl.service';
-import { Versions } from '@crawl-engine/common';
+import { Versions } from '@common';
 
 @ApiTags('crawl')
 @Controller({
@@ -27,7 +27,6 @@ export class CrawlController {
     return await this.service.addCrawlComicJob(<string>request.query.target);
   }
 
-
   @Get('/update')
   @ApiProperty({
     description: 'recrawl comic',
@@ -44,7 +43,10 @@ export class CrawlController {
     if (!request.query?.target) {
       throw new BadRequestException();
     }
-    const { comicId, newUrl } = request.query
-    return await this.service.updateCrawlComicJob(comicId as string,( newUrl as string) || null );
+    const { comicId, newUrl } = request.query;
+    return await this.service.updateCrawlComicJob(
+      comicId as string,
+      (newUrl as string) || null,
+    );
   }
 }

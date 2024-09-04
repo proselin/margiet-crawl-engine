@@ -4,14 +4,17 @@ import { ConfigurableModuleClass } from './nest-minio.module-definition';
 import { connectionFactory } from './nest-minio.connection.providers';
 
 @Module({
-	providers: [NestMinioService, connectionFactory],
-	exports: [NestMinioService, connectionFactory],
+  providers: [NestMinioService, connectionFactory],
+  exports: [NestMinioService, connectionFactory],
 })
-export class NestMinioModule extends ConfigurableModuleClass implements OnModuleInit {
-	constructor(readonly service: NestMinioService){
-		super();
-	}
-	onModuleInit() {
-		this.service.checkConnection()
-	}
+export class NestMinioModule
+  extends ConfigurableModuleClass
+  implements OnModuleInit
+{
+  constructor(readonly service: NestMinioService) {
+    super();
+  }
+  onModuleInit() {
+    this.service.checkConnection();
+  }
 }

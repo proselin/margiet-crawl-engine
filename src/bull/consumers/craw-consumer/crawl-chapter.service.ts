@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { CrawlChapterData } from '@crawl-engine/bull/shared/types';
+import { CrawlChapterData } from '@/bull/shared/types';
 import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
-import { Chapter } from '@crawl-engine/chapter/chapter.schema';
-import { ChapterService } from '@crawl-engine/chapter/chapter.service';
-import { ComicService } from '@crawl-engine/comic/comic.service';
-import { CrawlImageService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-image.service';
+import { Chapter } from '@/chapter/chapter.schema';
+import { ChapterService } from '@/chapter/chapter.service';
+import { ComicService } from '@/comic/comic.service';
+import { CrawlImageService } from '@/bull/consumers/craw-consumer/crawl-image.service';
 
 @Injectable()
 export class CrawlChapterService {
@@ -85,8 +85,8 @@ export class CrawlChapterService {
       this.logger.error(e);
     } finally {
       setTimeout(async () => {
-        await page.close()
-      }, 30000)
+        await page.close();
+      }, 30000);
     }
   }
 

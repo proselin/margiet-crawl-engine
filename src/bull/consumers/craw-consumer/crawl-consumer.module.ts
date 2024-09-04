@@ -1,21 +1,21 @@
-import { AuthorModule } from '@crawl-engine/author/author.module';
-import { CrawlChapterService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-chapter.service';
-import { CrawlComicService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-comic.service';
-import { CrawlImageService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-image.service';
-import { CrawlUploadService } from '@crawl-engine/bull/consumers/craw-consumer/crawl-upload.service';
-import { CrawlProducerModule } from '@crawl-engine/bull/producers/crawl-producer';
-import { ChapterModule } from '@crawl-engine/chapter/chapter.module';
-import { ComicModule } from '@crawl-engine/comic/comic.module';
-import { GoogleDriveApiModule } from '@crawl-engine/common/connection/google-drive-api';
-import { ConstantBase } from '@crawl-engine/common/utils/constant.base';
-import { ImageModule } from '@crawl-engine/image/image.module';
-import { StatusModule } from '@crawl-engine/status/status.module';
-import { TagModule } from '@crawl-engine/tag/tag.module';
+import { AuthorModule } from '@/author/author.module';
+import { CrawlChapterService } from '@/bull/consumers/craw-consumer/crawl-chapter.service';
+import { CrawlComicService } from '@/bull/consumers/craw-consumer/crawl-comic.service';
+import { CrawlImageService } from '@/bull/consumers/craw-consumer/crawl-image.service';
+import { CrawlUploadService } from '@/bull/consumers/craw-consumer/crawl-upload.service';
+import { CrawlProducerModule } from '@/bull/producers/crawl-producer';
+import { ChapterModule } from '@/chapter/chapter.module';
+import { ComicModule } from '@/comic/comic.module';
+import { GoogleDriveApiModule } from '@common/connection/google-drive-api';
+import { ConstantBase } from '@common/utils/constant.base';
+import { ImageModule } from '@/image/image.module';
+import { StatusModule } from '@/status/status.module';
+import { TagModule } from '@/tag/tag.module';
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { PuppeteerModule } from 'nestjs-puppeteer';
 import { CrawlJobProcessor } from './crawl-job.processor';
-import { MinioConnectModule } from '@crawl-engine/common/connection/minio';
+import { MinioConnectModule } from '@common/connection/minio';
 
 @Module({
   imports: [

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthorService } from './author.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AuthorSchema } from '@crawl-engine/author/author.schema';
+import { AuthorSchema } from '@/author/author.schema';
 
 @Module({
   imports: [

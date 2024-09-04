@@ -18,13 +18,13 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@crawl-engine/*": [
+      "@/*": [
         "src/*"
       ],
-      "@crawl-engine/common": [
-        "src/common"
+      "@common/*": [
+        "src/common/*"
       ],
-      "@crawl-engine/craw/*": [
+      "@craw/*": [
         "src/craw/*"
       ],
       "@libs/*": [
