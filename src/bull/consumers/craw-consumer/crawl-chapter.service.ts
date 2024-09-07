@@ -53,8 +53,6 @@ export class CrawlChapterService {
         ),
       );
 
-      await this.producer.addSyncChapterJob(createdChapter.id);
-
       await this.comicService.findAndUpdate(
         {
           _id: job.data.comicId,
@@ -82,6 +80,7 @@ export class CrawlChapterService {
           }),
         },
       );
+      await this.producer.addSyncChapterJob(createdChapter.id);
       return {
         chapterId: createdChapter.id,
         images: rs,

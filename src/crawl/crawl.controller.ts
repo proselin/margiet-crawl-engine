@@ -56,14 +56,13 @@ export class CrawlController {
     description: 'recrawl comic',
   })
   @ApiQuery({
-    name: 'comicId',
+    name: 'chapterId',
     description: 'id of comic ',
-  })
+  })  
   public async sync(@Req() request: Request) {
     const { chapterId } = request.query;
     return await this.service.addSyncChapterJob(
       chapterId as string
     );
   }
-
 }
