@@ -2,7 +2,7 @@ import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { Image } from '@/image/image.schema';
 
-const { String, Number, ObjectId } = mongoose.Schema.Types;
+const { String, Number, ObjectId, Date } = mongoose.Schema.Types;
 
 export type ComicDocument = HydratedDocument<Comic>;
 
@@ -84,6 +84,11 @@ export class Comic {
     type: String,
   })
   originUrl: string;
+
+  @Prop({
+    type: Date
+  })
+  updatedAt: Date;
 }
 
 export const ComicSchema = SchemaFactory.createForClass(Comic);
