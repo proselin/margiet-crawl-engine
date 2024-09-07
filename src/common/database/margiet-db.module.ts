@@ -1,8 +1,9 @@
 import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { EnvKey } from '@/environment';
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 
+@Global()
 @Module({
   imports: [
     MongooseModule.forRootAsync({
