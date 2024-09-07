@@ -30,7 +30,7 @@ export class RefreshComicService {
     }).exec();
 
     Promise.all(comicDocuments.map((comic) => {
-        return  
+        return  this.crawlProducerService.updateCrawlComicJob
     }))
 
 
