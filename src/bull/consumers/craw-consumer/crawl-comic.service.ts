@@ -38,6 +38,10 @@ export class CrawlComicService {
 
       const comic: Comic = new Comic();
 
+      comic.chapters = [];
+      comic.url_history = [job.data.href];
+      comic.is_current_url_is_notfound = false 
+
       comic.originUrl = job.data.href;
 
       if (rawData.name) {
@@ -59,9 +63,7 @@ export class CrawlComicService {
       if (rawData.status) {
         await this.updateComicStatus(comic, rawData.status);
       }
-
-      comic.chapters = [];
-
+      
       if (rawData.thumbUrl) {
         await this.updateThumbImageComic(
           comic,
@@ -74,13 +76,15 @@ export class CrawlComicService {
       this.logger.log('Process create new comic');
       const createdComic = await this.comicService.createOne(comic);
       await this.addJobCrawlChapters(rawData.chapters, createdComic.id);
+
     } catch (e) {
       this.logger.error('Crawl Comic failed >>');
       this.logger.error(e);
+    
     } finally {
       setTimeout(async () => {
         await page.close();
-      }, 30000);
+      }, 2000);
     }
   }
 
