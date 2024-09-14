@@ -1,10 +1,10 @@
-import { CrawlProducerModule } from '@/bull/producers/crawl-producer';
+import { CrawlProducerModule } from '@/jobs/producers/crawl-producer';
 import { Module } from '@nestjs/common';
 import { CrawlController } from './crawl.controller';
 import { CrawlService } from './crawl.service';
 
 @Module({
-  imports: [ CrawlProducerModule],
+  imports: [CrawlProducerModule],
   controllers: [CrawlController],
   providers: [CrawlService],
 })

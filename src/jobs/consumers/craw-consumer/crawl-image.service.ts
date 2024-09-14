@@ -1,5 +1,5 @@
-import { CrawlUploadService } from '@/bull/consumers/craw-consumer/crawl-upload.service';
-import { CrawlChapterImages, CrawlThumbImage } from '@/bull/shared/types';
+import { CrawlUploadService } from '@/jobs/consumers/craw-consumer/crawl-upload.service';
+import { CrawlChapterImages, CrawlThumbImage } from '@/jobs/shared/types';
 import { ChapterService } from '@/chapter/chapter.service';
 import { ImageService } from '@/image/image.service';
 import { BeforeApplicationShutdown, Injectable, Logger } from '@nestjs/common';
@@ -18,7 +18,7 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     private crawlUploadService: CrawlUploadService,
     @InjectBrowser()
     private browser: Browser,
-    @InjectConnection() private connection: Connection
+    @InjectConnection() private connection: Connection,
   ) {}
 
   async handleCrawlThumbUrl(page: Page, jobData: CrawlThumbImage) {
@@ -35,11 +35,10 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     page: Page,
     jobData: CrawlChapterImages,
   ) {
-    const uploadedImages = await this.crawlUploadService.crawlAndUploadMulti(
-      page,
-      `c-${jobData.chapterId}`,
-      jobData.images,
-    ).then(r => r.map((uploadedImage, i) => ({
+    const uploadedImages = await this.crawlUploadService
+      .crawlAndUploadMulti(page, `c-${jobData.chapterId}`, jobData.images)
+      .then((r) =>
+        r.map((uploadedImage, i) => ({
           url: uploadedImage.fileUrl,
           minioInfo: {
             url: uploadedImage.fileUrl,
@@ -47,10 +46,12 @@ export class CrawlImageService implements BeforeApplicationShutdown {
             bucketName: uploadedImage.bucketName,
           },
           position: i,
-        })
-    ));
+        })),
+      );
 
-    const newImages = await this.imageService.model.insertMany(uploadedImages).catch(e => this.logger.error(e))
+    const newImages = await this.imageService.model
+      .insertMany(uploadedImages)
+      .catch((e) => this.logger.error(e));
     this.logger.verbose(JSON.stringify(newImages));
     this.logger.log(`Create ${uploadedImages.length} uploaded images`);
     await this.updateChapter(
@@ -76,17 +77,6 @@ export class CrawlImageService implements BeforeApplicationShutdown {
 
   async beforeApplicationShutdown() {
     await this.browser.close();
-  }
-
-  private async abortRequest(page: Page, originURl: string) {
-    page.on('request', (request) => {
-      const url = request.url();
-      if (url == originURl) {
-        request.continue();
-        return;
-      }
-      request.abort('blockedbyclient');
-    });
   }
 
   private async createImageDocument(uploadedUrl: string, index: number) {

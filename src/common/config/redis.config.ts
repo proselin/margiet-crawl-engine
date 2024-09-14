@@ -7,7 +7,7 @@ export class RedisConfig {
       host: env.REDIS_HOST,
       port: +env.REDIS_PORT,
       password: env.REDIS_PASSWORD,
-      // username: env.REDIS_USERNAME,
+      username: env.REDIS_USERNAME,
     };
   }
 
@@ -16,7 +16,9 @@ export class RedisConfig {
   ): MicroserviceOptions {
     return {
       transport: Transport.REDIS,
-      options: RedisConfig.config(env),
+      options: {
+        ...RedisConfig.config(env),
+      },
     };
   }
 }

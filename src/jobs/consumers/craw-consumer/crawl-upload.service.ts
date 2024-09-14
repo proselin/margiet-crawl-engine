@@ -1,5 +1,5 @@
-import { UploadMinioResponse } from '@/bull/shared';
-import { JobUtils } from '@/bull/shared/utils';
+import { UploadMinioResponse } from '@/jobs/shared';
+import { JobUtils } from '@/jobs/shared/utils';
 import { EnvKey } from '@/environment';
 import { InjectMinio } from '@libs/minio';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
@@ -143,7 +143,7 @@ export class CrawlUploadService {
       this.logger.error(`Crawl Image fail url := ${JSON.stringify(imageUrls)}`);
       this.logger.error(e);
       console.trace(e);
-      throw e
+      throw e;
     }
   }
 

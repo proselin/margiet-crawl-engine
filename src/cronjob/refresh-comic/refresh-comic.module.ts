@@ -1,4 +1,4 @@
-import { CrawlProducerModule } from '@/bull/producers/crawl-producer';
+import { CrawlProducerModule } from '@/jobs/producers/crawl-producer';
 import { ComicModule } from '@/comic/comic.module';
 import { Module } from '@nestjs/common';
 import { RefreshComicService } from './refresh-comic.service';

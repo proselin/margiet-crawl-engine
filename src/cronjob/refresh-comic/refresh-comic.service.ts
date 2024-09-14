@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CronExpression, Cron } from '@nestjs/schedule';
-import { CrawlProducerService } from '@/bull/producers/crawl-producer';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { CrawlProducerService } from '@/jobs/producers/crawl-producer';
 import { ConfigService } from '@nestjs/config';
 import { ComicService } from '@/comic/comic.service';
+import { ComicDocument } from '@/comic/comic.schema';
 
 @Injectable()
 export class RefreshComicService {
@@ -25,15 +26,19 @@ export class RefreshComicService {
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
     // Query the collection
-    const comicDocuments = await this.comicService.model.find({
-      updatedAt: { $lt: oneDayAgo },
-    }).exec();
 
-    Promise.all(comicDocuments.map((comic) => {
-        return  this.crawlProducerService.updateCrawlComicJob
-    }))
+    const comicDocuments = await this.comicService.model
+      .find<ComicDocument>({
+        should_refresh: true,
+        is_current_url_is_notfound: false,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        updatedAt: { $lt: oneDayAgo },
+      })
+      .exec();
 
-
-
+    return this.crawlProducerService.updateCrawlComicJob(
+      comicDocuments.map((comic) => comic.id),
+    );
   }
 }

@@ -1,4 +1,4 @@
-import { JobConstant } from '@/bull/shared';
+import { JobConstant } from '@/jobs/shared';
 import { ConstantBase } from '@/common/utils/constant.base';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
@@ -7,9 +7,9 @@ import {
   CrawlChapterData,
   CrawlComicJobData,
   UpdateComicJobData,
-} from '@/bull/shared/types';
+} from '@/jobs/shared/types';
 import { CrawlComicService } from './crawl-comic.service';
-import { CrawlChapterService } from '@/bull/consumers/craw-consumer/crawl-chapter.service';
+import { CrawlChapterService } from '@/jobs/consumers/craw-consumer/crawl-chapter.service';
 
 @Injectable()
 @Processor(ConstantBase.QUEUE_CRAWL_NAME)
