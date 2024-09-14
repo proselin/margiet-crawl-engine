@@ -1,7 +1,7 @@
 import { AuthorService } from '@/author/author.service';
-import { CrawlProducerService } from '@/bull/producers/crawl-producer';
-import { ComicChapterPre, CrawlRawData } from '@/bull/shared';
-import { CrawlComicJobData, UpdateComicJobData } from '@/bull/shared/types';
+import { CrawlProducerService } from '@/jobs/producers/crawl-producer';
+import { ComicChapterPre, CrawlRawData } from '@/jobs/shared';
+import { CrawlComicJobData, UpdateComicJobData } from '@/jobs/shared/types';
 import { Comic } from '@/comic/comic.schema';
 import { ComicService } from '@/comic/comic.service';
 import { InvalidComicInformation } from '@/common';
@@ -11,7 +11,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
-import { CrawlImageService } from '@/bull/consumers/craw-consumer/crawl-image.service';
+import { CrawlImageService } from '@/jobs/consumers/craw-consumer/crawl-image.service';
 import mongoose from 'mongoose';
 
 @Injectable()
@@ -38,14 +38,18 @@ export class CrawlComicService {
 
       const comic: Comic = new Comic();
 
-      comic.originUrl = job.data.href;
+      comic.chapters = [];
+      comic.url_history = [job.data.href];
+      comic.is_current_url_is_notfound = false;
+
+      comic.origin_url = job.data.href;
 
       if (rawData.name) {
         comic.name = rawData.name;
       }
 
       if (rawData.totalChapter) {
-        comic.chapterCount = +rawData.totalChapter;
+        comic.chapter_count = +rawData.totalChapter;
       }
 
       if (rawData.author) {
@@ -59,8 +63,6 @@ export class CrawlComicService {
       if (rawData.status) {
         await this.updateComicStatus(comic, rawData.status);
       }
-
-      comic.chapters = [];
 
       if (rawData.thumbUrl) {
         await this.updateThumbImageComic(
@@ -80,7 +82,7 @@ export class CrawlComicService {
     } finally {
       setTimeout(async () => {
         await page.close();
-      }, 30000);
+      }, 2000);
     }
   }
 
@@ -181,13 +183,13 @@ export class CrawlComicService {
 
     try {
       if (job.data.newUrl) {
-        comic.originUrl = job.data.newUrl;
+        comic.origin_url = job.data.newUrl;
       }
 
-      await this.preparePage(page, comic.originUrl as string);
+      await this.preparePage(page, comic.origin_url as string);
 
       const rawData = await this.extractInfoFromComicPage(page);
-      const lastedChapter = comic.chapterCount;
+      const lastedChapter = comic.chapter_count;
       this.logger.log(
         `[${this.handleUpdateComic.name}]::= Found comic and update what it changed`,
       );
@@ -203,7 +205,7 @@ export class CrawlComicService {
       }
 
       if (rawData.totalChapter) {
-        comic.chapterCount = +rawData.totalChapter;
+        comic.chapter_count = +rawData.totalChapter;
       }
 
       if (rawData.author != comic.author.name) {
@@ -285,9 +287,9 @@ export class CrawlComicService {
     thumbUrl: string,
     goto: string,
   ) {
-    comic.thumbUrl = null;
+    comic.thumb_image = null;
     this.logger.log('Process crawl image thumb url');
-    comic.thumbUrl = await this.crawlImageService.handleCrawlThumbUrl(page, {
+    comic.thumb_image = await this.crawlImageService.handleCrawlThumbUrl(page, {
       imageUrls: [thumbUrl],
       goto,
     });
