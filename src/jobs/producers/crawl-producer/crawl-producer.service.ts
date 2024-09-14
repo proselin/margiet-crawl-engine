@@ -1,9 +1,13 @@
-import { JobConstant } from '@/bull/shared';
+import { JobConstant } from '@/jobs/shared';
 import { ConstantBase } from '@/common/utils/constant.base';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { BulkJobOptions, Job, Queue } from 'bullmq';
-import { CrawlChapterData, CrawlComicJobData, UpdateComicJobData } from '@/bull/shared/types';
+import {
+  CrawlChapterData,
+  CrawlComicJobData,
+  UpdateComicJobData,
+} from '@/jobs/shared/types';
 
 @Injectable()
 export class CrawlProducerService {
@@ -32,12 +36,12 @@ export class CrawlProducerService {
       }),
     );
   }
-  async addSyncChapterJob(chapterId: string) {
-    return this.uploadQueue.add("SYNC_CHAPTER", {
-      id: chapterId
-    })
-  }
 
+  async addSyncChapterJob(chapterId: string) {
+    return this.uploadQueue.add('SYNC_CHAPTER', {
+      id: chapterId,
+    });
+  }
 
   /**
    * @param href
@@ -55,6 +59,7 @@ export class CrawlProducerService {
   /**
    * @description Update comic by re crawl
    * @param comicId id of updated comic
+   * @param newUrl
    * @returns Job
    */
   async updateOneCrawlComicJob(
@@ -71,32 +76,33 @@ export class CrawlProducerService {
     });
   }
 
-
-    /**
+  /**
    * @description Refresh comic data - add bulk jobs
-   * @param comicId id of updated comic
    * @returns Job
+   * @param comicIds
    */
-    async updateCrawlComicJob(
-      comicIds: string[],
-    ): Promise<Job[]> {
-      this.logger.log(
-        `Add Update comic jobs with ${comicIds.length} comicId to queue  ${ConstantBase.QUEUE_CRAWL_NAME}`,
-      );
-      const name = JobConstant.UPDATE_COMIC_JOB_NAME;
-      const jobs: {name: typeof name, data: UpdateComicJobData, options: BulkJobOptions}[] = comicIds.map((comicId) => {
-        return {
-          name,
-          data: {
-            comicId,
-            newUrl: null
-          },
-          options: {
-            delay: 200,
-            backoff: 2
-          }
-        }
-      })
-      return this.crawlQueue.addBulk(jobs);
-    }
+  async updateCrawlComicJob(comicIds: string[]): Promise<Job[]> {
+    this.logger.log(
+      `Add Update comic jobs with ${comicIds.length} comicId to queue  ${ConstantBase.QUEUE_CRAWL_NAME}`,
+    );
+    const name = JobConstant.UPDATE_COMIC_JOB_NAME;
+    const jobs: {
+      name: typeof name;
+      data: UpdateComicJobData;
+      options: BulkJobOptions;
+    }[] = comicIds.map((comicId) => {
+      return {
+        name,
+        data: {
+          comicId,
+          newUrl: null,
+        },
+        options: {
+          delay: 200,
+          backoff: 2,
+        },
+      };
+    });
+    return this.crawlQueue.addBulk(jobs);
+  }
 }

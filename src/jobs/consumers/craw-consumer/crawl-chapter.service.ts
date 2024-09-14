@@ -1,14 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { CrawlChapterData } from '@/bull/shared/types';
+import { CrawlChapterData } from '@/jobs/shared/types';
 import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
 import { Chapter } from '@/chapter/chapter.schema';
 import { ChapterService } from '@/chapter/chapter.service';
 import { ComicService } from '@/comic/comic.service';
-import { CrawlImageService } from '@/bull/consumers/craw-consumer/crawl-image.service';
-import { CrawlProducerService } from '@/bull/producers/crawl-producer';
-import { create } from 'domain';
+import { CrawlImageService } from '@/jobs/consumers/craw-consumer/crawl-image.service';
+import { CrawlProducerService } from '@/jobs/producers/crawl-producer';
 
 @Injectable()
 export class CrawlChapterService {
@@ -20,7 +19,7 @@ export class CrawlChapterService {
     @InjectBrowser()
     private readonly browser: Browser,
     private readonly crawlImageService: CrawlImageService,
-    private readonly producer: CrawlProducerService
+    private readonly producer: CrawlProducerService,
   ) {}
 
   async handleCrawlJob(job: Job<CrawlChapterData>) {
@@ -119,7 +118,7 @@ export class CrawlChapterService {
     dto.chapterNumber = chapNumber;
     dto.position = position;
     dto.name = 'Chapter ' + chapNumber;
-    dto.sourceUrl = sourceUrl;
+    dto.source_url = sourceUrl;
     return dto;
   }
 }

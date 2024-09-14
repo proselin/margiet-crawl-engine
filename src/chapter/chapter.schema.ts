@@ -2,31 +2,33 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Image } from '@/image/image.schema';
 import mongoose, { HydratedDocument } from 'mongoose';
 
+// Chapter Schema
 export type ChapterDocument = HydratedDocument<Chapter>;
 
 @Schema({
   timestamps: true,
 })
 export class Chapter {
-  @Prop()
-  dataId: String;
+  @Prop({ type: String })
+  dataId: string;
 
-  @Prop()
-  chapterNumber: String;
+  @Prop({ type: String })
+  chapterNumber: string;
 
-  @Prop()
-  sourceUrl: String;
+  @Prop({ type: String })
+  source_url: string;
 
-  @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Image' }],
-  })
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: Image.name }] })
   images: Image[];
 
-  @Prop()
-  name: String;
+  @Prop({ type: String })
+  name: string;
 
-  @Prop()
-  position: Number;
+  @Prop({ type: Number, index: true })
+  position: number;
+
+  @Prop({ type: String, require: true })
+  comicId: string;
 }
 
 export const ChapterSchema = SchemaFactory.createForClass(Chapter);
