@@ -1,20 +1,17 @@
-import { CrawlConsumerModule } from '@/bull/consumers/craw-consumer';
-import { CrawlProducerModule } from '@/bull/producers/crawl-producer';
-import { CrawlModule } from '@/crawl';
-import { MargietDbModule } from '@/database';
+import { CrawlConsumerModule } from '@/jobs/consumers/craw-consumer';
+import { CrawlProducerModule } from '@/jobs/producers/crawl-producer';
 import { BullmqConnectModule } from '@/common/connection/bullmq';
+import { MargietDbModule } from '@/common/database';
+import { CrawlModule } from '@/crawl';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PuppeteerModule } from 'nestjs-puppeteer';
-import { envValidation } from './common';
 import { WinstonLoggerModule } from './common/logger/winston';
-import { Environment } from './environment';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validate: () => envValidation(Environment),
     }),
     WinstonLoggerModule,
     PuppeteerModule.forRoot({

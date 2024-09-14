@@ -1,9 +1,9 @@
 import { AuthorModule } from '@/author/author.module';
-import { CrawlChapterService } from '@/bull/consumers/craw-consumer/crawl-chapter.service';
-import { CrawlComicService } from '@/bull/consumers/craw-consumer/crawl-comic.service';
-import { CrawlImageService } from '@/bull/consumers/craw-consumer/crawl-image.service';
-import { CrawlUploadService } from '@/bull/consumers/craw-consumer/crawl-upload.service';
-import { CrawlProducerModule } from '@/bull/producers/crawl-producer';
+import { CrawlChapterService } from '@/jobs/consumers/craw-consumer/crawl-chapter.service';
+import { CrawlComicService } from '@/jobs/consumers/craw-consumer/crawl-comic.service';
+import { CrawlImageService } from '@/jobs/consumers/craw-consumer/crawl-image.service';
+import { CrawlUploadService } from '@/jobs/consumers/craw-consumer/crawl-upload.service';
+import { CrawlProducerModule } from '@/jobs/producers/crawl-producer';
 import { ChapterModule } from '@/chapter/chapter.module';
 import { ComicModule } from '@/comic/comic.module';
 import { GoogleDriveApiModule } from '@/common/connection/google-drive-api';

@@ -1,22 +1,24 @@
-import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
+// Image Schema
 export type ImageDocument = HydratedDocument<Image>;
+
 @Schema({
   timestamps: true,
   autoIndex: true,
 })
 export class Image {
-  @Prop()
-  url: String | null;
+  @Prop({ type: String, default: null, index: true }) // Indexed URL for search
+  url: string | null;
 
   @Prop({
-    type: raw({
+    type: {
       driverId: String,
       fileName: String,
       parentFolderId: String,
       url: String,
-    }),
+    },
   })
   driverInfo: {
     driverId: string;
@@ -26,19 +28,16 @@ export class Image {
   };
 
   @Prop({
-    type: raw({
+    type: {
       bucketName: String,
       fileName: String,
       url: String,
-    }),
+    },
   })
-  minioInfo: {
-    bucketName: string;
-    fileName: string;
-    url: string;
-  };
+  minioInfo: { bucketName: string; fileName: string; url: string };
 
-  @Prop()
-  position: Number;
+  @Prop({ type: Number, index: true }) // Indexed position for sorting
+  position: number;
 }
+
 export const ImageSchema = SchemaFactory.createForClass(Image);
