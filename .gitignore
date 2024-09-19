@@ -43,7 +43,6 @@ yarn-error.log
 /coverage
 /.nyc_output
 /packages/graphql
-/benchmarks/memory
 build/config\.gypi
 
 .npmrc
@@ -55,3 +54,7 @@ dist
 pids
 logs
 bun.lockb
+
+
+.env.development
+../margiet-devops/crawl-engine/.env.production
