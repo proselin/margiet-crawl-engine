@@ -1,99 +1,53 @@
-# Stage 1: Build the application
-FROM node:18-alpine AS builder
+# Stage 1: Build Stage
+FROM node:20-alpine AS build
 
-# Install dependencies required by Puppeteer and build tools
+# Set working directory
+WORKDIR /usr/src/app
+
+# Install build dependencies (including Puppeteer dependencies)
 RUN apk add --no-cache \
     chromium \
     nss \
     freetype \
-    freetype-dev \
     harfbuzz \
     ca-certificates \
-    ttf-freefont \
-    # Build dependencies
-    && apk add --no-cache --virtual .build-deps \
-        g++ \
-        gcc \
-        libgcc \
-        libstdc++ \
-        make \
-        python3 \
-    && rm -rf /var/cache/*
+    ttf-freefont
 
-# Set environment variables for Puppeteer
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-
-# Set working directory
-WORKDIR /app
-
-# Copy package.json and package-lock.json (or yarn.lock if you use Yarn)
+# Install dependencies
 COPY package*.json ./
-
-# Install all dependencies (including devDependencies for building)
 RUN npm install
 
-# Copy all source code
+# Copy the rest of the application files
 COPY . .
-
-# Ensure Nest CLI uses the correct tsconfig.build.json
-ENV NEST_CLI_CONFIG=./nest-cli.json
 
 # Build the NestJS application
 RUN npm run build
 
-# Remove build dependencies to reduce image size
-RUN apk del .build-deps
+# Stage 2: Production Stage
+FROM node:20-alpine
 
-# Stage 2: Create the production image
-FROM node:18-alpine
+# Set working directory
+WORKDIR /usr/src/app
 
-# Install dependencies required by Puppeteer
+# Install runtime dependencies (including Puppeteer dependencies)
 RUN apk add --no-cache \
     chromium \
     nss \
     freetype \
-    freetype-dev \
     harfbuzz \
     ca-certificates \
-    ttf-freefont \
-    # Runtime dependencies
-    && apk add --no-cache --virtual .runtime-deps \
-        dumb-init \
-    && rm -rf /var/cache/*
+    ttf-freefont
 
-# Set environment variables for Puppeteer
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+# Copy only the necessary files from the build stage
+COPY --from=build /usr/src/app/dist ./dist
+COPY --from=build /usr/src/app/package*.json ./
+COPY --from=build /usr/src/app/node_modules ./node_modules
 
-# Set NODE_ENV to production
-ENV NODE_ENV=production
-
-# Set working directory
-WORKDIR /app
-
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Install only production dependencies
-RUN npm install --only=production
-
-# Copy the built application from the builder stage
-COPY --from=builder /app/dist ./dist
-
-# Copy necessary configuration files
-# If you have environment-specific files, you can copy them here
-COPY --from=builder /app/.env.production ./
-
-# Use a non-root user for better security
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
-
-# Expose the desired port
+# Expose the necessary port (default NestJS port)
 EXPOSE 3005
 
-# Use dumb-init as the init system to handle signal forwarding and zombie processes
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+# Set Puppeteer executable path for Chromium
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-# Define the command to run the application using dotenvx
-CMD ["node_modules/@dotenvx/dotenvx/src/cli/dotenvx.js", "run", "-f", ".env.production", "--", "node", "dist/main.js"]
+# Command to run the application using environment file
+CMD ["node", "dist/main"]

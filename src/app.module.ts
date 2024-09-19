@@ -7,17 +7,20 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PuppeteerModule } from 'nestjs-puppeteer';
 import { WinstonLoggerModule } from './common/logger/winston';
+import { TerminusModule } from '@nestjs/terminus';
+import { MetricsModule } from './metrics/metrics.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    TerminusModule,
     WinstonLoggerModule,
     PuppeteerModule.forRoot({
       headless: 'new',
       devtools: true,
-      channel: 'chrome',
       waitForInitialPage: true,
     }),
     BullmqConnectModule,
@@ -25,6 +28,8 @@ import { WinstonLoggerModule } from './common/logger/winston';
     CrawlProducerModule,
     MargietDbModule,
     CrawlModule,
+    MetricsModule,
+    HealthModule,
   ],
 })
 export class AppModule {}
