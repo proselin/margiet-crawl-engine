@@ -1,53 +1,34 @@
-# Stage 1: Build Stage
-FROM node:20-alpine AS build
+# Stage 1: Build the application
+FROM ghcr.io/puppeteer/puppeteer:latest AS build
 
-# Set working directory
-WORKDIR /usr/src/app
+# Set the working directory
+WORKDIR /app
 
-# Install build dependencies (including Puppeteer dependencies)
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont
+# Copy package.json and package-lock.json (if available)
+COPY package*.json ./
 
 # Install dependencies
-COPY package*.json ./
 RUN npm install
 
-# Copy the rest of the application files
+# Copy the rest of the application code
 COPY . .
 
 # Build the NestJS application
 RUN npm run build
 
-# Stage 2: Production Stage
-FROM node:20-alpine
+# Stage 2: Run the application
+FROM ghcr.io/puppeteer/puppeteer:latest
 
-# Set working directory
-WORKDIR /usr/src/app
+# Set the working directory
+WORKDIR /app
 
-# Install runtime dependencies (including Puppeteer dependencies)
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont
+# Copy the built application and node_modules from the build stage
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package*.json ./
 
-# Copy only the necessary files from the build stage
-COPY --from=build /usr/src/app/dist ./dist
-COPY --from=build /usr/src/app/package*.json ./
-COPY --from=build /usr/src/app/node_modules ./node_modules
+# Expose the port your NestJS app runs on (default is 3000)
+EXPOSE 3000
 
-# Expose the necessary port (default NestJS port)
-EXPOSE 3005
-
-# Set Puppeteer executable path for Chromium
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-
-# Command to run the application using environment file
+# Start the application
 CMD ["node", "dist/main"]
