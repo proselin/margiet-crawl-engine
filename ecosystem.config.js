@@ -1,10 +1,11 @@
+const { env } = require("process");
 
 module.exports = {
   apps: [
     {
       name: 'margiet-app',
       script: './dist/main.js',
-      instances: '4',
+      instances: '2',
       exec_mode: 'cluster',
       log_date_format: 'YYYY-MM-DD HH:mm:ss',
       error_file: './logs/pm2-error.log',

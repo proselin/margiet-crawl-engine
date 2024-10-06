@@ -3,12 +3,12 @@ export interface CrawlComicJobData {
 }
 
 /**
- * Cập nhật thông tin cho comic
+ * Cập nhật thông tin cho comic-fe
  */
 export interface UpdateComicJobData {
   /**
    *
-   * @description là id của comic có tồn tại trong hệ thống
+   * @description là id của comic-fe có tồn tại trong hệ thống
    */
   comicId: string;
   /**

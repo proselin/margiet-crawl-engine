@@ -10,11 +10,15 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = +configService.get(EnvKey.SERVER_PORT);
   const host = configService.get(EnvKey.SERVER_HOST);
-  const prefix = configService.get(EnvKey.SERVER_PREFIX);
+  const prefix = configService.get(EnvKey.SERVER_PREFIX, 'api');
   app.setGlobalPrefix(prefix);
   SwaggerConfig.setupOpenApi(app, {});
   await app.listen(port);
   Logger.log(`🚀 Application is running on: http://${host}:${port}/${prefix}`);
 }
 
-bootstrap().then();
+bootstrap()
+  .then()
+  .catch((err) => {
+    console.error(err);
+  });

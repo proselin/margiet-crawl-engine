@@ -17,7 +17,7 @@ export class HealthController {
   check() {
     return this.health.check([
       () => this.db.pingCheck('mongdb'),
-      // Add more health checks as needed
+
     ]);
   }
 }

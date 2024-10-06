@@ -1,4 +1,4 @@
-import { UploadMinioResponse } from '@/jobs/shared';
+import { CrawlUploadResponse, UploadMinioResponse } from '@/jobs/shared';
 import { JobUtils } from '@/jobs/shared/utils';
 import { EnvKey } from '@/environment';
 import { InjectMinio } from '@libs/minio';
@@ -41,35 +41,50 @@ export class CrawlUploadService {
       imageUrls: string[];
       position: number;
     }[],
-  ) {
+  ): Promise<CrawlUploadResponse> {
     page.off('request');
 
     return Promise.all(
       data.map(async (rawCrawlData) => {
-        setTimeout(() => {
-          this.constructHTMLImage(rawCrawlData.imageUrls, page);
-        });
-        const response = await page.waitForResponse(async (response) => {
-          return (
-            response.request().resourceType() == 'image' &&
-            response.status() == HttpStatus.OK &&
-            rawCrawlData.imageUrls.indexOf(response.url()) != -1
+        try {
+          setTimeout(() => {
+            this.constructHTMLImage(rawCrawlData.imageUrls, page);
+          });
+          const response = await page.waitForResponse(async (response) => {
+            return (
+              response.request().resourceType() == 'image' &&
+              response.status() == HttpStatus.OK &&
+              rawCrawlData.imageUrls.indexOf(response.url()) != -1
+            );
+          });
+          this.logger.log('Had response on url := ' + response.url());
+          const buffer = await response.buffer();
+          const contentType = response.headers()?.['content-type'];
+          const fileName = await this.generateFileName(
+            prefixFileName,
+            contentType,
           );
-        });
-        this.logger.log('Had response on url := ' + response.url());
-        const buffer = await response.buffer();
-        const contentType = response.headers()?.['content-type'];
-        const fileName = await this.generateFileName(
-          prefixFileName,
-          contentType,
-        );
 
-        return this.uploadToMinio(
-          buffer,
-          contentType,
-          fileName,
-          this.configService.get(EnvKey.MINIO_BUCKET),
-        );
+          return {
+            ...(await this.uploadToMinio(
+              buffer,
+              contentType,
+              fileName,
+              this.configService.get(EnvKey.MINIO_BUCKET),
+            )),
+            position: rawCrawlData.position,
+            originUrls: rawCrawlData.imageUrls,
+          };
+        } catch (e) {
+          this.logger.error(
+            `[${this.crawlAndUploadMulti.name}]:= Error with data`,
+            { rawCrawlData, error: e },
+          );
+          return {
+            position: rawCrawlData.position,
+            originUrls: rawCrawlData.imageUrls,
+          };
+        }
       }),
     );
   }

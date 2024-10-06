@@ -27,19 +27,8 @@ export class CrawlController {
     return await this.service.addCrawlComicJob(<string>request.query.target);
   }
 
-  @Get('/update')
-  @ApiProperty({
-    description: 'recrawl comic',
-  })
-  @ApiQuery({
-    name: 'comicId',
-    description: 'id of comic ',
-  })
-  @ApiQuery({
-    name: 'newUrl',
-    description: 'new url for comic',
-  })
-  public async update(@Req() request: Request) {
+  @Get('/request')
+  public async request(@Req() request: Request) {
     if (!request.query?.target) {
       throw new BadRequestException();
     }
@@ -50,19 +39,26 @@ export class CrawlController {
     );
   }
 
-
-  @Get('/sync')
+  @Get('/update')
   @ApiProperty({
-    description: 'recrawl comic',
+    description: 'recrawl comic-fe',
   })
   @ApiQuery({
-    name: 'chapterId',
-    description: 'id of comic ',
-  })  
-  public async sync(@Req() request: Request) {
-    const { chapterId } = request.query;
-    return await this.service.addSyncChapterJob(
-      chapterId as string
+    name: 'comicId',
+    description: 'id of comic-fe ',
+  })
+  @ApiQuery({
+    name: 'newUrl',
+    description: 'new url for comic-fe',
+  })
+  public async update(@Req() request: Request) {
+    if (!request.query?.target) {
+      throw new BadRequestException();
+    }
+    const { comicId, newUrl } = request.query;
+    return await this.service.updateCrawlComicJob(
+      comicId as string,
+      (newUrl as string) || null,
     );
   }
 }

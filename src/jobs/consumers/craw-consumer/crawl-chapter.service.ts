@@ -3,11 +3,12 @@ import { Job } from 'bullmq';
 import { CrawlChapterData } from '@/jobs/shared/types';
 import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
-import { Chapter } from '@/chapter/chapter.schema';
-import { ChapterService } from '@/chapter/chapter.service';
-import { ComicService } from '@/comic/comic.service';
+import { Chapter } from '@/models/chapter/chapter.schema';
+import { ChapterService } from '@/models/chapter/chapter.service';
+import { ComicService } from '@/models/comic/comic.service';
 import { CrawlImageService } from '@/jobs/consumers/craw-consumer/crawl-image.service';
 import { CrawlProducerService } from '@/jobs/producers/crawl-producer';
+import { SyncComicRmqProducer } from '@/rabbitmq/producer/sync-comic-rmq.producer';
 
 @Injectable()
 export class CrawlChapterService {
@@ -20,6 +21,7 @@ export class CrawlChapterService {
     private readonly browser: Browser,
     private readonly crawlImageService: CrawlImageService,
     private readonly producer: CrawlProducerService,
+    private readonly syncRmqProducer: SyncComicRmqProducer
   ) {}
 
   async handleCrawlJob(job: Job<CrawlChapterData>) {
@@ -79,7 +81,11 @@ export class CrawlChapterService {
           }),
         },
       );
-      await this.producer.addSyncChapterJob(createdChapter.id);
+      await this.syncRmqProducer.syncChapterCreate(createdChapter)
+      await this.producer.addUploadImageBulk(rs.map((img) => ({
+        id: img.id,
+        chapterId: createdChapter.id
+      })));
       return {
         chapterId: createdChapter.id,
         images: rs,
@@ -88,9 +94,7 @@ export class CrawlChapterService {
       this.logger.error(`Crawl job ${job.token} Fail :=`);
       this.logger.error(e);
     } finally {
-      setTimeout(async () => {
-        await page.close();
-      }, 30000);
+      await page.close();
     }
   }
 
