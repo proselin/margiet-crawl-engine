@@ -1,21 +1,22 @@
-import { AuthorModule } from '@/author/author.module';
+import { AuthorModule } from '@/models/author/author.module';
 import { CrawlChapterService } from '@/jobs/consumers/craw-consumer/crawl-chapter.service';
 import { CrawlComicService } from '@/jobs/consumers/craw-consumer/crawl-comic.service';
 import { CrawlImageService } from '@/jobs/consumers/craw-consumer/crawl-image.service';
 import { CrawlUploadService } from '@/jobs/consumers/craw-consumer/crawl-upload.service';
 import { CrawlProducerModule } from '@/jobs/producers/crawl-producer';
-import { ChapterModule } from '@/chapter/chapter.module';
-import { ComicModule } from '@/comic/comic.module';
+import { ChapterModule } from '@/models/chapter/chapter.module';
+import { ComicModule } from '@/models/comic/comic.module';
 import { GoogleDriveApiModule } from '@/common/connection/google-drive-api';
 import { ConstantBase } from '@/common/utils/constant.base';
-import { ImageModule } from '@/image/image.module';
-import { StatusModule } from '@/status/status.module';
-import { TagModule } from '@/tag/tag.module';
+import { ImageModule } from '@/models/image/image.module';
+import { StatusModule } from '@/models/status/status.module';
+import { TagModule } from '@/models/tag/tag.module';
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { PuppeteerModule } from 'nestjs-puppeteer';
 import { CrawlJobProcessor } from './crawl-job.processor';
 import { MinioConnectModule } from '@/common/connection/minio';
+import { RmqProducerModule } from '@/rabbitmq/producer/rmq-producer.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { MinioConnectModule } from '@/common/connection/minio';
     BullModule.registerQueue({
       name: ConstantBase.QUEUE_UPLOAD_NAME,
     }),
+    RmqProducerModule,
     MinioConnectModule,
     PuppeteerModule.forFeature([]),
     CrawlProducerModule,

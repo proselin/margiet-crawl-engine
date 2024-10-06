@@ -8,6 +8,7 @@ import {
   CrawlComicJobData,
   UpdateComicJobData,
 } from '@/jobs/shared/types';
+import { UploadDriveConstant } from '@/jobs/consumers/upload-drive/upload-drive.constant';
 
 @Injectable()
 export class CrawlProducerService {
@@ -37,15 +38,24 @@ export class CrawlProducerService {
     );
   }
 
-  async addSyncChapterJob(chapterId: string) {
-    return this.uploadQueue.add('SYNC_CHAPTER', {
-      id: chapterId,
-    });
+  async addUploadImageBulk(input: {id: string ,chapterId: string}[]) {
+    return this.uploadQueue.addBulk(
+      input.map((data) => {
+        return {
+          name: UploadDriveConstant.UPLOAD_JOB_NAME,
+          data,
+          opts: {
+            backoff: 3,
+            delay: 200
+          }
+        }
+      })
+    );
   }
 
   /**
    * @param href
-   * @description Add a job crawl comic to queue
+   * @description Add a job crawl comic-fe to queue
    */
   async addCrawlComicJob(href: string) {
     this.logger.log(
@@ -57,8 +67,8 @@ export class CrawlProducerService {
   }
 
   /**
-   * @description Update comic by re crawl
-   * @param comicId id of updated comic
+   * @description Update comic-fe by re crawl
+   * @param comicId id of updated comic-fe
    * @param newUrl
    * @returns Job
    */
@@ -77,7 +87,7 @@ export class CrawlProducerService {
   }
 
   /**
-   * @description Refresh comic data - add bulk jobs
+   * @description Refresh comic-fe data - add bulk jobs
    * @returns Job
    * @param comicIds
    */

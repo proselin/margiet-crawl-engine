@@ -32,3 +32,8 @@ export type UploadMinioResponse = {
   fileName: string;
   bucketName: string;
 };
+
+export type CrawlUploadResponse = (Partial<UploadMinioResponse> & {
+  position: number;
+  originUrls: string[];
+})[];

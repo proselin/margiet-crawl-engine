@@ -9,7 +9,7 @@ export class CrawlService {
 
   /**
    * @param href
-   * @description Add a job crawl comic to queue
+   * @description Add a job crawl comic-fe to queue
    * @returns {Promise<void>}
    */
   async addCrawlComicJob(href: string): Promise<void> {
@@ -17,8 +17,8 @@ export class CrawlService {
   }
 
   /**
-   * @description Update comic by re crawl
-   * @param comicId id of updated comic
+   * @description Update comic-fe by re crawl
+   * @param comicId id of updated comic-fe
    * @param newUrl
    * @returns Job
    */
@@ -26,10 +26,8 @@ export class CrawlService {
     comicId: string,
     newUrl: string | null,
   ): Promise<void> {
-    return this.updateCrawlComicJob(comicId, newUrl).then(() => {});
-  }
-
-  async addSyncChapterJob(chapterId: string): Promise<void> {
-    this.producerService.addSyncChapterJob(chapterId).then(() => {});
+    return this.producerService
+      .updateOneCrawlComicJob(comicId, newUrl)
+      .then(() => {});
   }
 }

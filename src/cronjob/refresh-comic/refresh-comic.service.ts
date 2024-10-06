@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CrawlProducerService } from '@/jobs/producers/crawl-producer';
 import { ConfigService } from '@nestjs/config';
-import { ComicService } from '@/comic/comic.service';
-import { ComicDocument } from '@/comic/comic.schema';
+import { ComicService } from '@/models/comic/comic.service';
+import { ComicDocument } from '@/models/comic/comic.schema';
 
 @Injectable()
 export class RefreshComicService {

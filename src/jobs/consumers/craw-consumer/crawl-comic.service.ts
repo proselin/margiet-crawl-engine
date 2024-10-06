@@ -1,12 +1,12 @@
-import { AuthorService } from '@/author/author.service';
+import { AuthorService } from '@/models/author/author.service';
 import { CrawlProducerService } from '@/jobs/producers/crawl-producer';
 import { ComicChapterPre, CrawlRawData } from '@/jobs/shared';
 import { CrawlComicJobData, UpdateComicJobData } from '@/jobs/shared/types';
-import { Comic } from '@/comic/comic.schema';
-import { ComicService } from '@/comic/comic.service';
+import { Comic } from '@/models/comic/comic.schema';
+import { ComicService } from '@/models/comic/comic.service';
 import { InvalidComicInformation } from '@/common';
-import { StatusService } from '@/status/status.service';
-import { TagService } from '@/tag/tag.service';
+import { StatusService } from '@/models/status/status.service';
+import { TagService } from '@/models/tag/tag.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { InjectBrowser } from 'nestjs-puppeteer';
@@ -73,7 +73,7 @@ export class CrawlComicService {
         );
       }
 
-      this.logger.log('Process create new comic');
+      this.logger.log('Process create new comic-fe');
       const createdComic = await this.comicService.createOne(comic);
       await this.addJobCrawlChapters(rawData.chapters, createdComic.id);
     } catch (e) {
@@ -108,9 +108,9 @@ export class CrawlComicService {
 
     try {
       const thumbUrl = await page.$eval(
-        '.detail-info .col-image > img.image-thumb',
+        'img.image-thumb',
         (ele) => ele.src,
-      );
+      ).catch(() => "empty");
       const author = await page.$eval('.status.row .col-xs-8', (ele) =>
         ele.textContent.trim(),
       );
@@ -126,7 +126,7 @@ export class CrawlComicService {
       const chapters: ComicChapterPre[] = await page.$$eval(
         '#desc > li > .chapter > a',
         (eles) =>
-          eles.map((ele) => {
+          eles.map((ele: HTMLAnchorElement) => {
             return {
               dataId: ele.dataset.id,
               url: ele.href,
@@ -164,7 +164,7 @@ export class CrawlComicService {
   }
 
   /**
-   * @description Refresh or update existed comic value
+   * @description Refresh or update existed comic-fe value
    * @param job job from bullmq
    */
   public async handleUpdateComic(job: Job<UpdateComicJobData>) {
@@ -196,24 +196,31 @@ export class CrawlComicService {
 
       await page.evaluate('document.write()');
 
+      let refresh: 1 | 0 = 0;
+
       if (rawData.name != comic.name) {
         comic.name = rawData.name;
+        refresh = 1;
       }
 
       if (rawData.status != comic.status.name) {
         await this.updateComicStatus(comic, rawData.status);
+        refresh = 1;
       }
 
       if (rawData.totalChapter) {
         comic.chapter_count = +rawData.totalChapter;
+        refresh = 1;
       }
 
       if (rawData.author != comic.author.name) {
         await this.updateComicAuthor(comic, rawData.author);
+        refresh = 1;
       }
 
       if (rawData.tags) {
         await this.updateComicTags(comic, rawData.tags);
+        refresh = 1;
       }
 
       if (rawData.totalChapter > lastedChapter) {
@@ -222,15 +229,13 @@ export class CrawlComicService {
           comic.id,
         );
       }
-
+      comic.should_refresh = !!refresh;
       await comic.save();
     } catch (e) {
       this.logger.error(`[${this.handleUpdateComic.name}]::= Fail`);
       this.logger.error(e);
     } finally {
-      setTimeout(async () => {
         await page.close();
-      }, 2000);
     }
   }
 
@@ -288,7 +293,7 @@ export class CrawlComicService {
     goto: string,
   ) {
     comic.thumb_image = null;
-    this.logger.log('Process crawl image thumb url');
+    this.logger.log('Process crawl image-fe thumb url');
     comic.thumb_image = await this.crawlImageService.handleCrawlThumbUrl(page, {
       imageUrls: [thumbUrl],
       goto,

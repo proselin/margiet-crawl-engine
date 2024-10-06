@@ -1,12 +1,14 @@
+import { ChapterService } from '@/models/chapter/chapter.service';
+import { ImageService } from '@/models/image/image.service';
 import { CrawlUploadService } from '@/jobs/consumers/craw-consumer/crawl-upload.service';
-import { CrawlChapterImages, CrawlThumbImage } from '@/jobs/shared/types';
-import { ChapterService } from '@/chapter/chapter.service';
-import { ImageService } from '@/image/image.service';
+import {
+  CrawlChapterImages,
+  CrawlThumbImage,
+  UploadMinioResponse,
+} from '@/jobs/shared/types';
 import { BeforeApplicationShutdown, Injectable, Logger } from '@nestjs/common';
 import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
-import { InjectConnection } from '@nestjs/mongoose';
-import { Connection } from 'mongoose';
 
 @Injectable()
 export class CrawlImageService implements BeforeApplicationShutdown {
@@ -16,9 +18,9 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     private imageService: ImageService,
     private chapterService: ChapterService,
     private crawlUploadService: CrawlUploadService,
+
     @InjectBrowser()
     private browser: Browser,
-    @InjectConnection() private connection: Connection,
   ) {}
 
   async handleCrawlThumbUrl(page: Page, jobData: CrawlThumbImage) {
@@ -28,7 +30,11 @@ export class CrawlImageService implements BeforeApplicationShutdown {
         `cm-${Date.now()}`,
         jobData.imageUrls,
       );
-    return this.createImageDocument(imageUploadedInfo.fileUrl, 0);
+    return this.createImageDocument({
+      ...imageUploadedInfo,
+      position: 0,
+      originUrls: jobData.imageUrls,
+    });
   }
 
   async handleCrawlAndUploadChapterImage(
@@ -38,20 +44,26 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     const uploadedImages = await this.crawlUploadService
       .crawlAndUploadMulti(page, `c-${jobData.chapterId}`, jobData.images)
       .then((r) =>
-        r.map((uploadedImage, i) => ({
-          url: uploadedImage.fileUrl,
-          minioInfo: {
-            url: uploadedImage.fileUrl,
-            fileName: uploadedImage.fileName,
-            bucketName: uploadedImage.bucketName,
-          },
-          position: i,
-        })),
+        r.map((uploadedImage) => {
+          return {
+            url: uploadedImage?.fileUrl ?? '',
+            originalUrl: uploadedImage.originUrls,
+            minioInfo: {
+              url: uploadedImage?.fileUrl,
+              fileName: uploadedImage?.fileName,
+              bucketName: uploadedImage?.bucketName,
+            },
+            position: uploadedImage.position,
+          };
+        }),
       );
 
     const newImages = await this.imageService.model
       .insertMany(uploadedImages)
-      .catch((e) => this.logger.error(e));
+      .catch((e) => {
+        this.logger.error(e)
+        throw new Error("Insert data image failed !!")
+      });
     this.logger.verbose(JSON.stringify(newImages));
     this.logger.log(`Create ${uploadedImages.length} uploaded images`);
     await this.updateChapter(
@@ -79,19 +91,32 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     await this.browser.close();
   }
 
-  private async createImageDocument(uploadedUrl: string, index: number) {
+  private async createImageDocument(
+    uploadInfo: {
+      position: number;
+      originUrls: string[];
+    } & Partial<UploadMinioResponse>,
+  ) {
     try {
       const rs = await this.imageService.createOne({
-        url: uploadedUrl,
-        position: index,
+        url: uploadInfo?.fileUrl,
+        originUrls: uploadInfo?.originUrls,
+        minioInfo: {
+          bucketName: uploadInfo?.bucketName,
+          fileName: uploadInfo?.fileName,
+          url: uploadInfo?.fileUrl,
+        },
+        position: uploadInfo?.position,
       });
       this.logger.log(
-        `[${this.createImageDocument.name}]: create image id: ${rs.id} and url ${uploadedUrl}`,
+        `[${this.createImageDocument.name}]: create image id: ${rs.id} and url`,
+        uploadInfo,
       );
       return rs;
     } catch (e) {
       this.logger.error(
-        `[${this.createImageDocument.name}]: Failed to create image with uploaded url ${uploadedUrl}`,
+        `[${this.createImageDocument.name}]: Failed to create image with uploaded url `,
+        uploadInfo,
       );
       throw e;
     }

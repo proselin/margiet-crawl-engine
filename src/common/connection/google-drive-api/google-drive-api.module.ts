@@ -1,7 +1,7 @@
 import { EnvKey } from '@/environment';
-import { GoogleDriveModule, GoogleDriveService } from '@/libs/google-drive';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { GoogleDriveModule, GoogleDriveService } from 'mar-google-drive';
 
 @Module({
   imports: [
@@ -10,7 +10,7 @@ import { ConfigService } from '@nestjs/config';
       useFactory: (configService: ConfigService) => {
         return {
           clientId: configService.get(EnvKey.G_CLIENT_ID),
-          clientSecret: configService.get(EnvKey.G_CLIENT_SECREC),
+          clientSecret: configService.get(EnvKey.G_CLIENT_SECRET),
           redirectUrl: configService.get(EnvKey.G_REDIRECT_URI),
           refreshToken: configService.get(EnvKey.G_REFRESH_TOKEN),
         };
