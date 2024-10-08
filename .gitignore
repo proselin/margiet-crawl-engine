@@ -55,6 +55,7 @@ pids
 logs
 bun.lockb
 
-
 .env.development
+.env.production
+!.env.example
 ../margiet-devops/crawl-engine/.env.production
