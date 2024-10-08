@@ -20,6 +20,7 @@ export class NestMinioService implements INestMinioService {
 
   getMinio(): minio.Client {
     if (!this._minioConnection) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { retries, ...options } = this.nestMinioOptions;
       this._minioConnection = new minio.Client(options);
     }

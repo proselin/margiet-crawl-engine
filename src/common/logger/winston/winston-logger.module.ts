@@ -6,9 +6,9 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { EnvKey } from '@/environment';
 import { Client } from '@elastic/elasticsearch';
-import * as winston from 'winston';
-import * as Elasticsearch from 'winston-elasticsearch';
-import * as DailyRotateFile from 'winston-daily-rotate-file';
+import winston from 'winston';
+import Elasticsearch from 'winston-elasticsearch';
+import DailyRotateFile from 'winston-daily-rotate-file';
 
 const esClient = new Client({
   node: process.env.ELASTICSEARCH_NODE || 'http://localhost:9200',

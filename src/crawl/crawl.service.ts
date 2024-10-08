@@ -1,4 +1,4 @@
-import { CrawlProducerService } from '@/jobs/producers/crawl-producer';
+import { CrawlProducerService } from '@/jobs/bullmq/producers/crawl-producer';
 import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()

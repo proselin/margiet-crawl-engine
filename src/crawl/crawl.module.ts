@@ -1,4 +1,4 @@
-import { CrawlProducerModule } from '@/jobs/producers/crawl-producer';
+import { CrawlProducerModule } from '@/jobs/bullmq/producers/crawl-producer';
 import { Module } from '@nestjs/common';
 import { CrawlController } from './crawl.controller';
 import { CrawlService } from './crawl.service';

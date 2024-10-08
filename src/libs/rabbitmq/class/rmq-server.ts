@@ -1,7 +1,7 @@
 // custom-rmq.server.ts
 import { ServerRMQ } from '@nestjs/microservices';
 import { Channel } from 'amqplib';
-import { IBindingConfig, IRmqOptions, IExchangeConfig } from '@libs/rabbitmq/type/rmq.options';
+import { IBindingConfig, IExchangeConfig, IRmqOptions } from '@/libs/rabbitmq/type/rmq.options';
 
 export class RmqServer extends ServerRMQ {
   private exchanges: Map<string, IExchangeConfig>;

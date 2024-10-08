@@ -1,9 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { CrawlProducerService } from '@/jobs/producers/crawl-producer';
-import { ConfigService } from '@nestjs/config';
-import { ComicService } from '@/models/comic/comic.service';
-import { ComicDocument } from '@/models/comic/comic.schema';
+import { CrawlProducerService } from '@/jobs/bullmq/producers/crawl-producer';
+import { ComicService } from '@/entities/comic/comic.service';
+import { ComicDocument } from '@/entities/comic/comic.schema';
 
 @Injectable()
 export class RefreshComicService {
@@ -11,7 +10,6 @@ export class RefreshComicService {
 
   constructor(
     private comicService: ComicService,
-    private configService: ConfigService,
     private crawlProducerService: CrawlProducerService,
   ) {}
 
@@ -31,8 +29,6 @@ export class RefreshComicService {
       .find<ComicDocument>({
         should_refresh: true,
         is_current_url_is_notfound: false,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         updatedAt: { $lt: oneDayAgo },
       })
       .exec();

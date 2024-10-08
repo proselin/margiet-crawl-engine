@@ -1,5 +1,5 @@
-import { CrawlConsumerModule } from '@/jobs/consumers/craw-consumer';
-import { CrawlProducerModule } from '@/jobs/producers/crawl-producer';
+import { CrawlConsumerModule } from '@/jobs/bullmq/consumers/craw-consumer';
+import { CrawlProducerModule } from '@/jobs/bullmq/producers/crawl-producer';
 import { BullmqConnectModule } from '@/common/connection/bullmq';
 import { CrawlEngineDbModule } from '@/common/database';
 import { CrawlModule } from '@/crawl';
@@ -11,8 +11,8 @@ import { TerminusModule } from '@nestjs/terminus';
 import { MetricsModule } from './metrics/metrics.module';
 import { HealthModule } from './health/health.module';
 import { RefreshComicModule } from '@/cronjob/refresh-comic';
-import { UploadDriveModule } from '@/jobs/consumers/upload-drive';
-import { RmqJobModule } from '@/rabbitmq/rmqJobModule';
+import { UploadDriveModule } from '@/jobs/bullmq/consumers/upload-drive';
+import { RmqJobModule } from '@/jobs/rabbitmq/rmqJobModule';
 
 @Module({
   imports: [

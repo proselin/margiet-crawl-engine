@@ -1,10 +1,10 @@
 import { DynamicModule, Module } from '@nestjs/common';
-import { IRmqOptions } from '@libs/rabbitmq/type/rmq.options';
-import { RmqService } from '@libs/rabbitmq/services/rmq.service';
+import { IRmqOptions } from '@/libs/rabbitmq/type/rmq.options';
 import {
   getConfigProvideToken,
   getServiceProvideToken,
-} from '@libs/rabbitmq/utils';
+} from '@/libs/rabbitmq/utils';
+import { RmqService } from '@/libs/rabbitmq/services/rmq.service';
 
 @Module({})
 export class RmqModule {
@@ -31,10 +31,7 @@ export class RmqModule {
         {
           provide: serviceProvideToken,
           inject: [configProvideToken],
-          useFactory: (config: IRmqOptions) => {
-            console.log(config)
-            return new RmqService(config)
-          }
+          useFactory: (config: IRmqOptions) => new RmqService(config),
         },
       ],
       exports: [

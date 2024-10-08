@@ -1,7 +1,7 @@
 import { HydratedDocument, QueryOptions } from 'mongoose';
 
 export interface IBaseCurl<Entity = Record<string, any>> {
-  createOne(createDto: Record<string, any>): Promise<HydratedDocument<Entity>>;
+  createOne(createDto: Record<string, any>): Promise<Entity>;
 
   findAll(): Promise<Array<HydratedDocument<Entity>>>;
 

@@ -41,9 +41,9 @@ export abstract class BaseCurdService<Entity extends Record<string, any>>
   // Create
   async createOne(
     createDto: Entity | Record<any, any>,
-  ): Promise<HydratedDocument<Entity>> {
-    const createdEntity = await this.model.insertMany([createDto]);
-    return <HydratedDocument<Entity>>createdEntity[0];
+  ) {
+    const createdEntity = new this.model(createDto);
+    return createdEntity.save();
   }
 
   // Read (Find All)
@@ -70,8 +70,8 @@ export abstract class BaseCurdService<Entity extends Record<string, any>>
   // Update
   async findByIdAndUpdate(
     id: any,
-    updateDto: Record<string, any>,
-    opts?: QueryOptions<any>,
+    updateDto: UpdateQuery<Entity>,
+    opts?: QueryOptions<Entity> & { includeResultMetadata: true, lean: true },
   ): Promise<HydratedDocument<Entity>> {
     const updatedEntity = await this.model
       .findByIdAndUpdate(id, updateDto, opts)
@@ -80,7 +80,7 @@ export abstract class BaseCurdService<Entity extends Record<string, any>>
       this.logger.warn(`Entity with ID ${id} not found for update`);
       throw new NotFoundException(`Entity with ID ${id} not found`);
     }
-    return updatedEntity;
+    return updatedEntity as unknown as  HydratedDocument<Entity>;
   }
 
   // Delete
