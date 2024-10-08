@@ -12,7 +12,6 @@ export class ChapterService extends BaseCurdService<Chapter> {
     @InjectModel(EntityConfig.ModelName.Chapter) readonly model: Model<Chapter>,
   ) {
     super(new Logger(ChapterService.name), model);
-    console.log(Chapter);
   }
 
   updateChapterImages(images: Image[], chapterId: string) {
