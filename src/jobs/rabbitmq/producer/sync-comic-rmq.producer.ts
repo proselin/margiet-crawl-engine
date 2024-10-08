@@ -35,12 +35,13 @@ export class SyncComicRmqProducer {
   }
 
   pushMessageSyncChapter(chapter: ChapterDocument) {
-    const messageData: SyncChapterMessageData = new SyncChapterMessageData();
-    messageData.chapter_id = chapter.id;
-    messageData.comic_id = chapter.comicId;
-    messageData.name = chapter.title;
-    messageData.position = chapter.position;
-    return this.rmqService.emitToQueue('sync.chapter', messageData);
+    const syncChapterMessageData: SyncChapterMessageData =
+      new SyncChapterMessageData();
+    syncChapterMessageData.chapter_id = chapter.id;
+    syncChapterMessageData.comic_id = chapter.comicId;
+    syncChapterMessageData.name = chapter.title;
+    syncChapterMessageData.position = chapter.position;
+    return this.rmqService.emitToQueue('sync.chapter', syncChapterMessageData);
   }
 
   pushMessageSyncImage(imageInfo: ImageDocument, chapterId: string) {
@@ -49,6 +50,6 @@ export class SyncComicRmqProducer {
     syncImageMessageData.id = imageInfo.id;
     syncImageMessageData.chapter_id = chapterId;
     syncImageMessageData.position = imageInfo.position;
-    return this.rmqService.emitToQueue('sync.image', imageInfo);
+    return this.rmqService.emitToQueue('sync.image', syncImageMessageData);
   }
 }
