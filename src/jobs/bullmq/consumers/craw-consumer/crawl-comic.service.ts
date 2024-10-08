@@ -37,33 +37,35 @@ export class CrawlComicService {
       await this.preparePage(page, job.data.href);
       const crawledComic = await this.extractInfoFromComicPage(page);
       await page.evaluate('document.write()');
-
       const comic: Comic = new Comic();
-
       comic.chapters = [];
       comic.url_history = [job.data.href];
       comic.is_current_url_is_notfound = false;
 
       comic.origin_url = job.data.href;
-
-      if (crawledComic.name) {
-        comic.title = crawledComic.name;
+      await job.updateProgress(10);
+      if (crawledComic.title) {
+        comic.title = crawledComic.title;
       }
 
       if (crawledComic.totalChapter) {
         comic.chapter_count = +crawledComic.totalChapter;
+        await job.updateProgress(15);
       }
 
       if (crawledComic.author) {
         await this.handleComicAuthor(comic, crawledComic.author);
+        await job.updateProgress(20);
       }
 
       if (crawledComic.tags) {
         await this.handleComicTags(comic, crawledComic.tags);
+        await job.updateProgress(25);
       }
 
       if (crawledComic.status) {
         comic.status = crawledComic.status;
+        await job.updateProgress(35);
       }
 
       if (crawledComic.thumbUrl) {
@@ -73,19 +75,22 @@ export class CrawlComicService {
           crawledComic.thumbUrl,
           job.data.href,
         );
+        await job.updateProgress(55);
       }
 
       this.logger.log('Process create new comic-fe');
       const createdComic = await this.comicService.createOne(comic);
+      await job.updateProgress(75);
       await this.addJobCrawlChapters(crawledComic.chapters, createdComic.id);
+      await job.updateProgress(85);
       await this.rmqProducer.pushMessageSyncComic(createdComic);
+      await job.updateProgress(95);
     } catch (e) {
       this.logger.error('Crawl Comic failed >>');
       this.logger.error(e);
     } finally {
-      setTimeout(async () => {
-        await page.close();
-      }, 2000);
+      await page.close();
+      await job.updateProgress(100);
     }
   }
 
@@ -109,7 +114,7 @@ export class CrawlComicService {
   async extractInfoFromComicPage(page: Page): Promise<RawCrawledComic> {
     const crawResult: RawCrawledComic = {
       author: '',
-      name: '',
+      title: '',
       status: '',
       totalChapter: 0,
       tags: [],
@@ -130,7 +135,7 @@ export class CrawlComicService {
       crawResult.tags = await page.$$eval('.kind.row .col-xs-8 a', (eles) =>
         eles.map((ele) => ele.textContent.trim()),
       );
-      crawResult.name = await page.$eval('h1.title-detail', (ele) => {
+      crawResult.title = await page.$eval('h1.title-detail', (ele) => {
         return ele.textContent.trim();
       });
       crawResult.chapters = await page.$$eval(
@@ -200,8 +205,8 @@ export class CrawlComicService {
 
       let refresh: 1 | 0 = 0;
 
-      if (rawData.name != comic.title) {
-        comic.title = rawData.name;
+      if (rawData.title != comic.title) {
+        comic.title = rawData.title;
         refresh = 1;
       }
 
@@ -232,7 +237,9 @@ export class CrawlComicService {
         );
       }
       comic.should_refresh = !!refresh;
-      await this.rmqProducer.pushMessageSyncComic(await comic.save());
+      await comic.save();
+
+      await this.rmqProducer.pushMessageSyncComic(comic);
     } catch (e) {
       this.logger.error(`[${this.handleUpdateComic.name}]::= Fail`);
       this.logger.error(e);

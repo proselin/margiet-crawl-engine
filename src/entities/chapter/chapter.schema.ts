@@ -1,16 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Image } from '@/entities/image/image.schema';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { BaseEntity } from '@/common/base/entity/base-entity';
 import { EntityConfig } from '@/common/base/entity/entity-config';
+import { ImageDocument } from '@/entities/image';
 
 // Chapter Schema
 export type ChapterDocument = HydratedDocument<Chapter>;
 
-@Schema({
-  timestamps: true,
-  autoIndex: true,
-})
+@Schema()
 export class Chapter extends BaseEntity {
   @Prop({ type: String })
   dataId: string;
@@ -29,7 +26,7 @@ export class Chapter extends BaseEntity {
       },
     ],
   })
-  images: Image[];
+  images: ImageDocument[];
 
   @Prop({ type: String })
   title: string;

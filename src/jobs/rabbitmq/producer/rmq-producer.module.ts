@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { SyncComicRmqProducer } from '@/jobs/rabbitmq/producer/sync-comic-rmq.producer';
 import { syncComicQueueConfiguration } from '@/jobs/rabbitmq/config/sync-comic-queue-client';
-import { RmqModule } from '@/libs/rabbitmq';
+import { RmqModule } from '@margiet-libs/rmq';
 
 @Module({
   imports: [RmqModule.registerAsync(syncComicQueueConfiguration)],

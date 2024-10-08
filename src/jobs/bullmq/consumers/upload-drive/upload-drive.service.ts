@@ -7,9 +7,12 @@ import { Client as MinioClient } from 'minio';
 import { Stream } from 'stream';
 import { ConfigService } from '@nestjs/config';
 import { drive_v3 } from 'googleapis';
-import { GDUploadFileRequest, GoogleDriveService } from 'mar-google-drive';
 import { SyncComicRmqProducer } from '@/jobs/rabbitmq/producer/sync-comic-rmq.producer';
-import { InjectMinio } from '@/libs/minio';
+import {
+  GDUploadFileRequest,
+  GoogleDriveService,
+} from '@margiet-libs/google-drive';
+import { InjectMinio } from '@margiet-libs/minio';
 
 @Injectable()
 export class UploadDriveService {

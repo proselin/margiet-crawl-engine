@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { Client as MinioClient } from 'minio';
 import { nanoid } from 'nanoid';
 import { Page } from 'puppeteer';
-import { InjectMinio } from '@/libs/minio';
+import { InjectMinio } from '@margiet-libs/minio';
 
 @Injectable()
 export class CrawlUploadService {

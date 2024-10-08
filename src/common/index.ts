@@ -5,5 +5,3 @@ export * from './exception';
 export * from './intercept';
 export * from './interfaces';
 export * from './models';
-export * from './utils';
-export * from './database'

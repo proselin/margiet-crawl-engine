@@ -102,6 +102,23 @@ const winstonConfigDevelopment = {
         }),
       ),
     }),
+    new winston.transports.File({
+      filename: 'logs/combined.log',
+      format: winston.format.combine(
+        winston.format.timestamp({
+          format: () =>
+            new Intl.DateTimeFormat('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+            }).format(new Date()),
+        }),
+        winston.format.json(),
+      ),
+    }),
   ],
 };
 
