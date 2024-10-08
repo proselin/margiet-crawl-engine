@@ -1,19 +1,25 @@
 import { ConfigService } from '@nestjs/config';
-import { RmqModule } from '@/libs/rabbitmq';
-import { IRmqOptions } from '@/libs/rabbitmq/type/rmq.options';
+import { RmqConfig } from '@/jobs/rabbitmq/config/rmq.config';
+import { IRmqOptions, RmqModule } from '@margiet-libs/rmq';
 
-export const syncComicQueueConfiguration: Parameters<typeof RmqModule.registerAsync>[0] = {
+export const syncComicQueueConfiguration: Parameters<
+  typeof RmqModule.registerAsync
+>[0] = {
   connectionName: 'sync_comic_queue',
   inject: [ConfigService],
-  useFactory: (configService: ConfigService): Promise<IRmqOptions> | IRmqOptions => {
+  useFactory: (
+    configService: ConfigService,
+  ): Promise<IRmqOptions> | IRmqOptions => {
     return {
-      queue: 'sync_comic_queue',
-      urls: [{
-        username: configService.get("RABBITMQ_USERNAME"),
-        password: configService.get("RABBITMQ_PASSWORD"),
-        hostname: configService.get("RABBITMQ_HOST"),
-        port: +configService.get("RABBITMQ_PORT"),
-      }],
+      queue: RmqConfig.SyncQueue.queueName,
+      urls: [
+        {
+          username: configService.get('RABBITMQ_USERNAME'),
+          password: configService.get('RABBITMQ_PASSWORD'),
+          hostname: configService.get('RABBITMQ_HOST'),
+          port: +configService.get('RABBITMQ_PORT'),
+        },
+      ],
       queueOptions: {
         durable: true,
       },
@@ -33,7 +39,7 @@ export const syncComicQueueConfiguration: Parameters<typeof RmqModule.registerAs
             routingKeys: ['comic.#'],
           },
         ],
-      }
+      },
     };
   },
 };

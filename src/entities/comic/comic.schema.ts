@@ -1,20 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
-import { Image } from '@/entities/image/image.schema';
-import { Chapter } from '@/entities/chapter/chapter.schema';
-import { Author } from '@/entities/author/author.schema';
+import { ImageDocument } from '@/entities/image/image.schema';
+import { ChapterDocument } from '@/entities/chapter/chapter.schema';
+import { AuthorDocument } from '@/entities/author/author.schema';
 import { BaseEntity } from '@/common/base/entity/base-entity';
-import { Tag } from '@/entities/tag';
+import { TagDocument } from '@/entities/tag';
 import { EntityConfig } from '@/common/base/entity/entity-config';
 
 const { String, Number, ObjectId, Array, Boolean } = mongoose.Schema.Types;
 
 export type ComicDocument = HydratedDocument<Comic>;
 
-@Schema({
-  timestamps: true,
-  autoIndex: true,
-})
+@Schema()
 export class Comic extends BaseEntity {
   @Prop({
     type: [
@@ -25,7 +22,7 @@ export class Comic extends BaseEntity {
     ],
     default: [],
   })
-  tags: Tag[];
+  tags: TagDocument[];
 
   @Prop({
     type: String,
@@ -42,7 +39,7 @@ export class Comic extends BaseEntity {
     type: ObjectId,
     ref: EntityConfig.ModelName.Author,
   })
-  author: Author;
+  author: AuthorDocument;
 
   @Prop({
     type: String,
@@ -63,13 +60,13 @@ export class Comic extends BaseEntity {
     ],
     default: [],
   })
-  chapters: Chapter[];
+  chapters: ChapterDocument[];
 
   @Prop({
     type: ObjectId,
     ref: EntityConfig.ModelName.Image,
   })
-  thumb_image: Image;
+  thumb_image: ImageDocument;
 
   @Prop({
     type: String,

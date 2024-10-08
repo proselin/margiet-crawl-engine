@@ -1,5 +1,5 @@
 import { JobConstant } from '@/jobs/bullmq/shared';
-import { ConstantBase } from '@/common/utils/constant.base';
+import { Constant } from '@/utils/constant';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
@@ -12,7 +12,7 @@ import { CrawlComicService } from './crawl-comic.service';
 import { CrawlChapterService } from '@/jobs/bullmq/consumers/craw-consumer/crawl-chapter.service';
 
 @Injectable()
-@Processor(ConstantBase.QUEUE_CRAWL_NAME)
+@Processor(Constant.QUEUE_CRAWL_NAME)
 export class CrawlJobProcessor extends WorkerHost {
   private logger = new Logger(CrawlJobProcessor.name);
 

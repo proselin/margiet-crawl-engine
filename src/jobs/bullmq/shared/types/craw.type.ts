@@ -1,4 +1,4 @@
-import { NullAble } from '@/common';
+import { NullAble } from '@/utils';
 
 export type ImageRawDataCrawl = {
   alt: string;
@@ -19,7 +19,7 @@ export type ComicTagsPre = {
 
 export type RawCrawledComic = {
   author: string;
-  name: string;
+  title: string;
   status: string;
   totalChapter: number;
   tags: string[];

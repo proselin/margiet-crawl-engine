@@ -1,7 +1,10 @@
 import { EnvKey } from '@/environment';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { GoogleDriveModule, GoogleDriveService } from 'mar-google-drive';
+import {
+  GoogleDriveModule,
+  GoogleDriveService,
+} from '@margiet-libs/google-drive';
 
 @Module({
   imports: [

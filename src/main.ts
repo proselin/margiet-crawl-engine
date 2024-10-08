@@ -6,7 +6,6 @@ import { createApp, SwaggerConfig } from './common';
 import { EnvKey } from './environment';
 
 async function bootstrap() {
-  Logger.log(`[🐱 Process.env]:`, process.env);
   const app = await createApp(AppModule);
   const configService = app.get(ConfigService);
   const port = +configService.get(EnvKey.SERVER_PORT);

@@ -1,7 +1,9 @@
 import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { EnvKey } from '@/environment';
-import { Global, Module } from '@nestjs/common';
+import { Global, Module, OnModuleInit } from '@nestjs/common';
+import mongoose from 'mongoose';
+import autopopulate from 'mongoose-autopopulate';
 
 @Global()
 @Module({
@@ -22,4 +24,12 @@ import { Global, Module } from '@nestjs/common';
     }),
   ],
 })
-export class CrawlEngineDbModule {}
+export class CrawlEngineDbModule implements OnModuleInit {
+  onModuleInit() {
+    mongoose.plugin(autopopulate);
+    mongoose.plugin((schema) => {
+      schema.set('id', true);
+      schema.set('timestamps', true);
+    });
+  }
+}

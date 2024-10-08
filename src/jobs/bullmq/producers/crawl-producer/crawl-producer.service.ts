@@ -1,5 +1,5 @@
 import { JobConstant } from '@/jobs/bullmq/shared';
-import { ConstantBase } from '@/common/utils/constant.base';
+import { Constant } from '@/utils/constant';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { BulkJobOptions, Job, Queue } from 'bullmq';
@@ -14,9 +14,9 @@ export class CrawlProducerService {
   private logger = new Logger(CrawlProducerService.name);
 
   constructor(
-    @InjectQueue(ConstantBase.QUEUE_CRAWL_NAME)
+    @InjectQueue(Constant.QUEUE_CRAWL_NAME)
     private crawlQueue: Queue,
-    @InjectQueue(ConstantBase.QUEUE_UPLOAD_NAME)
+    @InjectQueue(Constant.QUEUE_UPLOAD_NAME)
     private uploadQueue: Queue,
   ) {}
 
@@ -58,7 +58,7 @@ export class CrawlProducerService {
    */
   async addCrawlComicJob(href: string) {
     this.logger.log(
-      `Add crawl comic with href ${href} to the queue ${ConstantBase.QUEUE_CRAWL_NAME}`,
+      `Add crawl comic with href ${href} to the queue ${Constant.QUEUE_CRAWL_NAME}`,
     );
     const name = JobConstant.CRAWL_COMIC_JOB_NAME;
     const data: CrawlComicJobData = { href };
@@ -76,7 +76,7 @@ export class CrawlProducerService {
     newUrl: string | null,
   ): Promise<Job> {
     this.logger.log(
-      `Add Update comic jobs with comicId : ${comicId} to queue  ${ConstantBase.QUEUE_CRAWL_NAME}`,
+      `Add Update comic jobs with comicId : ${comicId} to queue  ${Constant.QUEUE_CRAWL_NAME}`,
     );
     const name = JobConstant.UPDATE_COMIC_JOB_NAME;
     const data: UpdateComicJobData = { comicId, newUrl };
@@ -92,7 +92,7 @@ export class CrawlProducerService {
    */
   async updateCrawlComicJob(comicIds: string[]): Promise<Job[]> {
     this.logger.log(
-      `Add Update comic jobs with ${comicIds.length} comicId to queue  ${ConstantBase.QUEUE_CRAWL_NAME}`,
+      `Add Update comic jobs with ${comicIds.length} comicId to queue  ${Constant.QUEUE_CRAWL_NAME}`,
     );
     const name = JobConstant.UPDATE_COMIC_JOB_NAME;
     const jobs: {

@@ -4,8 +4,9 @@ import { SyncChapterMessageData } from '@/models/rmq/producer/sync-chapter-messa
 import { SyncImageMessageData } from '@/models/rmq/producer/sync-image-message-data.model';
 import { ComicDocument } from '@/entities/comic';
 import { ImageDocument } from '@/entities/image';
-import { Chapter } from '@/entities/chapter';
-import { InjectRmq, RmqService } from '@/libs/rabbitmq';
+import { ChapterDocument } from '@/entities/chapter';
+import { InjectRmq } from '@margiet-libs/rmq';
+import { RmqService } from '@margiet-libs/rmq/dist/services/rmq.service';
 
 @Injectable()
 export class SyncComicRmqProducer {
@@ -17,13 +18,13 @@ export class SyncComicRmqProducer {
     const syncComicMessageData = new SyncComicMessageData();
     syncComicMessageData.comic_id = comic.id;
     syncComicMessageData.author = {
-      name: comic.author.title,
-      id: comic.author.id,
+      name: comic.author?.title,
+      id: comic.author?.id,
     };
     syncComicMessageData.tags = comic.tags.map((tag) => {
       return {
-        name: tag.title,
-        id: tag.id,
+        name: tag?.title,
+        id: tag?.id,
       };
     });
     syncComicMessageData.status = comic.status;
@@ -33,7 +34,7 @@ export class SyncComicRmqProducer {
     return this.rmqService.emitToQueue('sync.comic', syncComicMessageData);
   }
 
-  pushMessageSyncChapter(chapter: Chapter) {
+  pushMessageSyncChapter(chapter: ChapterDocument) {
     const messageData: SyncChapterMessageData = new SyncChapterMessageData();
     messageData.chapter_id = chapter.id;
     messageData.comic_id = chapter.comicId;

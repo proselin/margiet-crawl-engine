@@ -4,10 +4,7 @@ import { BaseEntity } from '@/common/base/entity/base-entity';
 
 export type TagDocument = HydratedDocument<Tag>;
 
-@Schema({
-  timestamps: true,
-  autoIndex: true,
-})
+@Schema()
 export class Tag extends BaseEntity {
   @Prop({
     type: String,

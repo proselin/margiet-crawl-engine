@@ -6,10 +6,7 @@ import { EntityConfig } from '@/common/base/entity/entity-config';
 
 export type ImageDocument = HydratedDocument<Image>;
 
-@Schema({
-  timestamps: true,
-  autoIndex: true,
-})
+@Schema()
 export class Image extends BaseEntity {
   @Prop({ type: String, default: null, index: true }) // Indexed URL for search
   url: string | null;

@@ -4,10 +4,7 @@ import { BaseEntity } from '@/common/base/entity/base-entity';
 
 export type AuthorDocument = HydratedDocument<Author>;
 
-@Schema({
-  timestamps: true,
-  autoIndex: true,
-})
+@Schema()
 export class Author extends BaseEntity {
   @Prop({
     type: String,

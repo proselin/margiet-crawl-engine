@@ -1,7 +1,7 @@
 import { CrawlConsumerModule } from '@/jobs/bullmq/consumers/craw-consumer';
 import { CrawlProducerModule } from '@/jobs/bullmq/producers/crawl-producer';
-import { BullmqConnectModule } from '@/common/connection/bullmq';
-import { CrawlEngineDbModule } from '@/common/database';
+import { BullmqConnectModule } from '@/connection/bullmq';
+import { CrawlEngineDbModule } from 'src/connection/database';
 import { CrawlModule } from '@/crawl';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
