@@ -1,13 +1,9 @@
 import { ClientRMQ, ReadPacket, RmqRecord } from '@nestjs/microservices';
-import {
-  IBindingConfig,
-  IExchangeConfig,
-  IRmqOptions,
-} from '@libs/rabbitmq/type/rmq.options';
-import { PublishPattern, RmqReadPacket, RmqWritePacket, SendToQueuePattern } from '@libs/rabbitmq/type/rmq.packet';
 import { Channel } from 'amqplib';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { PublishOptions } from 'amqp-connection-manager/dist/types/ChannelWrapper';
+import { IBindingConfig, IExchangeConfig, IRmqOptions } from '@/libs/rabbitmq/type/rmq.options';
+import { PublishPattern, RmqReadPacket, RmqWritePacket, SendToQueuePattern } from '@/libs/rabbitmq/type/rmq.packet';
 
 export class RmqClient extends ClientRMQ {
   private exchanges: Map<string, IExchangeConfig>;

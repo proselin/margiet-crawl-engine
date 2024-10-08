@@ -1,8 +1,8 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { RmqClient } from '@libs/rabbitmq/class/rmq-client';
-import { IRmqOptions } from '@libs/rabbitmq/type/rmq.options';
 import { firstValueFrom } from 'rxjs';
-import { PublishPattern, SendToQueuePattern } from '@libs/rabbitmq/type/rmq.packet';
+import { IRmqOptions } from '@/libs/rabbitmq/type/rmq.options';
+import { RmqClient } from '@/libs/rabbitmq/class/rmq-client';
+import { PublishPattern, SendToQueuePattern } from '@/libs/rabbitmq/type/rmq.packet';
 
 @Injectable()
 export class RmqService implements OnModuleInit, OnModuleDestroy {

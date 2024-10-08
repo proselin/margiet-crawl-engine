@@ -4,14 +4,13 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import * as cookieParser from 'cookie-parser';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { Versions } from '../constant';
+import { Versions } from '@/common';
 import {
   LoggingInterceptor,
   TimeoutInterceptor,
   TransformInterceptor,
-} from '../intercept';
+} from '@/common';
 
 export async function createApp(appModule: any) {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -36,8 +35,6 @@ export async function createApp(appModule: any) {
     type: VersioningType.URI,
     defaultVersion: Versions.V1,
   });
-
-  app.use(cookieParser());
 
   app.enableShutdownHooks();
 

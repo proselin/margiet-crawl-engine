@@ -3,7 +3,7 @@ import { collectDefaultMetrics, Registry } from 'prom-client';
 
 @Controller('metrics')
 export class MetricsController {
-  private registry: Registry;
+  readonly registry: Registry;
 
   constructor() {
     this.registry = new Registry();
