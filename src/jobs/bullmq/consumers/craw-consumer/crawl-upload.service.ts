@@ -167,9 +167,6 @@ export class CrawlUploadService {
       return page.evaluate((urls) => {
         const imgElement = document.createElement('img');
         imgElement.setAttribute('referrerpolicy', 'origin');
-        imgElement.addEventListener('load', (e) => {
-          console.log('Loaded Image', e);
-        });
         imgElement.addEventListener('error', () => {
           if (urls.length == 0) {
             console.error(imgElement.src);
