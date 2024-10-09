@@ -23,8 +23,10 @@ import { RmqJobModule } from '@/jobs/rabbitmq/rmqJobModule';
     WinstonLoggerModule,
     PuppeteerModule.forRoot({
       headless: 'new',
-      devtools: true,
       waitForInitialPage: true,
+      defaultViewport: null,
+      executablePath: '/usr/bin/google-chrome',
+      args: ['--no-sandbox'],
     }),
     BullmqConnectModule,
     RmqJobModule,
