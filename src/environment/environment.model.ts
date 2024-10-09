@@ -10,10 +10,6 @@ export class Environment implements Partial<IEnvironment> {
 
   @IsString()
   @IsNotEmpty()
-  [EnvKey.SERVER_HOST]: string;
-
-  @IsString()
-  @IsNotEmpty()
   [EnvKey.SERVER_PORT]: string;
 
   @IsString()

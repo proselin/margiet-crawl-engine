@@ -1,4 +1,4 @@
-import { INestApplication, Logger } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { Versions } from '@/common';
@@ -14,24 +14,16 @@ export class SwaggerConfig {
     },
   ) {
     const configService = app.get(ConfigService);
-    const host = options.hostInput || configService.get('SERVER_HOST');
-    const port = options.portInput || +configService.get('SERVER_PORT');
     const prefix =
       options.prefixInput ||
-      configService.get('SERVER_API_DOCUMENT_PREFIX') ||
-      'doc';
+      configService.get('SERVER_API_DOCUMENT_PREFIX', 'swagger');
     const config =
       options.configInput ||
       new DocumentBuilder()
         .setTitle('API Document')
         .setVersion(Versions.V1)
-        .addBearerAuth()
         .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup(prefix, app, document);
-    Logger.log(
-      `API document host at http://${host}:${port}/${prefix}`,
-      SwaggerConfig.name,
-    );
   }
 }

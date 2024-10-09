@@ -19,7 +19,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "pm2:dev": "dotenvx run -f .env.development -- pm2 start ",
-    "docker:build": "docker build -t crawl-engine ."
+    "docker:build": "sh build.sh"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.15.0",

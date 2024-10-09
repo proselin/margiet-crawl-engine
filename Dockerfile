@@ -7,27 +7,25 @@ WORKDIR /app
 # We don't need the standalone Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
+ENV NODE_OPTIONS="--max_old_space_size=4096"
+
 # Copy package.json and package-lock.json (if available)
 COPY package*.json ./
-
-# copy libs
-COPY libs ./libs
 
 # add NPMrc
 COPY .npmrc ./.npmrc
 
-ADD package.json /tmp/package.json
-ADD node_modules /tmp/node_modules
+ADD node_temp /tmp
 COPY libs /tmp/libs
 RUN cd /tmp
-RUN npm ci -verbose --ignore-scripts --perfer-offline --no-audit
+RUN npm install --prefix /tmp -verbose 
 RUN cp -a /tmp/node_modules /app/
 
 # Copy the rest of the application code
 COPY . .
 
 # Build the NestJS application
-RUN npm run build
+RUN npm run build 
 
 # Stage 2: Run the application
 FROM node:20
@@ -43,7 +41,6 @@ RUN sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable 
 RUN apt-get update
 RUN apt-get install google-chrome-stable -y
 RUN rm -rf /var/lib/apt/lists/*
-
 
 # Set the working directory
 WORKDIR /app
