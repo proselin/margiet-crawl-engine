@@ -7,7 +7,6 @@ import { Client as MinioClient } from 'minio';
 import { Stream } from 'stream';
 import { ConfigService } from '@nestjs/config';
 import { drive_v3 } from 'googleapis';
-import { SyncComicRmqProducer } from '@/jobs/rabbitmq/producer/sync-comic-rmq.producer';
 import {
   GDUploadFileRequest,
   GoogleDriveService,
@@ -21,7 +20,7 @@ export class UploadDriveService {
     private configService: ConfigService,
     private readonly driveApiService: GoogleDriveService,
     private imageService: ImageService,
-    private syncComicRmqProducer: SyncComicRmqProducer,
+    // private syncComicRmqProducer: SyncComicRmqProducer,
     @InjectMinio()
     private readonly minioClient: MinioClient,
   ) {}
@@ -50,10 +49,10 @@ export class UploadDriveService {
         this.logger.log(
           `[${this.handleUploadImage.name}]::= Complete upload Image`,
         );
-        await this.syncComicRmqProducer.pushMessageSyncImage(
-          document,
-          job.data.chapterId,
-        );
+        // await this.syncComicRmqProducer.pushMessageSyncImage(
+        //   document,
+        //   job.data.chapterId,
+        // );
         return document;
       });
     } catch (e) {

@@ -5,24 +5,8 @@ import {
 } from 'nest-winston';
 import { ConfigService } from '@nestjs/config';
 import { EnvKey } from '@/environment';
-import { Client } from '@elastic/elasticsearch';
 import winston from 'winston';
-import Elasticsearch from 'winston-elasticsearch';
 import DailyRotateFile from 'winston-daily-rotate-file';
-
-const esClient = new Client({
-  node: process.env.ELASTICSEARCH_NODE || 'http://localhost:9200',
-  auth: {
-    username: process.env.ELASTICSEARCH_USERNAME || 'elastic',
-    password: process.env.ELASTICSEARCH_PASSWORD || 'elastic',
-  },
-});
-
-const esTransportOpts: Elasticsearch.ElasticsearchTransportOptions = {
-  level: 'info',
-  client: esClient,
-  indexPrefix: 'crawl-engine-logs', // Customize the index name as needed
-};
 
 const winstonConfigProduction: winston.LoggerOptions = {
   level: 'info',
@@ -54,7 +38,6 @@ const winstonConfigProduction: winston.LoggerOptions = {
         winston.format.json(),
       ),
     }),
-    new Elasticsearch.ElasticsearchTransport(esTransportOpts),
     new DailyRotateFile({
       filename: 'logs/application-%DATE%.log',
       datePattern: 'YYYY-MM-DD',

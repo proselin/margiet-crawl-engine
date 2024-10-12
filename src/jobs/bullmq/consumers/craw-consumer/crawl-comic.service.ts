@@ -15,7 +15,6 @@ import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
 import { CrawlImageService } from '@/jobs/bullmq/consumers/craw-consumer/crawl-image.service';
 import mongoose from 'mongoose';
-import { SyncComicRmqProducer } from '@/jobs/rabbitmq/producer/sync-comic-rmq.producer';
 
 @Injectable()
 export class CrawlComicService {
@@ -28,7 +27,7 @@ export class CrawlComicService {
     private readonly crawlProducerService: CrawlProducerService,
     @InjectBrowser() private browser: Browser,
     private crawlImageService: CrawlImageService,
-    private rmqProducer: SyncComicRmqProducer,
+    // private rmqProducer: SyncComicRmqProducer,
   ) {}
 
   async handleCrawlJob(job: Job<CrawlComicJobData>) {
@@ -83,7 +82,7 @@ export class CrawlComicService {
       await job.updateProgress(75);
       await this.addJobCrawlChapters(crawledComic.chapters, createdComic.id);
       await job.updateProgress(85);
-      await this.rmqProducer.pushMessageSyncComic(createdComic);
+      // await this.rmqProducer.pushMessageSyncComic(createdComic);
       await job.updateProgress(95);
     } catch (e) {
       this.logger.error('Crawl Comic failed >>');
@@ -239,7 +238,7 @@ export class CrawlComicService {
       comic.should_refresh = !!refresh;
       await comic.save();
 
-      await this.rmqProducer.pushMessageSyncComic(comic);
+      // await this.rmqProducer.pushMessageSyncComic(comic);
     } catch (e) {
       this.logger.error(`[${this.handleUpdateComic.name}]::= Fail`);
       this.logger.error(e);

@@ -12,7 +12,6 @@ import { MetricsModule } from './metrics/metrics.module';
 import { HealthModule } from './health/health.module';
 import { RefreshComicModule } from '@/cronjob/refresh-comic';
 import { UploadDriveModule } from '@/jobs/bullmq/consumers/upload-drive';
-import { RmqJobModule } from '@/jobs/rabbitmq/rmqJobModule';
 
 @Module({
   imports: [
@@ -29,7 +28,7 @@ import { RmqJobModule } from '@/jobs/rabbitmq/rmqJobModule';
       args: ['--no-sandbox'],
     }),
     BullmqConnectModule,
-    RmqJobModule,
+    // RmqJobModule,
     CrawlConsumerModule,
     CrawlProducerModule,
     CrawlEngineDbModule,
