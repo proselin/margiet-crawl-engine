@@ -8,6 +8,7 @@ import { ChapterService } from '@/entities/chapter/chapter.service';
 import { CrawlImageService } from '@/jobs/bullmq/consumers/craw-consumer/crawl-image.service';
 import { CrawlProducerService } from '@/jobs/bullmq/producers/crawl-producer';
 import { ImageDocument } from '@/entities/image';
+import { ComicService } from '@/entities/comic';
 
 @Injectable()
 export class CrawlChapterService {
@@ -18,6 +19,7 @@ export class CrawlChapterService {
     @InjectBrowser() private readonly browser: Browser,
     private readonly crawlImageService: CrawlImageService,
     private readonly producer: CrawlProducerService,
+    private readonly comicService: ComicService,
     // private readonly syncRmqProducer: SyncComicRmqProducer,
   ) {}
 
@@ -51,6 +53,12 @@ export class CrawlChapterService {
             };
           }),
         });
+
+      await this.comicService.linkChapterToComic(
+        job.data.comicId,
+        createdChapter,
+      );
+
       // await this.syncRmqProducer.pushMessageSyncChapter(createdChapter);
       await this.addJobUploadImage(uploadedImage, createdChapter.id);
       return {

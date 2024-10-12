@@ -18,9 +18,12 @@ const winstonConfigProduction: winston.LoggerOptions = {
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(), // Adds color to console logs
-        nestWinstonModuleUtilities.format.nestLike('CrawlEngine', {
-          prettyPrint: true,
-        }),
+        nestWinstonModuleUtilities.format.nestLike(
+          process.env.SERVER_NAME ?? 'local',
+          {
+            prettyPrint: true,
+          },
+        ),
       ),
     }),
     new winston.transports.File({
@@ -77,12 +80,15 @@ const winstonConfigDevelopment = {
       format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.ms(),
-        nestWinstonModuleUtilities.format.nestLike('MargietApp', {
-          colors: true,
-          prettyPrint: true,
-          processId: true,
-          appName: true,
-        }),
+        nestWinstonModuleUtilities.format.nestLike(
+          process.env.SERVER_NAME ?? 'local',
+          {
+            colors: true,
+            prettyPrint: true,
+            processId: true,
+            appName: true,
+          },
+        ),
       ),
     }),
     new winston.transports.File({

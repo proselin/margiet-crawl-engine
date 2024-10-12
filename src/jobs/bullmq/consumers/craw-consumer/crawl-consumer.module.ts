@@ -15,7 +15,6 @@ import { Module } from '@nestjs/common';
 import { PuppeteerModule } from 'nestjs-puppeteer';
 import { CrawlJobProcessor } from './crawl-job.processor';
 import { MinioConnectModule } from '@/connection/minio';
-import { RmqProducerModule } from '@/jobs/rabbitmq/producer/rmq-producer.module';
 
 @Module({
   imports: [
@@ -26,7 +25,7 @@ import { RmqProducerModule } from '@/jobs/rabbitmq/producer/rmq-producer.module'
     BullModule.registerQueue({
       name: Constant.QUEUE_UPLOAD_NAME,
     }),
-    RmqProducerModule,
+    // RmqProducerModule,
     MinioConnectModule,
     PuppeteerModule.forFeature([]),
     CrawlProducerModule,

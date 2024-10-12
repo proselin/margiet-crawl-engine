@@ -12,7 +12,7 @@ import autopopulate from 'mongoose-autopopulate';
       inject: [ConfigService],
       useFactory: (configService): MongooseModuleFactoryOptions => {
         return {
-          appName: 'MargietCrawlEngine',
+          appName: configService.get('SERVER_NAME', 'local'),
           uri: configService.get(EnvKey.DATASOURCE_MARGIET_URI),
           retryDelay: 3000,
           retryAttempts: 3,

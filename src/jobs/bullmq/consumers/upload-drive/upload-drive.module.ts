@@ -5,7 +5,6 @@ import { Module } from '@nestjs/common';
 import { UploadDriveProcessor } from './upload-drive.processor';
 import { UploadDriveService } from './upload-drive.service';
 import { ImageModule } from '@/entities/image';
-import { RmqProducerModule } from '@/jobs/rabbitmq/producer/rmq-producer.module';
 
 @Module({
   imports: [
@@ -16,7 +15,7 @@ import { RmqProducerModule } from '@/jobs/rabbitmq/producer/rmq-producer.module'
         backoff: 3,
       },
     }),
-    RmqProducerModule,
+    // RmqProducerModule,
     ImageModule,
     ChapterModule,
   ],

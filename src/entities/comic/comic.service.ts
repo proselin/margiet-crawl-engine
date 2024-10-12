@@ -19,5 +19,13 @@ export class ComicService extends BaseCurdService<ComicDocument> {
     return this.findAndUpdate({ _id: id }, { $push: { chapters: chapter } });
   }
 
-  findChapterLastUpdateOneDay() {}
+  async linkChapterToComic(comicId: string, chapter: Chapter) {
+    const existedComic = await this.model.exists({ _id: comicId }).exec();
+    if (!existedComic) {
+      throw new Error('Comic not found');
+    }
+    return this.model
+      .updateOne({ _id: comicId }, { $push: { chapters: chapter } })
+      .exec();
+  }
 }
