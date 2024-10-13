@@ -59,5 +59,6 @@ bun.lockb
 .env.production
 !.env.example
 ../margiet-devops/crawl-engine/.env.production
+.env.local
 
 node_temp
