@@ -8,18 +8,16 @@ import { ConfigModule } from '@nestjs/config';
 import { PuppeteerModule } from 'nestjs-puppeteer';
 import { WinstonLoggerModule } from './common/logger/winston';
 import { TerminusModule } from '@nestjs/terminus';
-import { MetricsModule } from './metrics/metrics.module';
 import { HealthModule } from './health/health.module';
 import { RefreshComicModule } from '@/cronjob/refresh-comic';
-import { UploadDriveModule } from '@/jobs/bullmq/consumers/upload-drive';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TerminusModule,
     WinstonLoggerModule,
+    TerminusModule,
     PuppeteerModule.forRoot({
       headless: 'new',
       waitForInitialPage: true,
@@ -33,10 +31,8 @@ import { UploadDriveModule } from '@/jobs/bullmq/consumers/upload-drive';
     CrawlProducerModule,
     CrawlEngineDbModule,
     CrawlModule,
-    MetricsModule,
     HealthModule,
     RefreshComicModule,
-    UploadDriveModule,
   ],
 })
 export class AppModule {}
