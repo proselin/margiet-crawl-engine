@@ -1,6 +1,6 @@
 import { ChapterService } from '@/entities/chapter/chapter.service';
 import { ImageService } from '@/entities/image/image.service';
-import { CrawlUploadService } from '@/jobs/bullmq/consumers/craw-consumer/crawl-upload.service';
+import { CrawlUploadService } from '@/jobs/bullmq/consumers/craw-consumer/services/crawl-upload.service';
 import {
   CrawlChapterImages,
   CrawlThumbImage,
@@ -37,10 +37,7 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     });
   }
 
-  async crawlAndUploadChapterImage(
-    page: Page,
-    jobData: CrawlChapterImages,
-  ) {
+  async crawlAndUploadChapterImage(page: Page, jobData: CrawlChapterImages) {
     const uploadedImages = await this.crawlUploadService
       .crawlAndUploadMulti(page, `c-${jobData.chapterId}`, jobData.images)
       .then((response) =>

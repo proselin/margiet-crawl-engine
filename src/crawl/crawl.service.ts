@@ -9,7 +9,7 @@ export class CrawlService {
 
   /**
    * @param href
-   * @description Add a job crawl comic-fe to queue
+   * @description Add a jobs crawl comic-fe to queue
    * @returns {Promise<void>}
    */
   async addCrawlComicJob(href: string): Promise<void> {

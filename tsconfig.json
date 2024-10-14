@@ -1,13 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES2021",
-    "module": "commonjs",
-    "strict": true,
-    "removeComments": true,
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "outDir": "./dist",
+    "target": "ES2021",                     // Modern JavaScript version
+    "module": "commonjs",                   // CommonJS for Node.js
+    "strict": true,                         // Enable strict type-checking
+    "esModuleInterop": true,                // Compatibility with ES modules
+    "experimentalDecorators": true,         // Required for decorators
+    "emitDecoratorMetadata": true,          // Required for some decorators like TypeORM
+    "outDir": "./dist",                     // Output directory
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,

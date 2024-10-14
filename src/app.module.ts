@@ -10,6 +10,7 @@ import { WinstonLoggerModule } from './common/logger/winston';
 import { TerminusModule } from '@nestjs/terminus';
 import { HealthModule } from './health/health.module';
 import { RefreshComicModule } from '@/cronjob/refresh-comic';
+import { RmqJobModule } from '@/jobs/rabbitmq/rmqJob.module';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { RefreshComicModule } from '@/cronjob/refresh-comic';
       args: ['--no-sandbox'],
     }),
     BullmqConnectModule,
-    // RmqJobModule,
+    RmqJobModule,
     CrawlConsumerModule,
     CrawlProducerModule,
     CrawlEngineDbModule,

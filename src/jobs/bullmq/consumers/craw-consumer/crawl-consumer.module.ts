@@ -1,8 +1,8 @@
 import { AuthorModule } from '@/entities/author/author.module';
-import { CrawlChapterService } from '@/jobs/bullmq/consumers/craw-consumer/crawl-chapter.service';
-import { CrawlComicService } from '@/jobs/bullmq/consumers/craw-consumer/crawl-comic.service';
-import { CrawlImageService } from '@/jobs/bullmq/consumers/craw-consumer/crawl-image.service';
-import { CrawlUploadService } from '@/jobs/bullmq/consumers/craw-consumer/crawl-upload.service';
+import { CrawlChapterService } from '@/jobs/bullmq/consumers/craw-consumer/services/crawl-chapter.service';
+import { CrawlComicService } from '@/jobs/bullmq/consumers/craw-consumer/services/crawl-comic.service';
+import { CrawlImageService } from '@/jobs/bullmq/consumers/craw-consumer/services/crawl-image.service';
+import { CrawlUploadService } from '@/jobs/bullmq/consumers/craw-consumer/services/crawl-upload.service';
 import { CrawlProducerModule } from '@/jobs/bullmq/producers/crawl-producer';
 import { ChapterModule } from '@/entities/chapter/chapter.module';
 import { ComicModule } from '@/entities/comic/comic.module';
@@ -15,6 +15,7 @@ import { Module } from '@nestjs/common';
 import { PuppeteerModule } from 'nestjs-puppeteer';
 import { CrawlJobProcessor } from './crawl-job.processor';
 import { MinioConnectModule } from '@/connection/minio';
+import { RmqProducerModule } from '@/jobs/rabbitmq/producer';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { MinioConnectModule } from '@/connection/minio';
     BullModule.registerQueue({
       name: Constant.QUEUE_UPLOAD_NAME,
     }),
-    // RmqProducerModule,
+    RmqProducerModule,
     MinioConnectModule,
     PuppeteerModule.forFeature([]),
     CrawlProducerModule,

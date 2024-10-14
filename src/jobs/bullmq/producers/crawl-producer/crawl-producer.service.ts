@@ -54,7 +54,7 @@ export class CrawlProducerService {
 
   /**
    * @param href
-   * @description Add a job crawl comic-fe to queue
+   * @description Add a jobs crawl comic-fe to queue
    */
   async addCrawlComicJob(href: string) {
     this.logger.log(

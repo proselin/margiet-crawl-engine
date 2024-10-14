@@ -13,8 +13,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
-import { CrawlImageService } from '@/jobs/bullmq/consumers/craw-consumer/crawl-image.service';
+import { CrawlImageService } from '@/jobs/bullmq/consumers/craw-consumer/services/crawl-image.service';
 import mongoose from 'mongoose';
+import { SyncComicRmqProducer } from '@/jobs/rabbitmq/producer/sync-comic-rmq.producer';
+import { UpdateComicResultModel } from '@/models/jobs/consumer/update-comic-result.model';
+import { CrawlComicResultModel } from '@/models/jobs/consumer/crawl-comic-result.model';
 
 @Injectable()
 export class CrawlComicService {
@@ -27,7 +30,7 @@ export class CrawlComicService {
     private readonly crawlProducerService: CrawlProducerService,
     @InjectBrowser() private browser: Browser,
     private crawlImageService: CrawlImageService,
-    // private rmqProducer: SyncComicRmqProducer,
+    private rmqProducer: SyncComicRmqProducer,
   ) {}
 
   async handleCrawlJob(job: Job<CrawlComicJobData>) {
@@ -78,12 +81,13 @@ export class CrawlComicService {
       }
 
       this.logger.log('Process create new comic-fe');
-      const createdComic = await this.comicService.createOne(comic);
-      await job.updateProgress(75);
-      await this.addJobCrawlChapters(crawledComic.chapters, createdComic.id);
-      await job.updateProgress(85);
-      // await this.rmqProducer.pushMessageSyncComic(createdComic);
       await job.updateProgress(95);
+      const createdComic = await this.comicService.createOne(comic);
+
+      return {
+        chapters: crawledComic.chapters ?? [],
+        comic: createdComic,
+      } as CrawlComicResultModel;
     } catch (e) {
       this.logger.error('Crawl Comic failed >>');
       this.logger.error(e);
@@ -168,7 +172,7 @@ export class CrawlComicService {
 
   /**
    * @description Refresh or update existed comic-fe value
-   * @param job job from bullmq
+   * @param job jobs from bullmq
    */
   public async handleUpdateComic(job: Job<UpdateComicJobData>) {
     this.logger.log(`[${this.handleUpdateComic.name}]::= Update comic`);
@@ -229,25 +233,27 @@ export class CrawlComicService {
         refresh = 1;
       }
 
+      let updateChapters = [];
       if (rawData.totalChapter > lastedChapter) {
-        await this.addJobCrawlChapters(
-          rawData.chapters.filter((_, i) => i > lastedChapter),
-          comic.id,
-        );
+        updateChapters = rawData.chapters.filter((_, i) => i > lastedChapter);
       }
       comic.should_refresh = !!refresh;
       await comic.save();
 
-      // await this.rmqProducer.pushMessageSyncComic(comic);
+      return {
+        comic: comic,
+        updateChapters: updateChapters,
+      } as UpdateComicResultModel;
     } catch (e) {
       this.logger.error(`[${this.handleUpdateComic.name}]::= Fail`);
       this.logger.error(e);
     } finally {
       await page.close();
     }
+    await job.updateProgress(100);
   }
 
-  private addJobCrawlChapters(chapters: RawCrawledChapter[], comicId: string) {
+  addJobCrawlChapters(chapters: RawCrawledChapter[], comicId: string) {
     return this.crawlProducerService.addCrawlChapterJobs(
       chapters.map((chapter, index) => {
         return {

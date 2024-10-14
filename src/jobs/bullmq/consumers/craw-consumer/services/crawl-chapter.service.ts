@@ -5,10 +5,11 @@ import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
 import { Chapter } from '@/entities/chapter/chapter.schema';
 import { ChapterService } from '@/entities/chapter/chapter.service';
-import { CrawlImageService } from '@/jobs/bullmq/consumers/craw-consumer/crawl-image.service';
+import { CrawlImageService } from '@/jobs/bullmq/consumers/craw-consumer/services/crawl-image.service';
 import { CrawlProducerService } from '@/jobs/bullmq/producers/crawl-producer';
 import { ImageDocument } from '@/entities/image';
 import { ComicService } from '@/entities/comic';
+import { CrawlChapterResultModel } from '@/models/jobs/consumer/crawl-chapter-result.model';
 
 @Injectable()
 export class CrawlChapterService {
@@ -20,7 +21,6 @@ export class CrawlChapterService {
     private readonly crawlImageService: CrawlImageService,
     private readonly producer: CrawlProducerService,
     private readonly comicService: ComicService,
-    // private readonly syncRmqProducer: SyncComicRmqProducer,
   ) {}
 
   async handleCrawlJob(job: Job<CrawlChapterData>) {
@@ -42,7 +42,7 @@ export class CrawlChapterService {
         ),
       );
 
-      const uploadedImage =
+      const uploadedImage: ImageDocument[] =
         await this.crawlImageService.crawlAndUploadChapterImage(page, {
           chapterId: createdChapter.id,
           goto: job.data.url,
@@ -59,12 +59,10 @@ export class CrawlChapterService {
         createdChapter,
       );
 
-      // await this.syncRmqProducer.pushMessageSyncChapter(createdChapter);
-      await this.addJobUploadImage(uploadedImage, createdChapter.id);
       return {
-        chapterId: createdChapter.id,
+        chapter: createdChapter,
         images: uploadedImage,
-      };
+      } as CrawlChapterResultModel;
     } catch (e) {
       this.logger.error(`Crawl job ${job.token} Fail :=`);
       this.logger.error(e);
@@ -115,10 +113,7 @@ export class CrawlChapterService {
     return dto;
   }
 
-  private async addJobUploadImage(
-    uploadedImage: ImageDocument[],
-    chapterId: string,
-  ) {
+  async addJobUploadImage(uploadedImage: ImageDocument[], chapterId: string) {
     await this.producer.addUploadImageBulk(
       uploadedImage.map((img) => ({
         id: img.id,

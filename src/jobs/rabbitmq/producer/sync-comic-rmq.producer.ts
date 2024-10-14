@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { SyncComicMessageData } from '@/models/rmq/producer/sync-comic-message-data.model';
 import { SyncChapterMessageData } from '@/models/rmq/producer/sync-chapter-message-data.model';
-import { SyncImageMessageData } from '@/models/rmq/producer/sync-image-message-data.model';
 import { ComicDocument } from '@/entities/comic';
-import { ImageDocument } from '@/entities/image';
 import { ChapterDocument } from '@/entities/chapter';
-import { InjectRmq } from '@margiet-libs/rmq';
 import { RmqService } from '@margiet-libs/rmq/dist/services/rmq.service';
+import { InjectRmq } from '@margiet-libs/rmq';
+import { RmqConfig } from '@/jobs/rabbitmq/config/rmq.config';
 
 @Injectable()
 export class SyncComicRmqProducer {
   constructor(
-    @InjectRmq('sync_comic_queue') private readonly rmqService: RmqService,
+    @InjectRmq(RmqConfig.SyncQueue.queueName)
+    private readonly rmqService: RmqService,
   ) {}
 
   pushMessageSyncComic(comic: ComicDocument) {
@@ -42,14 +42,5 @@ export class SyncComicRmqProducer {
     syncChapterMessageData.name = chapter.title;
     syncChapterMessageData.position = chapter.position;
     return this.rmqService.emitToQueue('sync.chapter', syncChapterMessageData);
-  }
-
-  pushMessageSyncImage(imageInfo: ImageDocument, chapterId: string) {
-    const syncImageMessageData = new SyncImageMessageData();
-    syncImageMessageData.url = imageInfo.url;
-    syncImageMessageData.id = imageInfo.id;
-    syncImageMessageData.chapter_id = chapterId;
-    syncImageMessageData.position = imageInfo.position;
-    return this.rmqService.emitToQueue('sync.image', syncImageMessageData);
   }
 }
