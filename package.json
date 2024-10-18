@@ -25,7 +25,6 @@
     "@fastify/static": "^7.0.4",
     "@margiet-libs/google-drive": "file:libs/margiet-libs-google-drive-0.0.1.tgz",
     "@margiet-libs/minio": "file:libs/margiet-libs-minio-0.0.1.tgz",
-    "@margiet-libs/rmq": "file:libs/margiet-libs-rmq-0.0.1.tgz",
     "@nestjs/bullmq": "^10.2.0",
     "@nestjs/common": "^10.4.4",
     "@nestjs/config": "^3.2.3",

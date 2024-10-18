@@ -8,6 +8,11 @@ import {
   CrawlComicJobData,
   UpdateComicJobData,
 } from '@/jobs/bullmq/shared/types';
+import { UploadImageToDriveJobModel } from '@/models/jobs/producer/upload-image-to-drive-job.model';
+import { ComicDocument } from '@/entities/comic';
+import { SyncComicMessageData } from '@/models/jobs/consumer/sync-comic-message-data.model';
+import { ChapterDocument } from '@/entities/chapter';
+import { SyncChapterMessageData } from '@/models/jobs/consumer/sync-chapter-message-data.model';
 
 @Injectable()
 export class CrawlProducerService {
@@ -18,6 +23,8 @@ export class CrawlProducerService {
     private crawlQueue: Queue,
     @InjectQueue(Constant.QUEUE_UPLOAD_NAME)
     private uploadQueue: Queue,
+    @InjectQueue(Constant.QUEUE_SYNC_NAME)
+    private syncQueue: Queue,
   ) {}
 
   async addCrawlChapterJobs(jobData: CrawlChapterData[]) {
@@ -37,16 +44,12 @@ export class CrawlProducerService {
     );
   }
 
-  async addUploadImageBulk(input: { id: string; chapterId: string }[]) {
+  async addUploadImageBulk(imageJobData: UploadImageToDriveJobModel[]) {
     return this.uploadQueue.addBulk(
-      input.map((data) => {
+      imageJobData.map((data) => {
         return {
           name: JobConstant.UPLOAD_JOB_NAME,
           data,
-          opts: {
-            backoff: 3,
-            delay: 200,
-          },
         };
       }),
     );
@@ -113,5 +116,35 @@ export class CrawlProducerService {
       };
     });
     return this.crawlQueue.addBulk(jobs);
+  }
+
+  pushMessageSyncComic(comic: ComicDocument) {
+    const syncComicMessageData = new SyncComicMessageData();
+    syncComicMessageData.comic_id = comic._id.toString();
+    syncComicMessageData.author = {
+      name: comic.author?.title,
+      id: comic.author?._id.toString(),
+    };
+    syncComicMessageData.tags = comic.tags.map((tag) => {
+      return {
+        name: tag?.title,
+        id: tag?._id.toString(),
+      };
+    });
+    syncComicMessageData.status = comic.status;
+    syncComicMessageData.name = comic.title;
+    syncComicMessageData.description = comic.description;
+    syncComicMessageData.chapter_count = comic.chapter_count;
+    return this.syncQueue.add('sync.comic', syncComicMessageData);
+  }
+
+  pushMessageSyncChapter(chapter: ChapterDocument) {
+    const syncChapterMessageData: SyncChapterMessageData =
+      new SyncChapterMessageData();
+    syncChapterMessageData.chapter_id = chapter.id;
+    syncChapterMessageData.comic_id = chapter.comicId;
+    syncChapterMessageData.name = chapter.title;
+    syncChapterMessageData.position = chapter.position;
+    return this.syncQueue.add('sync.chapter', syncChapterMessageData);
   }
 }

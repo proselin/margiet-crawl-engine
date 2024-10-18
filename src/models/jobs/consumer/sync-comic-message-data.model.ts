@@ -1,4 +1,4 @@
-import { ShortData } from '@/models/rmq/short-data.model';
+import { ShortData } from '@/models/jobs/consumer/short-data.model';
 
 export class SyncComicMessageData {
   comic_id: string;

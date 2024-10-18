@@ -15,7 +15,6 @@ import { InjectBrowser } from 'nestjs-puppeteer';
 import { Browser, Page } from 'puppeteer';
 import { CrawlImageService } from '@/jobs/bullmq/consumers/craw-consumer/services/crawl-image.service';
 import mongoose from 'mongoose';
-import { SyncComicRmqProducer } from '@/jobs/rabbitmq/producer/sync-comic-rmq.producer';
 import { UpdateComicResultModel } from '@/models/jobs/consumer/update-comic-result.model';
 import { CrawlComicResultModel } from '@/models/jobs/consumer/crawl-comic-result.model';
 
@@ -30,7 +29,6 @@ export class CrawlComicService {
     private readonly crawlProducerService: CrawlProducerService,
     @InjectBrowser() private browser: Browser,
     private crawlImageService: CrawlImageService,
-    private rmqProducer: SyncComicRmqProducer,
   ) {}
 
   async handleCrawlJob(job: Job<CrawlComicJobData>) {

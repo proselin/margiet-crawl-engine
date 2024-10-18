@@ -11,9 +11,10 @@ import {
 import { CrawlComicService } from './services/crawl-comic.service';
 import { CrawlChapterService } from '@/jobs/bullmq/consumers/craw-consumer/services/crawl-chapter.service';
 import { CrawlComicResultModel } from '@/models/jobs/consumer/crawl-comic-result.model';
-import { SyncComicRmqProducer } from '@/jobs/rabbitmq/producer/sync-comic-rmq.producer';
 import { CrawlChapterResultModel } from '@/models/jobs/consumer/crawl-chapter-result.model';
 import { UpdateComicResultModel } from '@/models/jobs/consumer/update-comic-result.model';
+import { CrawlProducerService } from '@/jobs/bullmq/producers/crawl-producer';
+import { UploadImageToDriveJobModel } from '@/models/jobs/producer/upload-image-to-drive-job.model';
 
 @Injectable()
 @Processor(Constant.QUEUE_CRAWL_NAME)
@@ -23,7 +24,7 @@ export class CrawlJobProcessor extends WorkerHost {
   constructor(
     private readonly crawlComicService: CrawlComicService,
     private readonly crawlChapterService: CrawlChapterService,
-    private readonly syncComicRmqProducer: SyncComicRmqProducer,
+    private readonly crawlProducerService: CrawlProducerService,
   ) {
     super();
   }
@@ -58,35 +59,43 @@ export class CrawlJobProcessor extends WorkerHost {
   async onCompleted(job: Job) {
     switch (job.name) {
       case JobConstant.CRAWL_COMIC_JOB_NAME: {
-        const crawledComicResponse: CrawlComicResultModel = job.data;
+        const crawledComicResponse: CrawlComicResultModel = job.returnvalue;
         await this.crawlComicService.addJobCrawlChapters(
           crawledComicResponse.chapters,
-          crawledComicResponse.comic.id,
+          crawledComicResponse.comic._id.toString(),
         );
-        await this.syncComicRmqProducer.pushMessageSyncComic(
+        await this.crawlProducerService.pushMessageSyncComic(
           crawledComicResponse.comic,
         );
         return;
       }
       case JobConstant.CRAWL_CHAPTER_JOB_NAME: {
-        const resultCrawlChapter: CrawlChapterResultModel = job.data;
-        await this.syncComicRmqProducer.pushMessageSyncChapter(
+        const resultCrawlChapter: CrawlChapterResultModel = job.returnvalue;
+        await this.crawlProducerService.pushMessageSyncChapter(
           resultCrawlChapter.chapter,
         );
-        await this.crawlChapterService.addJobUploadImage(
-          resultCrawlChapter.images,
-          resultCrawlChapter.chapter.id,
-        );
+        const uploadJobDataModels: UploadImageToDriveJobModel[] =
+          resultCrawlChapter.images.map((image) => {
+            const model = new UploadImageToDriveJobModel();
+            model.bucket = image.minioInfo.bucketName;
+            model.url = image.url;
+            model.imageId = image._id.toString();
+            model.fileName = image.minioInfo.fileName;
+            model.chapterId = resultCrawlChapter.chapter._id.toString();
+            model.position = image.position;
+            return model;
+          });
+        await this.crawlProducerService.addUploadImageBulk(uploadJobDataModels);
         return;
       }
       case JobConstant.UPDATE_COMIC_JOB_NAME: {
-        const updateComicResult: UpdateComicResultModel = job.data;
-        await this.syncComicRmqProducer.pushMessageSyncComic(
+        const updateComicResult: UpdateComicResultModel = job.returnvalue;
+        await this.crawlProducerService.pushMessageSyncComic(
           updateComicResult.comic,
         );
         await this.crawlComicService.addJobCrawlChapters(
           updateComicResult.updateChapters,
-          updateComicResult.comic.id,
+          updateComicResult.comic._id.toString(),
         );
         return;
       }

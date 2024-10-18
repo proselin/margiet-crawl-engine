@@ -11,6 +11,9 @@ import { Constant } from '@/utils/constant';
     BullModule.registerQueue({
       name: Constant.QUEUE_UPLOAD_NAME,
     }),
+    BullModule.registerQueue({
+      name: Constant.QUEUE_SYNC_NAME,
+    }),
   ],
   providers: [CrawlProducerService],
   exports: [CrawlProducerService],

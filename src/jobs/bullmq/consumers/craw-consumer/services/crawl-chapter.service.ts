@@ -6,7 +6,6 @@ import { Browser, Page } from 'puppeteer';
 import { Chapter } from '@/entities/chapter/chapter.schema';
 import { ChapterService } from '@/entities/chapter/chapter.service';
 import { CrawlImageService } from '@/jobs/bullmq/consumers/craw-consumer/services/crawl-image.service';
-import { CrawlProducerService } from '@/jobs/bullmq/producers/crawl-producer';
 import { ImageDocument } from '@/entities/image';
 import { ComicService } from '@/entities/comic';
 import { CrawlChapterResultModel } from '@/models/jobs/consumer/crawl-chapter-result.model';
@@ -19,7 +18,7 @@ export class CrawlChapterService {
     private chapterService: ChapterService,
     @InjectBrowser() private readonly browser: Browser,
     private readonly crawlImageService: CrawlImageService,
-    private readonly producer: CrawlProducerService,
+
     private readonly comicService: ComicService,
   ) {}
 
@@ -111,14 +110,5 @@ export class CrawlChapterService {
     dto.title = 'Chapter ' + chapNumber;
     dto.source_url = sourceUrl;
     return dto;
-  }
-
-  async addJobUploadImage(uploadedImage: ImageDocument[], chapterId: string) {
-    await this.producer.addUploadImageBulk(
-      uploadedImage.map((img) => ({
-        id: img.id,
-        chapterId,
-      })),
-    );
   }
 }
