@@ -59,14 +59,24 @@ export class CrawlJobProcessor extends WorkerHost {
   async onCompleted(job: Job) {
     switch (job.name) {
       case JobConstant.CRAWL_COMIC_JOB_NAME: {
-        const crawledComicResponse: CrawlComicResultModel = job.returnvalue;
+        const response: CrawlComicResultModel = job.returnvalue;
         await this.crawlComicService.addJobCrawlChapters(
-          crawledComicResponse.chapters,
-          crawledComicResponse.comic._id.toString(),
+          response.chapters,
+          response.comic._id.toString(),
         );
-        await this.crawlProducerService.pushMessageSyncComic(
-          crawledComicResponse.comic,
-        );
+        await this.crawlProducerService.pushMessageSyncComic(response.comic);
+        if (!response.thumbImage) {
+          return;
+        }
+        await this.crawlProducerService.addUploadImage({
+          url: response.thumbImage.url,
+          position: response.thumbImage.position,
+          comicId: response.thumbImage.comicId,
+          fileName: response.thumbImage.minioInfo.fileName,
+          bucket: response.thumbImage.minioInfo.bucketName,
+          imageId: response.thumbImage._id.toString(),
+          chapterId: null,
+        });
         return;
       }
       case JobConstant.CRAWL_CHAPTER_JOB_NAME: {

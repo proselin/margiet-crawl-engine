@@ -25,13 +25,11 @@ export class RefreshComicService {
 
     // Query the collection
 
-    const comicDocuments = await this.comicService.model
-      .find<ComicDocument>({
-        should_refresh: true,
-        is_current_url_is_notfound: false,
-        updatedAt: { $lt: oneDayAgo },
-      })
-      .exec();
+    const comicDocuments = await this.comicService.Model.find<ComicDocument>({
+      should_refresh: true,
+      is_current_url_is_notfound: false,
+      updatedAt: { $lt: oneDayAgo },
+    }).exec();
 
     return this.crawlProducerService.updateCrawlComicJob(
       comicDocuments.map((comic) => comic.id),

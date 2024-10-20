@@ -17,6 +17,7 @@ import { CrawlImageService } from '@/jobs/bullmq/consumers/craw-consumer/service
 import mongoose from 'mongoose';
 import { UpdateComicResultModel } from '@/models/jobs/consumer/update-comic-result.model';
 import { CrawlComicResultModel } from '@/models/jobs/consumer/crawl-comic-result.model';
+import { ImageDocument, ImageService } from '@/entities/image';
 
 @Injectable()
 export class CrawlComicService {
@@ -27,6 +28,7 @@ export class CrawlComicService {
     private readonly comicService: ComicService,
     private readonly tagService: TagService,
     private readonly crawlProducerService: CrawlProducerService,
+    private readonly imageService: ImageService,
     @InjectBrowser() private browser: Browser,
     private crawlImageService: CrawlImageService,
   ) {}
@@ -37,7 +39,7 @@ export class CrawlComicService {
       await this.preparePage(page, job.data.href);
       const crawledComic = await this.extractInfoFromComicPage(page);
       await page.evaluate('document.write()');
-      const comic: Comic = new Comic();
+      const comic: Comic = new this.comicService.Model();
       comic.chapters = [];
       comic.url_history = [job.data.href];
       comic.is_current_url_is_notfound = false;
@@ -67,9 +69,9 @@ export class CrawlComicService {
         comic.status = crawledComic.status;
         await job.updateProgress(35);
       }
-
+      let thumbImage: ImageDocument | null = null;
       if (crawledComic.thumbUrl) {
-        await this.updateThumbImageComic(
+        thumbImage = await this.updateThumbImageComic(
           comic,
           page,
           crawledComic.thumbUrl,
@@ -79,12 +81,19 @@ export class CrawlComicService {
       }
 
       this.logger.log('Process create new comic-fe');
-      await job.updateProgress(95);
+      await job.updateProgress(75);
       const createdComic = await this.comicService.createOne(comic);
+
+      //Link Comic And  Thumb Image
+      if (thumbImage) {
+        thumbImage.comicId = createdComic._id.toString();
+        await thumbImage.save();
+      }
 
       return {
         chapters: crawledComic.chapters ?? [],
         comic: createdComic,
+        thumbImage,
       } as CrawlComicResultModel;
     } catch (e) {
       this.logger.error('Crawl Comic failed >>');
@@ -174,10 +183,9 @@ export class CrawlComicService {
    */
   public async handleUpdateComic(job: Job<UpdateComicJobData>) {
     this.logger.log(`[${this.handleUpdateComic.name}]::= Update comic`);
-    const comic = await this.comicService.model
-      .findOne({
-        _id: new mongoose.Types.ObjectId(job.data.comicId),
-      })
+    const comic = await this.comicService.Model.findOne({
+      _id: new mongoose.Types.ObjectId(job.data.comicId),
+    })
       .populate('author')
       .populate('tags')
       .populate('chapters')
@@ -269,42 +277,36 @@ export class CrawlComicService {
     this.logger.log(`[${this.handleComicTags.name}]:= Process comic tags `);
     comic.tags = [];
     for (const tagName of tags) {
-      const tagDoc = await this.tagService
-        .getModel()
-        .findOneAndUpdate(
-          {
+      const tagDoc = await this.tagService.Model.findOneAndUpdate(
+        {
+          title: tagName,
+        },
+        {
+          $set: {
             title: tagName,
           },
-          {
-            $set: {
-              title: tagName,
-            },
-          },
-          {
-            upsert: true,
-          },
-        )
-        .exec();
+        },
+        {
+          upsert: true,
+        },
+      ).exec();
       comic.tags.push(tagDoc);
     }
   }
 
   private async handleComicAuthor(comic: Comic, authorName: string) {
     this.logger.log(`[${this.handleComicAuthor.name}]:= Process comic author `);
-    comic.author = await this.authorService
-      .getModel()
-      .findOneAndUpdate(
-        { title: authorName },
-        {
-          $set: {
-            title: authorName,
-          },
+    comic.author = await this.authorService.Model.findOneAndUpdate(
+      { title: authorName },
+      {
+        $set: {
+          title: authorName,
         },
-        {
-          upsert: true,
-        },
-      )
-      .exec();
+      },
+      {
+        upsert: true,
+      },
+    ).exec();
   }
 
   private async updateThumbImageComic(
@@ -312,12 +314,14 @@ export class CrawlComicService {
     page: Page,
     thumbUrl: string,
     goto: string,
-  ) {
+  ): Promise<ImageDocument> {
     comic.thumb_image = null;
     this.logger.log('Process crawl image-fe thumb url');
-    comic.thumb_image = await this.crawlImageService.handleCrawlThumbUrl(page, {
+    const thumb = await this.crawlImageService.handleCrawlThumbUrl(page, {
       imageUrls: [thumbUrl],
       goto,
     });
+    comic.thumb_image = thumb;
+    return thumb;
   }
 }

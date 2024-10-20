@@ -10,21 +10,17 @@ import { EntityConfig } from '@/base/entity/entity-config';
 export class ComicService extends BaseCurdService<ComicDocument> {
   constructor(
     @InjectModel(EntityConfig.ModelName.Comic)
-    public readonly model: Model<ComicDocument>,
+    protected readonly _model: Model<ComicDocument>,
   ) {
-    super(new Logger(ComicService.name), model);
-  }
-
-  addChapterById(id: string, chapter: Chapter) {
-    return this.findAndUpdate({ _id: id }, { $push: { chapters: chapter } });
+    super(new Logger(ComicService.name), _model);
   }
 
   async linkChapterToComic(comicId: string, chapter: Chapter) {
-    const existedComic = await this.model.exists({ _id: comicId }).exec();
+    const existedComic = await this._model.exists({ _id: comicId }).exec();
     if (!existedComic) {
       throw new Error('Comic not found');
     }
-    return this.model
+    return this._model
       .updateOne({ _id: comicId }, { $push: { chapters: chapter } })
       .exec();
   }

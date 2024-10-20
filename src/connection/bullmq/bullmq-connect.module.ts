@@ -10,10 +10,10 @@ import { EnvKey } from '@/config/environment';
       useFactory: (configService: ConfigService) => {
         return {
           connection: {
-            host: configService.get(EnvKey.REDIS_HOST),
-            port: +configService.get(EnvKey.REDIS_PORT),
-            password: configService.get(EnvKey.REDIS_PASSWORD),
-            username: configService.get(EnvKey.REDIS_USERNAME),
+            host: configService.get<string>(EnvKey.REDIS_HOST),
+            port: configService.get(EnvKey.REDIS_PORT),
+            password: configService.get<string>(EnvKey.REDIS_PASSWORD),
+            username: configService.get<string>(EnvKey.REDIS_USERNAME),
           },
         };
       },

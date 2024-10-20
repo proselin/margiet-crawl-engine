@@ -9,8 +9,31 @@ import { EntityConfig } from '@/base/entity/entity-config';
 export class ImageService extends BaseCurdService<Image> {
   constructor(
     @InjectModel(EntityConfig.ModelName.Image)
-    public readonly model: Model<Image>,
+    protected readonly _model: Model<Image>,
   ) {
-    super(new Logger(ImageService.name), model);
+    super(new Logger(ImageService.name), _model);
+  }
+
+  findOneImageIdUploaded(imageId: string) {
+    return this._model
+      .findOne({
+        _id: {
+          $match: imageId,
+        },
+        driverInfo: {
+          $exists: true,
+        },
+      })
+      .exec();
+  }
+
+  async setComicIdByImageId(imageId: string, comicId: string) {
+    const image = await this._model.findById(imageId).exec();
+    if (!image) {
+      throw new Error('Image not found !!');
+    }
+    image.comicId = comicId;
+    await image.save();
+    return image;
   }
 }

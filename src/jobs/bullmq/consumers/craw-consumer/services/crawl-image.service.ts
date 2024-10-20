@@ -42,7 +42,7 @@ export class CrawlImageService implements BeforeApplicationShutdown {
       .crawlAndUploadMulti(page, `c-${jobData.chapterId}`, jobData.images)
       .then((response) =>
         response.map((uploadedImage) => {
-          return new this.imageService.model({
+          return new this.imageService.Model({
             url: uploadedImage?.fileUrl ?? '',
             originalUrl: uploadedImage.originUrls,
             minioInfo: {
@@ -55,12 +55,12 @@ export class CrawlImageService implements BeforeApplicationShutdown {
         }),
       );
 
-    const newImages = await this.imageService.model
-      .insertMany(uploadedImages)
-      .catch((e) => {
-        this.logger.error(e);
-        throw new Error('Insert data image failed !!');
-      });
+    const newImages = await this.imageService.Model.insertMany(
+      uploadedImages,
+    ).catch((e) => {
+      this.logger.error(e);
+      throw new Error('Insert data image failed !!');
+    });
     this.logger.log(`Create ${uploadedImages.length} uploaded images`);
     await this.chapterService.updateChapterImages(newImages, jobData.chapterId);
     this.logger.log(`Update chapter id ${jobData.chapterId}`);

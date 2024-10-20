@@ -1,8 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 import { BaseEntity } from '@/base/entity/base-entity';
-import { Chapter } from '@/entities/chapter';
-import { EntityConfig } from '@/base/entity/entity-config';
 
 export type ImageDocument = HydratedDocument<Image>;
 
@@ -42,10 +40,14 @@ export class Image extends BaseEntity {
   position: number;
 
   @Prop({
-    type: mongoose.Schema.Types.ObjectId,
-    ref: EntityConfig.ModelName.Chapter,
+    type: String,
   })
-  chapter: Chapter;
+  chapterId: string;
+
+  @Prop({
+    type: String,
+  })
+  comicId: string;
 }
 
 export const ImageSchema = SchemaFactory.createForClass(Image);

@@ -14,8 +14,10 @@ export class UploadImageToDriveJobModel {
   fileName: string;
 
   @IsString()
-  @IsNotEmpty()
   chapterId: string;
+
+  @IsString()
+  comicId: string;
 
   @IsString()
   @IsNotEmpty()

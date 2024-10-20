@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsString, validateOrReject } from 'class-validator';
 import { plainToClass } from 'class-transformer';
 
-export const enum EnvKey {
+export enum EnvKey {
   NODE_ENV = 'NODE_ENV',
 
   REDIS_HOST = 'REDIS_HOST',
@@ -9,14 +9,7 @@ export const enum EnvKey {
   REDIS_USERNAME = 'REDIS_USERNAME',
   REDIS_PASSWORD = 'REDIS_PASSWORD',
 
-  DATASOURCE_MARGIET_URI = 'DATASOURCE_MARGIET_URI',
-  DATASOURCE_MARGIET_FE_URI = 'DATASOURCE_MARGIET_FE_URI',
-
-  G_CLIENT_ID = 'G_CLIENT_ID',
-  G_CLIENT_SECRET = 'G_CLIENT_SECRET',
-  G_REDIRECT_URI = 'G_REDIRECT_URI',
-  G_REFRESH_TOKEN = 'G_REFRESH_TOKEN',
-  G_FOLDER_ID = 'G_FOLDER_ID',
+  DB_URI = 'DB_URI',
 
   SERVER_HOST = 'SERVER_HOST',
   SERVER_PORT = 'SERVER_PORT',
@@ -59,7 +52,7 @@ class Environment implements Partial<IEnvironment> {
 
   @IsString()
   @IsNotEmpty()
-  [EnvKey.DATASOURCE_MARGIET_URI]: string;
+  [EnvKey.DB_URI]: string;
 }
 
 export async function envValidation() {

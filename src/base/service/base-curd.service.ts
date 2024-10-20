@@ -15,11 +15,11 @@ export abstract class BaseCurdService<Entity extends Record<string, any>>
   implements IBaseCurl<Entity>
 {
   protected logger: Logger;
-  protected model: Model<Entity>;
+  protected _model: Model<Entity>;
 
   protected constructor(logger: Logger, model: Model<Entity>) {
     this.logger = logger;
-    this.model = model;
+    this._model = model;
   }
 
   async findOne(
@@ -27,7 +27,7 @@ export abstract class BaseCurdService<Entity extends Record<string, any>>
     projection?: ProjectionType<Entity> | null,
     options?: QueryOptions<Entity> | null,
   ) {
-    return this.model.findOne(filter, projection, options).exec();
+    return this._model.findOne(filter, projection, options).exec();
   }
 
   async updateOne(
@@ -35,34 +35,25 @@ export abstract class BaseCurdService<Entity extends Record<string, any>>
     update?: UpdateQuery<Entity> | UpdateWithAggregationPipeline,
     options?: (Record<string, any> & MongooseUpdateQueryOptions<Entity>) | null,
   ) {
-    return this.model.updateOne(filter, update, options).exec();
+    return this._model.updateOne(filter, update, options).exec();
   }
 
   // Create
   async createOne(createDto: Entity | Record<any, any>) {
-    const createdEntity = await this.model.insertMany([createDto]);
+    const createdEntity = await this._model.insertMany([createDto]);
     return <HydratedDocument<Entity>>createdEntity[0];
   }
 
   // Read (Find All)
   async findAll() {
-    const entities = await this.model.find().exec();
+    const entities = await this._model.find().exec();
     this.logger.log(`Found ${entities.length} entities`);
     return entities;
   }
 
   // Read (Find One by ID)
-  async findById(
-    id: string,
-    projection?: ProjectionType<any>,
-    opts?: QueryOptions<any>,
-  ): Promise<HydratedDocument<Entity>> {
-    const entity = await this.model.findById(id, projection, opts).exec();
-    if (!entity) {
-      this.logger.warn(`Entity with ID ${id} not found`);
-      throw new NotFoundException(`Entity with ID ${id} not found`);
-    }
-    return entity;
+  get findById() {
+    return this._model.findById;
   }
 
   // Update
@@ -71,7 +62,7 @@ export abstract class BaseCurdService<Entity extends Record<string, any>>
     updateDto: UpdateQuery<Entity>,
     opts?: QueryOptions<Entity> & { includeResultMetadata: true; lean: true },
   ): Promise<HydratedDocument<Entity>> {
-    const updatedEntity = await this.model
+    const updatedEntity = await this._model
       .findByIdAndUpdate(id, updateDto, opts)
       .exec();
     if (!updatedEntity) {
@@ -83,7 +74,7 @@ export abstract class BaseCurdService<Entity extends Record<string, any>>
 
   // Delete
   async remove(id: string, opts?: QueryOptions<any>): Promise<boolean> {
-    const result = await this.model
+    const result = await this._model
       .findOneAndDelete(
         {
           _id: id,
@@ -104,7 +95,7 @@ export abstract class BaseCurdService<Entity extends Record<string, any>>
     updateDto: Record<string, any>,
     opts?: QueryOptions<any>,
   ): Promise<Entity & HydratedDocument<Entity>> {
-    const updatedEntity = await this.model
+    const updatedEntity = await this._model
       .findOneAndUpdate(condition, updateDto, opts)
       .exec();
     if (!updatedEntity) {
@@ -122,7 +113,7 @@ export abstract class BaseCurdService<Entity extends Record<string, any>>
     conditionOrData: Record<string, any>,
     projection: Record<string, any> = {},
   ): Promise<Entity & HydratedDocument<Entity>> {
-    const existedEntity = await this.model
+    const existedEntity = await this._model
       .findOne(conditionOrData, projection)
       .exec();
     if (!existedEntity) {
@@ -138,7 +129,7 @@ export abstract class BaseCurdService<Entity extends Record<string, any>>
     return existedEntity;
   }
 
-  getModel() {
-    return this.model;
+  get Model() {
+    return this._model;
   }
 }

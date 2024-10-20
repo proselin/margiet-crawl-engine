@@ -9,8 +9,8 @@ import { EntityConfig } from '@/base/entity/entity-config';
 export class TagService extends BaseCurdService<Tag> {
   constructor(
     @InjectModel(EntityConfig.ModelName.Tag)
-    protected readonly model: Model<Tag>,
+    protected readonly _model: Model<Tag>,
   ) {
-    super(new Logger(TagService.name), model);
+    super(new Logger(TagService.name), _model);
   }
 }

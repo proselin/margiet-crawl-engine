@@ -9,9 +9,10 @@ import { EntityConfig } from '@/base/entity/entity-config';
 @Injectable()
 export class ChapterService extends BaseCurdService<Chapter> {
   constructor(
-    @InjectModel(EntityConfig.ModelName.Chapter) readonly model: Model<Chapter>,
+    @InjectModel(EntityConfig.ModelName.Chapter)
+    protected readonly _model: Model<Chapter>,
   ) {
-    super(new Logger(ChapterService.name), model);
+    super(new Logger(ChapterService.name), _model);
   }
 
   updateChapterImages(images: Image[], chapterId: string) {

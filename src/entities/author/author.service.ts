@@ -9,8 +9,8 @@ import { EntityConfig } from '@/base/entity/entity-config';
 export class AuthorService extends BaseCurdService<Author> {
   constructor(
     @InjectModel(EntityConfig.ModelName.Author)
-    protected readonly model: Model<Author>,
+    protected readonly _model: Model<Author>,
   ) {
-    super(new Logger(AuthorService.name), model);
+    super(new Logger(AuthorService.name), _model);
   }
 }

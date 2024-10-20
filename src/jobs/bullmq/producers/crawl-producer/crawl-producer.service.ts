@@ -55,6 +55,10 @@ export class CrawlProducerService {
     );
   }
 
+  async addUploadImage(jobData: UploadImageToDriveJobModel) {
+    return this.uploadQueue.add(JobConstant.UPLOAD_JOB_NAME, jobData);
+  }
+
   /**
    * @param href
    * @description Add a jobs crawl comic-fe to queue

@@ -13,7 +13,7 @@ import autopopulate from 'mongoose-autopopulate';
       useFactory: (configService): MongooseModuleFactoryOptions => {
         return {
           appName: configService.get('SERVER_NAME', 'local'),
-          uri: configService.get(EnvKey.DATASOURCE_MARGIET_URI),
+          uri: configService.get(EnvKey.DB_URI),
           retryDelay: 3000,
           retryAttempts: 3,
           ssl: false,
