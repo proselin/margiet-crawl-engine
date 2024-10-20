@@ -5,12 +5,12 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { Versions } from '@/common';
+import { Versions } from '@/constant';
 import {
   LoggingInterceptor,
   TimeoutInterceptor,
   TransformInterceptor,
-} from '@/common';
+} from '@/intercept';
 
 export async function createApp(appModule: any) {
   const app = await NestFactory.create<NestFastifyApplication>(

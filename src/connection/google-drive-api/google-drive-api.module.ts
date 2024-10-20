@@ -1,4 +1,4 @@
-import { EnvKey } from '@/environment';
+import { EnvKey } from '@/config/environment';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {

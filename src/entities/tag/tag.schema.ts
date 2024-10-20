@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { BaseEntity } from '@/common/base/entity/base-entity';
+import { BaseEntity } from '@/base/entity/base-entity';
 
 export type TagDocument = HydratedDocument<Tag>;
 

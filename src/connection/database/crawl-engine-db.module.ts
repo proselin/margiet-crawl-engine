@@ -1,6 +1,6 @@
 import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
-import { EnvKey } from '@/environment';
+import { EnvKey } from '@/config/environment';
 import { Global, Module, OnModuleInit } from '@nestjs/common';
 import mongoose from 'mongoose';
 import autopopulate from 'mongoose-autopopulate';

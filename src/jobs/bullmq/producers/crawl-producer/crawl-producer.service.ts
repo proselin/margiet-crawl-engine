@@ -141,7 +141,7 @@ export class CrawlProducerService {
   pushMessageSyncChapter(chapter: ChapterDocument) {
     const syncChapterMessageData: SyncChapterMessageData =
       new SyncChapterMessageData();
-    syncChapterMessageData.chapter_id = chapter.id;
+    syncChapterMessageData.chapter_id = chapter._id.toString();
     syncChapterMessageData.comic_id = chapter.comicId;
     syncChapterMessageData.name = chapter.title;
     syncChapterMessageData.position = chapter.position;

@@ -1,9 +1,9 @@
-import { BaseCurdService } from '@/common';
+import { BaseCurdService } from '@/base';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Author } from '@/entities/author/author.schema';
-import { EntityConfig } from '@/common/base/entity/entity-config';
+import { EntityConfig } from '@/base/entity/entity-config';
 
 @Injectable()
 export class AuthorService extends BaseCurdService<Author> {

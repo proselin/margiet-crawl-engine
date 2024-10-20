@@ -1,4 +1,4 @@
-import { IBaseCurl } from '@/common';
+import { IBaseCurl } from '@/base';
 import { Logger, NotFoundException } from '@nestjs/common';
 import {
   FilterQuery,
@@ -136,5 +136,9 @@ export abstract class BaseCurdService<Entity extends Record<string, any>>
       return <Entity & HydratedDocument<Entity>>rs;
     }
     return existedEntity;
+  }
+
+  getModel() {
+    return this.model;
   }
 }

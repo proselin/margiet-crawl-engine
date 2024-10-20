@@ -3,9 +3,9 @@ import mongoose, { HydratedDocument } from 'mongoose';
 import { ImageDocument } from '@/entities/image/image.schema';
 import { ChapterDocument } from '@/entities/chapter/chapter.schema';
 import { AuthorDocument } from '@/entities/author/author.schema';
-import { BaseEntity } from '@/common/base/entity/base-entity';
+import { BaseEntity } from '@/base/entity/base-entity';
 import { TagDocument } from '@/entities/tag';
-import { EntityConfig } from '@/common/base/entity/entity-config';
+import { EntityConfig } from '@/base/entity/entity-config';
 
 const { String, Number, ObjectId, Array, Boolean } = mongoose.Schema.Types;
 

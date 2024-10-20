@@ -1,12 +1,12 @@
 import { CrawlUploadResponse, UploadMinioResponse } from '@/jobs/bullmq/shared';
 import { JobUtils } from '@/jobs/bullmq/shared/utils';
-import { EnvKey } from '@/environment';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client as MinioClient } from 'minio';
 import { nanoid } from 'nanoid';
 import { Page } from 'puppeteer';
 import { InjectMinio } from '@margiet-libs/minio';
+import { EnvKey } from '@/config/environment';
 
 @Injectable()
 export class CrawlUploadService {

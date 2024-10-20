@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ChapterSchema } from '@/entities/chapter/chapter.schema';
 import { ChapterService } from '@/entities/chapter/chapter.service';
-import { EntityConfig } from '@/common/base/entity/entity-config';
+import { EntityConfig } from '@/base/entity/entity-config';
 
 @Module({
   imports: [

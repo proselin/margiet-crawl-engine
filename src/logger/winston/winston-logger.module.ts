@@ -4,7 +4,7 @@ import {
   WinstonModule,
 } from 'nest-winston';
 import { ConfigService } from '@nestjs/config';
-import { EnvKey } from '@/environment';
+import { EnvKey } from '@/config/environment';
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 

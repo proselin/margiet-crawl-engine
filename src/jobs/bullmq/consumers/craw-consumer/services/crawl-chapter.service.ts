@@ -32,18 +32,19 @@ export class CrawlChapterService {
         }),
       );
 
-      const createdChapter = await this.chapterService.createOne(
-        this.mapDataToChapterDTO(
-          job.data.url,
-          job.data.dataId,
-          job.data.chapNumber,
-          job.data.position,
-        ),
-      );
+      const chapter = new Chapter();
+      chapter.comicId = job.data.comicId;
+      chapter.chapterNumber = job.data.chapNumber;
+      chapter.position = job.data.position;
+      chapter.title = 'Chapter ' + job.data.chapNumber;
+      chapter.dataId = job.data.dataId;
+      chapter.source_url = job.data.url;
+
+      const createdChapter = await this.chapterService.createOne(chapter);
 
       const uploadedImage: ImageDocument[] =
         await this.crawlImageService.crawlAndUploadChapterImage(page, {
-          chapterId: createdChapter.id,
+          chapterId: createdChapter._id.toString(),
           goto: job.data.url,
           images: imgServerUrls.map((imageUrls, index) => {
             return {
@@ -94,21 +95,5 @@ export class CrawlChapterService {
       }
       request.abort('blockedbyclient');
     });
-  }
-
-  private mapDataToChapterDTO(
-    sourceUrl: string,
-    dataId: string,
-    chapNumber: string,
-    position: number,
-  ) {
-    const dto = new Chapter();
-    dto.dataId = dataId;
-    dto.images = [];
-    dto.chapterNumber = chapNumber;
-    dto.position = position;
-    dto.title = 'Chapter ' + chapNumber;
-    dto.source_url = sourceUrl;
-    return dto;
   }
 }

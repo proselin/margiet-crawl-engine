@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
-import { BaseEntity } from '@/common/base/entity/base-entity';
-import { EntityConfig } from '@/common/base/entity/entity-config';
+import { BaseEntity } from '@/base/entity/base-entity';
+import { EntityConfig } from '@/base/entity/entity-config';
 import { ImageDocument } from '@/entities/image';
 
 // Chapter Schema

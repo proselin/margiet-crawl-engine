@@ -7,7 +7,7 @@ import {
 } from '@/jobs/bullmq/shared/types';
 import { Comic } from '@/entities/comic/comic.schema';
 import { ComicService } from '@/entities/comic/comic.service';
-import { InvalidComicInformation } from '@/common';
+import { InvalidComicInformation } from '@/exception';
 import { TagService } from '@/entities/tag/tag.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
@@ -269,17 +269,42 @@ export class CrawlComicService {
     this.logger.log(`[${this.handleComicTags.name}]:= Process comic tags `);
     comic.tags = [];
     for (const tagName of tags) {
-      const tagDoc = await this.tagService.findOrCreate({ name: tagName }, {});
+      const tagDoc = await this.tagService
+        .getModel()
+        .findOneAndUpdate(
+          {
+            title: tagName,
+          },
+          {
+            $set: {
+              title: tagName,
+            },
+          },
+          {
+            upsert: true,
+          },
+        )
+        .exec();
       comic.tags.push(tagDoc);
     }
   }
 
   private async handleComicAuthor(comic: Comic, authorName: string) {
     this.logger.log(`[${this.handleComicAuthor.name}]:= Process comic author `);
-    comic.author = await this.authorService.findOrCreate(
-      { name: authorName },
-      {},
-    );
+    comic.author = await this.authorService
+      .getModel()
+      .findOneAndUpdate(
+        { title: authorName },
+        {
+          $set: {
+            title: authorName,
+          },
+        },
+        {
+          upsert: true,
+        },
+      )
+      .exec();
   }
 
   private async updateThumbImageComic(

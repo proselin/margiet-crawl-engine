@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthorSchema } from '@/entities/author/author.schema';
 import { AuthorService } from '@/entities/author/author.service';
-import { EntityConfig } from '@/common/base/entity/entity-config';
+import { EntityConfig } from '@/base/entity/entity-config';
 
 @Module({
   imports: [
