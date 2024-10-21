@@ -11,7 +11,7 @@ import { EnvKey } from '@/config/environment';
         return {
           connection: {
             host: configService.get<string>(EnvKey.REDIS_HOST),
-            port: configService.get(EnvKey.REDIS_PORT),
+            port: +configService.get(EnvKey.REDIS_PORT),
             password: configService.get<string>(EnvKey.REDIS_PASSWORD),
             username: configService.get<string>(EnvKey.REDIS_USERNAME),
           },

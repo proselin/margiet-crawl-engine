@@ -1,6 +1,6 @@
 export class SyncChapterMessageData {
   chapter_id: string;
-  name: string;
+  title: string;
   comic_id: string;
   position: number;
 }

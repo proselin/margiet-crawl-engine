@@ -5,7 +5,7 @@ export class SyncComicMessageData {
   tags: ShortData[];
   author: ShortData;
   status: string;
-  name: string;
+  title: string;
   description: string;
   chapter_count: number;
 }

@@ -1,16 +1,14 @@
-import { CrawlConsumerModule } from '@/jobs/bullmq/consumers/craw-consumer';
-import { CrawlProducerModule } from '@/jobs/bullmq/producers/crawl-producer';
-import { BullmqConnectModule } from '@/connection/bullmq';
-import { CrawlEngineDbModule } from 'src/connection/database';
-import { CrawlModule } from '@/crawl';
 import { Module } from '@nestjs/common';
+import { WinstonLoggerModule } from '@/logger/winston';
+import { envValidation } from '@/config';
 import { ConfigModule } from '@nestjs/config';
 import { PuppeteerModule } from 'nestjs-puppeteer';
-import { WinstonLoggerModule } from '@/logger/winston';
-import { TerminusModule } from '@nestjs/terminus';
-import { HealthModule } from './health/health.module';
+import { BullmqConnectModule } from '@/connection/bullmq';
+import { CrawlConsumerModule } from '@/jobs/bullmq/consumers/craw-consumer';
+import { CrawlProducerModule } from '@/jobs/bullmq/producers/crawl-producer';
+import { DatabaseModule } from '@/connection/database';
+import { CrawlModule } from '@/crawl';
 import { RefreshComicModule } from '@/cronjob/refresh-comic';
-import { envValidation } from '@/config/environment';
 
 @Module({
   imports: [
@@ -19,7 +17,6 @@ import { envValidation } from '@/config/environment';
       validate: envValidation,
     }),
     WinstonLoggerModule,
-    TerminusModule,
     PuppeteerModule.forRoot({
       headless: 'new',
       waitForInitialPage: true,
@@ -30,9 +27,8 @@ import { envValidation } from '@/config/environment';
     BullmqConnectModule,
     CrawlConsumerModule,
     CrawlProducerModule,
-    CrawlEngineDbModule,
+    DatabaseModule,
     CrawlModule,
-    HealthModule,
     RefreshComicModule,
   ],
 })

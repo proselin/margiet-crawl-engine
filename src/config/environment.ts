@@ -1,5 +1,6 @@
-import { IsNotEmpty, IsString, validateOrReject } from 'class-validator';
+import { IsNotEmpty, IsString, validateSync } from 'class-validator';
 import { plainToClass } from 'class-transformer';
+import { Logger } from '@nestjs/common';
 
 export enum EnvKey {
   NODE_ENV = 'NODE_ENV',
@@ -43,11 +44,9 @@ class Environment implements Partial<IEnvironment> {
   [EnvKey.REDIS_PORT]: string;
 
   @IsString()
-  @IsNotEmpty()
   [EnvKey.REDIS_USERNAME]: string;
 
   @IsString()
-  @IsNotEmpty()
   [EnvKey.REDIS_PASSWORD]: string;
 
   @IsString()
@@ -55,12 +54,17 @@ class Environment implements Partial<IEnvironment> {
   [EnvKey.DB_URI]: string;
 }
 
-export async function envValidation() {
+export function envValidation() {
   const validatedConfig = plainToClass(Environment, process.env, {
     enableImplicitConversion: true,
   });
-  await validateOrReject(validatedConfig, {
+  const errors = validateSync(validatedConfig, {
     skipMissingProperties: false,
   });
+
+  if (errors.length > 0) {
+    Logger.error(errors.toString(), Environment.name);
+    throw new Error(errors.toString());
+  }
   return validatedConfig;
 }

@@ -136,7 +136,7 @@ export class CrawlProducerService {
       };
     });
     syncComicMessageData.status = comic.status;
-    syncComicMessageData.name = comic.title;
+    syncComicMessageData.title = comic.title;
     syncComicMessageData.description = comic.description;
     syncComicMessageData.chapter_count = comic.chapter_count;
     return this.syncQueue.add('sync.comic', syncComicMessageData);
@@ -147,7 +147,7 @@ export class CrawlProducerService {
       new SyncChapterMessageData();
     syncChapterMessageData.chapter_id = chapter._id.toString();
     syncChapterMessageData.comic_id = chapter.comicId;
-    syncChapterMessageData.name = chapter.title;
+    syncChapterMessageData.title = chapter.title;
     syncChapterMessageData.position = chapter.position;
     return this.syncQueue.add('sync.chapter', syncChapterMessageData);
   }

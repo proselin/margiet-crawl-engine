@@ -160,6 +160,7 @@ export class CrawlComicService {
           }),
       );
       crawResult.chapters.sort((a, b) => +a.chapNumber - +b.chapNumber);
+      crawResult.totalChapter = crawResult.chapters.length;
     } catch (e) {
       throw new InvalidComicInformation();
     }

@@ -17,13 +17,10 @@ const winstonConfigProduction: winston.LoggerOptions = {
   transports: [
     new winston.transports.Console({
       format: winston.format.combine(
-        winston.format.colorize(), // Adds color to console logs
-        nestWinstonModuleUtilities.format.nestLike(
-          process.env.SERVER_NAME ?? 'local',
-          {
-            prettyPrint: true,
-          },
-        ),
+        winston.format.timestamp(),
+        winston.format.json(),
+        winston.format.ms(),
+        winston.format.metadata(),
       ),
     }),
     new winston.transports.File({
@@ -124,4 +121,4 @@ const winstonConfigDevelopment = {
     }),
   ],
 })
-export class WinstonLoggerModule {}
+export class WinstonLoggerModule { }

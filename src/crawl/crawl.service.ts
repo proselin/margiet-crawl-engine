@@ -13,7 +13,12 @@ export class CrawlService {
    * @returns {Promise<void>}
    */
   async addCrawlComicJob(href: string): Promise<void> {
-    return this.producerService.addCrawlComicJob(href).then(() => {});
+    return this.producerService
+      .addCrawlComicJob(href)
+      .then(() => {})
+      .catch((error) => {
+        throw error;
+      });
   }
 
   /**
@@ -28,6 +33,9 @@ export class CrawlService {
   ): Promise<void> {
     return this.producerService
       .updateOneCrawlComicJob(comicId, newUrl)
-      .then(() => {});
+      .then(() => {})
+      .catch((error) => {
+        throw error;
+      });
   }
 }

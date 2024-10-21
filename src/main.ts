@@ -1,9 +1,9 @@
 import 'reflect-metadata';
 import { ConfigService } from '@nestjs/config';
-import { Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { createApp, SwaggerConfig } from './config';
 import { EnvKey } from '@/config/environment';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await createApp(AppModule);
@@ -17,7 +17,7 @@ async function bootstrap() {
   );
   app.setGlobalPrefix(prefix);
   SwaggerConfig.setupOpenApi(app, {});
-  await app.listen(port, host, (err, address) => {
+  app.listen(port, host, (err, address) => {
     if (err) {
       console.error(err);
       console.error(JSON.stringify(err));

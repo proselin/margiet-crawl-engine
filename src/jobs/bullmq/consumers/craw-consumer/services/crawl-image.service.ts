@@ -53,7 +53,10 @@ export class CrawlImageService implements BeforeApplicationShutdown {
             position: uploadedImage.position,
           });
         }),
-      );
+      )
+      .catch((error) => {
+        throw error;
+      });
 
     const newImages = await this.imageService.Model.insertMany(
       uploadedImages,

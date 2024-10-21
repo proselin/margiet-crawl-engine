@@ -1,7 +1,7 @@
 import { JobConstant } from '@/jobs/bullmq/shared';
 import { Constant } from '@/utils/constant';
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import {
   CrawlChapterData,
@@ -16,7 +16,6 @@ import { UpdateComicResultModel } from '@/models/jobs/consumer/update-comic-resu
 import { CrawlProducerService } from '@/jobs/bullmq/producers/crawl-producer';
 import { UploadImageToDriveJobModel } from '@/models/jobs/producer/upload-image-to-drive-job.model';
 
-@Injectable()
 @Processor(Constant.QUEUE_CRAWL_NAME)
 export class CrawlJobProcessor extends WorkerHost {
   private logger = new Logger(CrawlJobProcessor.name);
@@ -50,7 +49,7 @@ export class CrawlJobProcessor extends WorkerHost {
         );
       }
       default: {
-        return Promise.reject('Missing jobs handle');
+        throw new Error('Missing job handler');
       }
     }
   }

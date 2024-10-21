@@ -7,7 +7,7 @@ import { BaseEntity } from '@/base/entity/base-entity';
 import { TagDocument } from '@/entities/tag';
 import { EntityConfig } from '@/base/entity/entity-config';
 
-const { String, Number, ObjectId, Array, Boolean } = mongoose.Schema.Types;
+const ObjectId = mongoose.Schema.Types.ObjectId;
 
 export type ComicDocument = HydratedDocument<Comic>;
 

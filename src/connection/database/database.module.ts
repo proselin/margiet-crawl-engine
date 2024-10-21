@@ -24,7 +24,7 @@ import autopopulate from 'mongoose-autopopulate';
     }),
   ],
 })
-export class CrawlEngineDbModule implements OnModuleInit {
+export class DatabaseModule implements OnModuleInit {
   onModuleInit() {
     mongoose.plugin(autopopulate);
     mongoose.plugin((schema) => {
