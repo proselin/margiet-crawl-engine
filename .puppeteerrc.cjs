@@ -4,7 +4,7 @@
 module.exports = {
   // Download Chrome (default `skipDownload: false`).
   chrome: {
-    skipDownload: true,
+    skipDownload: false,
   },
   // Download Firefox (default `skipDownload: true`).
   firefox: {
