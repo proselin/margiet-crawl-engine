@@ -1,15 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { CrawlProducerService } from '@/jobs/bullmq/producers/crawl-producer';
-import { ComicService } from '@/entities/comic/comic.service';
-import { ComicDocument } from '@/entities/comic/comic.schema';
+import { CrawlProducerService } from '@/queues/producers/crawl-producer';
+import { ComicEntity } from '@/entities/comic/comic.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { MoreThan, Repository } from 'typeorm';
 
 @Injectable()
 export class RefreshComicService {
   private readonly logger = new Logger(RefreshComicService.name);
 
   constructor(
-    private comicService: ComicService,
+    @InjectRepository(ComicEntity)
+    private readonly comicRepository: Repository<ComicEntity>,
     private crawlProducerService: CrawlProducerService,
   ) {}
 
@@ -25,14 +27,13 @@ export class RefreshComicService {
 
     // Query the collection
 
-    const comicDocuments = await this.comicService.Model.find<ComicDocument>({
-      should_refresh: true,
-      is_current_url_is_notfound: false,
-      updatedAt: { $lt: oneDayAgo },
-    }).exec();
+    const entities = await this.comicRepository.findBy({
+      shouldRefresh: true,
+      updatedAt: MoreThan(oneDayAgo),
+    });
 
     return this.crawlProducerService.updateCrawlComicJob(
-      comicDocuments.map((comic) => comic.id),
+      entities.map((comic) => comic.id),
     );
   }
 }

@@ -34,7 +34,7 @@ export class CrawlController {
     }
     const { comicId, newUrl } = request.query;
     return await this.service.updateCrawlComicJob(
-      comicId as string,
+      +comicId,
       (newUrl as string) || null,
     );
   }
@@ -57,7 +57,7 @@ export class CrawlController {
     }
     const { comicId, newUrl } = request.query;
     return await this.service.updateCrawlComicJob(
-      comicId as string,
+      +comicId,
       (newUrl as string) || null,
     );
   }

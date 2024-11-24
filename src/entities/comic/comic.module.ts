@@ -1,16 +1,9 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { ComicSchema } from '@/entities/comic/comic.schema';
-import { ComicService } from '@/entities/comic/comic.service';
-import { EntityConfig } from '@/base/entity/entity-config';
+import { ComicEntity } from '@/entities/comic/comic.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: EntityConfig.ModelName.Comic, schema: ComicSchema },
-    ]),
-  ],
-  providers: [ComicService],
-  exports: [ComicService],
+  imports: [TypeOrmModule.forFeature([ComicEntity])],
+  exports: [TypeOrmModule],
 })
 export class ComicModule {}

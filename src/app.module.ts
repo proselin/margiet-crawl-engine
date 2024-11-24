@@ -1,20 +1,25 @@
 import { Module } from '@nestjs/common';
 import { WinstonLoggerModule } from '@/logger/winston';
-import { envValidation } from '@/config';
 import { ConfigModule } from '@nestjs/config';
 import { PuppeteerModule } from 'nestjs-puppeteer';
-import { BullmqConnectModule } from '@/connection/bullmq';
-import { CrawlConsumerModule } from '@/jobs/bullmq/consumers/craw-consumer';
-import { CrawlProducerModule } from '@/jobs/bullmq/producers/crawl-producer';
-import { DatabaseModule } from '@/connection/database';
+import { BullmqConnectModule } from 'src/config/bullmq';
+import { CrawlConsumerModule } from '@/queues/consumers/craw-consumer';
+import { CrawlProducerModule } from '@/queues/producers/crawl-producer';
+import { DatabaseModule } from 'src/config/database';
 import { CrawlModule } from '@/crawl';
 import { RefreshComicModule } from '@/cronjob/refresh-comic';
+import { envValidation } from '@/config';
+import redisConfig from '@/config/redis.config';
+import bullmqConfig from '@/config/bullmq.config';
+import databaseConfig from '@/config/database/database.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      cache: true,
       validate: envValidation,
+      load: [redisConfig, bullmqConfig, databaseConfig],
     }),
     WinstonLoggerModule,
     PuppeteerModule.forRoot({

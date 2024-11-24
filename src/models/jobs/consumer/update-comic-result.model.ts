@@ -1,6 +1,6 @@
-import { ComicDocument } from '@/entities/comic';
+import { ComicEntity } from '@/entities/comic';
 
 export class UpdateComicResultModel {
-  comic: ComicDocument;
+  comic: ComicEntity;
   updateChapters: any[];
 }

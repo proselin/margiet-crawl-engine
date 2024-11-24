@@ -1,0 +1,16 @@
+import { EnvName } from '@/common/constant/env';
+import { NODE_ENV } from '@/common';
+import { DataSourceOptions } from 'typeorm';
+
+const ormConfig: DataSourceOptions = {
+  type: 'better-sqlite3',
+  database: process.env[EnvName.DATASOURCE_URI],
+  entities: [__dirname + '/**/*.entity{.ts,.js}'],
+  synchronize: process.env[EnvName.NODE_ENV] === NODE_ENV.DEVELOPMENT,
+  logging: process.env[EnvName.NODE_ENV] === NODE_ENV.DEVELOPMENT,
+  migrations: [__dirname + '/config/migrations/**/*{.ts,.js}'],
+  migrationsRun: true,
+  logger: 'file',
+};
+
+export default ormConfig;

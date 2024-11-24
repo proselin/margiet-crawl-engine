@@ -1,4 +1,4 @@
-import { CrawlProducerService } from '@/jobs/bullmq/producers/crawl-producer';
+import { CrawlProducerService } from '@/queues/producers/crawl-producer';
 import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
@@ -9,7 +9,7 @@ export class CrawlService {
 
   /**
    * @param href
-   * @description Add a jobs crawl comic-fe to queue
+   * @description Add a queues crawl comic-fe to queue
    * @returns {Promise<void>}
    */
   async addCrawlComicJob(href: string): Promise<void> {
@@ -28,7 +28,7 @@ export class CrawlService {
    * @returns Job
    */
   async updateCrawlComicJob(
-    comicId: string,
+    comicId: number,
     newUrl: string | null,
   ): Promise<void> {
     return this.producerService

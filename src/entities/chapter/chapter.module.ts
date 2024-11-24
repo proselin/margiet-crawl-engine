@@ -1,16 +1,9 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { ChapterSchema } from '@/entities/chapter/chapter.schema';
-import { ChapterService } from '@/entities/chapter/chapter.service';
-import { EntityConfig } from '@/base/entity/entity-config';
+import { ChapterEntity } from '@/entities/chapter/chapter.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: EntityConfig.ModelName.Chapter, schema: ChapterSchema },
-    ]),
-  ],
-  providers: [ChapterService],
-  exports: [ChapterService],
+  imports: [TypeOrmModule.forFeature([ChapterEntity])],
+  exports: [TypeOrmModule],
 })
 export class ChapterModule {}

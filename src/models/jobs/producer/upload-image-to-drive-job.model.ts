@@ -13,15 +13,15 @@ export class UploadImageToDriveJobModel {
   @IsNotEmpty()
   fileName: string;
 
-  @IsString()
-  chapterId: string;
+  @IsNumber()
+  chapterId: number;
 
-  @IsString()
-  comicId: string;
+  @IsNumber()
+  comicId: number;
 
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
-  imageId: string;
+  imageId: number;
 
   @IsNumber()
   @IsNotEmpty()

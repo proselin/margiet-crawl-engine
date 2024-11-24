@@ -1,7 +1,7 @@
-import { ChapterDocument } from '@/entities/chapter';
-import { ImageDocument } from '@/entities/image';
+import { ChapterEntity } from '@/entities/chapter';
+import { ImageEntity } from '@/entities/image';
 
 export class CrawlChapterResultModel {
-  chapter: ChapterDocument;
-  images: ImageDocument[];
+  chapter: ChapterEntity;
+  images: ImageEntity[];
 }

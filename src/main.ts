@@ -2,18 +2,23 @@ import 'reflect-metadata';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { createApp, SwaggerConfig } from './config';
-import { EnvKey } from '@/config/environment';
+
 import { Logger } from '@nestjs/common';
+import { DEFAULT } from '@/common';
+import { EnvName } from '@/common/constant/env';
 
 async function bootstrap() {
   const app = await createApp(AppModule);
   const configService = app.get(ConfigService);
-  const port = +configService.get(EnvKey.SERVER_PORT);
-  const host = configService.get(EnvKey.SERVER_HOST, '0.0.0.0');
-  const prefix = configService.get(EnvKey.SERVER_PREFIX, 'api');
+  const port = +configService.get(EnvName.SERVER_PORT, DEFAULT.SERVER_PORT);
+  const host = configService.get(EnvName.SERVER_HOST, DEFAULT.SERVER_HOST);
+  const prefix = configService.get(
+    EnvName.SERVER_PREFIX,
+    DEFAULT.SERVER_PREFIX,
+  );
   const swaggerPrefix = configService.get(
-    'SERVER_API_DOCUMENT_PREFIX',
-    'swagger',
+    EnvName.SERVER_API_DOCUMENT_PREFIX,
+    DEFAULT.SERVER_API_DOCUMENT_PREFIX,
   );
   app.setGlobalPrefix(prefix);
   SwaggerConfig.setupOpenApi(app, {});

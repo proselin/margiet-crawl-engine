@@ -1,16 +1,23 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { ImageSchema } from '@/entities/image/image.schema';
-import { ImageService } from '@/entities/image/image.service';
-import { EntityConfig } from '@/base/entity/entity-config';
+import { ImageEntity } from '@/entities/image/image.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { MinioUploadHistory } from '@/entities/minio-upload-history/minio-upload-history.entity';
+import {
+  DriverUploadHistory,
+  DriverUploadHistoryModule,
+} from '@/entities/driver-upload-history';
+import { MinioUploadHistoryModule } from '@/entities/minio-upload-history';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: EntityConfig.ModelName.Image, schema: ImageSchema },
+    DriverUploadHistoryModule,
+    MinioUploadHistoryModule,
+    TypeOrmModule.forFeature([
+      ImageEntity,
+      MinioUploadHistory,
+      DriverUploadHistory,
     ]),
   ],
-  providers: [ImageService],
-  exports: [ImageService],
+  exports: [TypeOrmModule],
 })
 export class ImageModule {}

@@ -1,0 +1,27 @@
+import { Column, Entity, OneToOne } from 'typeorm';
+import { ImageEntity } from '@/entities/image';
+import { CommonEntity } from '@/common';
+
+@Entity('drive-upload-history')
+export class DriverUploadHistory extends CommonEntity {
+  @Column({
+    name: 'drive-id',
+  })
+  driverId: string;
+
+  @Column({
+    name: 'file-name',
+  })
+  fileName: string;
+
+  @Column({
+    name: 'parent-folder-id',
+  })
+  parentFolderId: string;
+
+  @Column()
+  url: string;
+
+  @OneToOne(() => ImageEntity)
+  image: ImageEntity;
+}

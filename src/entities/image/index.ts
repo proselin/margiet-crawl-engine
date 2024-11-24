@@ -1,3 +1,2 @@
 export * from './image.module';
-export * from './image.service';
-export * from './image.schema';
+export * from './image.entity';

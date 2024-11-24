@@ -1,9 +1,7 @@
-import { ComicDocument } from '@/entities/comic';
-import { RawCrawledChapter } from '@/jobs/bullmq/shared';
-import { ImageDocument } from '@/entities/image';
+import { ComicEntity } from '@/entities/comic';
+import { RawCrawledChapter } from '@/common';
 
 export class CrawlComicResultModel {
-  comic: ComicDocument;
+  comic: ComicEntity;
   chapters: RawCrawledChapter[];
-  thumbImage: ImageDocument | null;
 }
