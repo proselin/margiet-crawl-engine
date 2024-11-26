@@ -39,7 +39,7 @@ export class CrawlJobProcessor extends WorkerHost {
         );
       }
       case JobName.CRAWL_CHAPTER_JOB_NAME: {
-        return this.crawlChapterService.handleCrawlJob(
+        return this.crawlChapterService.crawlChapterInfo(
           job as Job<CrawlChapterData>,
         );
       }
@@ -63,15 +63,15 @@ export class CrawlJobProcessor extends WorkerHost {
           response.chapters,
           response.comic.id,
         );
-        await this.crawlProducerService.pushMessageSyncComic(response.comic);
+        // await this.crawlProducerService.pushMessageSyncComic(response.comic);
         if (!response.comic.thumbImage) return;
-        const thumbImage = response.comic.thumbImage;
+        const thumbImage = await response.comic.thumbImage;
         await this.crawlProducerService.createJobForUploadImage({
           url: thumbImage.url,
           position: thumbImage.position,
           comicId: response.comic.id,
-          fileName: thumbImage.minioUploadHistory.fileName,
-          bucket: thumbImage.minioUploadHistory.bucketName,
+          fileName: (await thumbImage.minioUploadHistory).fileName,
+          bucket: (await thumbImage.minioUploadHistory).bucketName,
           imageId: thumbImage.id,
           chapterId: null,
         });
@@ -83,16 +83,18 @@ export class CrawlJobProcessor extends WorkerHost {
           resultCrawlChapter.chapter,
         );
         const uploadJobDataModels: UploadImageToDriveJobModel[] =
-          resultCrawlChapter.images.map((image) => {
-            const model = new UploadImageToDriveJobModel();
-            model.bucket = image.minioUploadHistory.bucketName;
-            model.url = image.url;
-            model.imageId = image.id;
-            model.fileName = image.minioUploadHistory.fileName;
-            model.chapterId = resultCrawlChapter.chapter.id;
-            model.position = image.position;
-            return model;
-          });
+          await Promise.all(
+            resultCrawlChapter.images.map(async (image) => {
+              const model = new UploadImageToDriveJobModel();
+              model.bucket = (await image.minioUploadHistory).bucketName;
+              model.url = image.url;
+              model.imageId = image.id;
+              model.fileName = (await image.minioUploadHistory).fileName;
+              model.chapterId = resultCrawlChapter.chapter.id;
+              model.position = image.position;
+              return model;
+            }),
+          );
         await this.crawlProducerService.addUploadImageBulk(uploadJobDataModels);
         return;
       }

@@ -29,7 +29,7 @@ export function envValidation(config: Record<string, unknown>) {
     [EnvName.MINIO_BUCKET]: Joi.string().default(DEFAULT.MINIO_BUCKET),
   };
   const databaseEnv = {
-    DATASOURCE_URI: Joi.string(),
+    [EnvName.DATASOURCE_URI]: Joi.string().uri(),
   };
 
   const queueEnv = {};

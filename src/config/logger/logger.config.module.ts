@@ -122,4 +122,4 @@ const winstonConfigDevelopment = {
     }),
   ],
 })
-export class WinstonLoggerModule {}
+export class LoggerConfigModule {}

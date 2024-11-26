@@ -11,6 +11,7 @@ import {
   TimeoutInterceptor,
   TransformInterceptor,
 } from '@/intercept';
+import { AllExceptionsFilter } from '@/exception/filter/all-exeptions.filter';
 
 export async function createApp(appModule: any) {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -37,5 +38,7 @@ export async function createApp(appModule: any) {
   });
 
   app.enableShutdownHooks();
+
+  app.useGlobalFilters(new AllExceptionsFilter());
   return app;
 }

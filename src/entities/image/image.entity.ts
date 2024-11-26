@@ -10,7 +10,6 @@ export class ImageEntity extends CommonEntity {
   @Column({
     type: 'varchar',
     length: 1000,
-    default: null,
   })
   url: string;
 
@@ -19,18 +18,18 @@ export class ImageEntity extends CommonEntity {
   })
   position: number;
 
-  @Column({ type: 'json', name: 'origin_urls' })
+  @Column({ type: 'simple-array', name: 'origin_urls' })
   originUrls: string[];
 
   @OneToOne(() => DriverUploadHistory, {
-    eager: true,
+    lazy: true,
   })
-  driverUploadHistory: DriverUploadHistory;
+  driverUploadHistory: Promise<DriverUploadHistory>;
 
   @OneToOne(() => MinioUploadHistory, {
-    eager: true,
+    lazy: true,
   })
-  minioUploadHistory: MinioUploadHistory;
+  minioUploadHistory: Promise<MinioUploadHistory>;
 
   @ManyToOne(() => ChapterEntity, (chapter) => chapter.images)
   chapter: ChapterEntity;

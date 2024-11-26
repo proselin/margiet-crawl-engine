@@ -10,6 +10,8 @@ export class AuthorEntity extends CommonEntity {
   })
   title: string;
 
-  @OneToMany(() => ComicEntity, (comic) => comic.author)
-  comics: ComicEntity[];
+  @OneToMany(() => ComicEntity, (comic) => comic.author, {
+    lazy: true,
+  })
+  comics: Promise<ComicEntity[]>;
 }

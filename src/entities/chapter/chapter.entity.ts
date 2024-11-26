@@ -30,8 +30,10 @@ export class ChapterEntity extends CommonEntity {
   @ManyToOne(() => ComicEntity, (comic) => comic.chapters, {
     lazy: true,
   })
-  comic: ComicEntity;
+  comic: Promise<ComicEntity>;
 
-  @OneToMany(() => ImageEntity, (image) => image.chapter)
-  images: ImageEntity[];
+  @OneToMany(() => ImageEntity, (image) => image.chapter, {
+    lazy: true,
+  })
+  images: Promise<ImageEntity[]>;
 }

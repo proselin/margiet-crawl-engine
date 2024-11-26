@@ -122,14 +122,16 @@ export class CrawlProducerService {
     return this.crawlQueue.addBulk(jobs);
   }
 
-  pushMessageSyncComic(comic: ComicEntity) {
+  async pushMessageSyncComic(comic: ComicEntity) {
+    this.logger.log(`Process push message sync comic with id = ${comic.id}`);
     const syncComicMessageData = new SyncComicMessageData();
-    syncComicMessageData.comic_id = comic.id.toString();
+    syncComicMessageData.comicId = comic.id;
+
     syncComicMessageData.author = {
-      name: comic.author?.title,
-      id: comic.author?.id.toString(),
+      name: (await comic.author)?.title,
+      id: (await comic.author).id.toString(),
     };
-    syncComicMessageData.tags = comic.tags.map((tag) => {
+    syncComicMessageData.tags = (await comic.tags).map((tag) => {
       return {
         name: tag?.title,
         id: tag?.id.toString(),
@@ -142,11 +144,11 @@ export class CrawlProducerService {
     return this.syncQueue.add('sync.comic', syncComicMessageData);
   }
 
-  pushMessageSyncChapter(chapter: ChapterEntity) {
+  async pushMessageSyncChapter(chapter: ChapterEntity) {
     const syncChapterMessageData: SyncChapterMessageData =
       new SyncChapterMessageData();
-    syncChapterMessageData.chapter_id = chapter.id.toString();
-    syncChapterMessageData.comic_id = chapter.comic.id.toString();
+    syncChapterMessageData.chapterId = chapter.id;
+    syncChapterMessageData.comicId = (await chapter.comic).id;
     syncChapterMessageData.title = chapter.title;
     syncChapterMessageData.position = chapter.position;
     return this.syncQueue.add('sync.chapter', syncChapterMessageData);

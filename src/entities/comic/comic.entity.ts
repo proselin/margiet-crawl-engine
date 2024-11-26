@@ -16,10 +16,14 @@ export class ComicEntity extends CommonEntity {
   })
   chapterCount: number;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   status: string;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   description: string;
 
   @Column({
@@ -28,8 +32,9 @@ export class ComicEntity extends CommonEntity {
   originUrl: string;
 
   @Column({
-    type: 'json',
+    type: 'simple-array',
     name: 'url_history',
+    nullable: true,
   })
   urlHistory: string[];
 
@@ -40,15 +45,23 @@ export class ComicEntity extends CommonEntity {
   })
   shouldRefresh: boolean;
 
-  @OneToMany(() => TagEntity, (tag) => tag.comic)
-  tags: TagEntity[];
+  @OneToMany(() => TagEntity, (tag) => tag.comic, {
+    lazy: true,
+  })
+  tags: Promise<TagEntity[]>;
 
-  @ManyToOne(() => AuthorEntity, (author) => author.comics)
-  author: AuthorEntity;
+  @ManyToOne(() => AuthorEntity, (author) => author.comics, {
+    lazy: true,
+  })
+  author: Promise<AuthorEntity>;
 
-  @OneToMany(() => ChapterEntity, (chapter) => chapter.comic)
-  chapters: ChapterEntity[];
+  @OneToMany(() => ChapterEntity, (chapter) => chapter.comic, {
+    lazy: true,
+  })
+  chapters: Promise<ChapterEntity[]>;
 
-  @OneToOne(() => ImageEntity)
-  thumbImage: ImageEntity;
+  @OneToOne(() => ImageEntity, {
+    lazy: true,
+  })
+  thumbImage: Promise<ImageEntity>;
 }

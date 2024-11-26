@@ -7,7 +7,7 @@ import { CrawlImageService } from '@/queues/consumers/craw-consumer/services/cra
 import { CrawlChapterResultModel } from '@/models/jobs/consumer/crawl-chapter-result.model';
 import { CrawlChapterData } from '@/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { ImageEntity } from '@/entities/image';
 import { ComicEntity } from '@/entities/comic';
 
@@ -20,10 +20,16 @@ export class CrawlChapterService {
     private comicRepository: Repository<ComicEntity>,
     @InjectBrowser() private readonly browser: Browser,
     private readonly crawlImageService: CrawlImageService,
+    private dataSource: DataSource,
   ) {}
 
-  async handleCrawlJob(job: Job<CrawlChapterData>) {
+  async crawlChapterInfo(job: Job<CrawlChapterData>) {
     const page = await this.browser.newPage();
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
       await this.preparePage(page, job.data.url);
       const imgServerUrls = await page.$$eval('.page-chapter img', (imgs) =>
@@ -31,6 +37,16 @@ export class CrawlChapterService {
           return [img.dataset.sv1, img.dataset.sv2];
         }),
       );
+
+      const comic = await this.comicRepository.findOne({
+        where: {
+          id: job.data.comicId,
+        },
+      });
+
+      if (!comic) {
+        throw new Error('Missing comic !!!');
+      }
 
       const chapter = new ChapterEntity();
 
@@ -40,11 +56,8 @@ export class CrawlChapterService {
       chapter.dataId = job.data.dataId;
       chapter.sourceUrl = job.data.url;
 
-      chapter.comic = await this.comicRepository.findOne({
-        where: {
-          id: job.data.comicId,
-        },
-      });
+      chapter.comic = Promise.resolve(comic);
+
       await chapter.save();
 
       const uploadedImage: ImageEntity[] =
@@ -58,15 +71,18 @@ export class CrawlChapterService {
             };
           }),
         });
-
+      await queryRunner.commitTransaction();
       return {
         chapter,
         images: uploadedImage,
       } as CrawlChapterResultModel;
     } catch (e) {
+      await queryRunner.rollbackTransaction();
       this.logger.error(`Crawl job ${job.token} Fail :=`);
       this.logger.error(e);
+      throw e;
     } finally {
+      await queryRunner.release();
       await page.close();
     }
   }

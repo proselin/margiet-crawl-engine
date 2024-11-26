@@ -6,4 +6,4 @@ import bullmqConfig from '@/config/redis.config';
   imports: [BullModule.forRootAsync(bullmqConfig.asProvider())],
   exports: [BullModule],
 })
-export class BullmqConnectModule {}
+export class BullmqConfigModule {}

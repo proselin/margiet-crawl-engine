@@ -22,6 +22,8 @@ export class DriverUploadHistory extends CommonEntity {
   @Column()
   url: string;
 
-  @OneToOne(() => ImageEntity)
-  image: ImageEntity;
+  @OneToOne(() => ImageEntity, (img) => img.driverUploadHistory, {
+    lazy: true,
+  })
+  image: Promise<ImageEntity>;
 }

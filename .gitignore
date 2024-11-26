@@ -60,6 +60,8 @@ bun.lockb
 !.env.example
 ../margiet-devops/crawl-engine/.env.production
 .env.local
+.env.prod
+package-lock.json
 
 node_temp
 data/db.sqlite

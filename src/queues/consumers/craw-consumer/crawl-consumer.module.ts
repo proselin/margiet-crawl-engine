@@ -12,7 +12,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { PuppeteerModule } from 'nestjs-puppeteer';
 import { CrawlJobProcessor } from './crawl-job.processor';
-import { MinioConnectModule } from '@/config/minio';
+import { MinioConfigModule } from '@/config/minio';
 import { QueueName } from '@/common';
 
 @Module({
@@ -26,7 +26,7 @@ import { QueueName } from '@/common';
     BullModule.registerQueue({
       name: QueueName.QUEUE_SYNC_NAME,
     }),
-    MinioConnectModule,
+    MinioConfigModule,
     PuppeteerModule.forFeature([]),
     CrawlProducerModule,
     ChapterModule,

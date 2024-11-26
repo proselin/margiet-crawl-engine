@@ -7,9 +7,7 @@ export const enum DEFAULT {
   REDIS_HOST = 'localhost',
   REDIS_PORT = 6379,
 
-  DATASOURCE_URI = 'data/database.sqlite',
-
-  SERVER_API_DOCUMENT_PREFIX = 'swagger',
+  SERVER_API_DOCUMENT_PREFIX = '/swagger',
   MINIO_ENDPOINT = '172.17.0.1',
   MINIO_PORT = 9002,
   MINIO_USE_SSL = 0, //false

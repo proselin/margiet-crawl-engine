@@ -1,1 +1,1 @@
-export * from './bullmq-connect.module';
+export * from './bullmq.config.module';

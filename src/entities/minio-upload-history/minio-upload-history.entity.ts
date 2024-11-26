@@ -13,6 +13,8 @@ export class MinioUploadHistory extends CommonEntity {
   @Column()
   url: string;
 
-  @OneToOne(() => ImageEntity, (img) => img.minioUploadHistory)
-  image: ImageEntity;
+  @OneToOne(() => ImageEntity, (img) => img.minioUploadHistory, {
+    lazy: true,
+  })
+  image: Promise<ImageEntity>;
 }

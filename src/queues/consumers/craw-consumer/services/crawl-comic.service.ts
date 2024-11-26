@@ -64,16 +64,19 @@ export class CrawlComicService {
         const author = new AuthorEntity();
         author.title = crawledInformation.author.trim();
         await queryRunner.manager.save<AuthorEntity>(author);
-        comic.author = author;
+        comic.author = Promise.resolve(author);
         await job.updateProgress(20);
       }
 
       if (crawledInformation.tags && crawledInformation.tags.length > 0) {
+        if (!Array.isArray(await comic.tags) || !(await comic.tags).length) {
+          comic.tags = Promise.resolve([]);
+        }
         for (const tagName of crawledInformation.tags) {
           const tag = new TagEntity();
           tag.title = tagName;
           await queryRunner.manager.save(tag);
-          comic.tags.push(tag);
+          (await comic.tags).push(tag);
         }
         await job.updateProgress(25);
       }
@@ -84,18 +87,21 @@ export class CrawlComicService {
       }
 
       if (crawledInformation.thumbUrl) {
-        comic.thumbImage = await this.updateThumbImageComic(
-          comic,
-          page,
-          crawledInformation.thumbUrl,
-          job.data.href,
+        comic.thumbImage = Promise.resolve(
+          this.updateThumbImageComic(
+            comic,
+            page,
+            crawledInformation.thumbUrl,
+            job.data.href,
+          ),
         );
+        await comic.thumbImage;
         await job.updateProgress(55);
       }
 
       this.logger.log('Process create new comic-fe');
       await job.updateProgress(75);
-      await comic.save();
+      await queryRunner.manager.save(comic);
       await queryRunner.commitTransaction();
 
       return {
@@ -106,6 +112,7 @@ export class CrawlComicService {
       await queryRunner.rollbackTransaction();
       this.logger.error('Crawl Comic failed >>');
       this.logger.error(e);
+      throw e;
     } finally {
       await queryRunner.release();
       await page.close();
@@ -197,6 +204,7 @@ export class CrawlComicService {
       where: {
         id: job.data.comicId,
       },
+      relations: ['author', 'tag'],
     });
 
     if (!comic) {
@@ -240,8 +248,8 @@ export class CrawlComicService {
         refresh = 1;
       }
 
-      if (rawData.author != comic.author.title) {
-        const author = comic.author;
+      if (rawData.author != (await comic.author).title) {
+        const author = await comic.author;
         author.title = rawData.author;
         await queryRunner.manager.update(
           AuthorEntity,
@@ -253,7 +261,7 @@ export class CrawlComicService {
 
       if (rawData.tags) {
         const notExistTags = await this.tagRepository.findBy({
-          title: And(In(rawData.tags), Not(In(comic.tags))),
+          title: And(In(rawData.tags), Not(In(await comic.tags))),
         });
         const notExistTitles = notExistTags.map((entity) => entity.title);
         const newTags = await Promise.all(
@@ -266,7 +274,7 @@ export class CrawlComicService {
               return tag;
             }),
         );
-        comic.tags.push(...newTags);
+        (await comic.tags).push(...newTags);
         refresh = 1;
       }
 

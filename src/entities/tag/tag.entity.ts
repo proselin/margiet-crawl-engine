@@ -8,8 +8,7 @@ export class TagEntity extends CommonEntity {
   title: string;
 
   @ManyToOne(() => ComicEntity, (comic) => comic.tags, {
-    eager: false,
     lazy: true,
   })
-  comic: ComicEntity;
+  comic: Promise<ComicEntity>;
 }

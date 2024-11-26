@@ -69,19 +69,21 @@ export class CrawlImageService implements BeforeApplicationShutdown {
             uploadMinioHistory.bucketName = uploadedImage?.bucketName;
             await uploadMinioHistory.save();
 
-            image.minioUploadHistory = uploadMinioHistory;
+            image.minioUploadHistory = Promise.resolve(uploadMinioHistory);
             await image.save();
             return image;
           },
         ),
       );
 
-      chapter.images.push(...images);
+      const existedImages = (await chapter.images) ?? [];
+      existedImages.push(...images);
+      chapter.images = Promise.resolve(existedImages);
       await chapter.save();
 
       this.logger.log(`Create ${uploadedImages.length} uploaded images`);
       this.logger.log(`Update chapter id ${jobData.chapterId}`);
-      return images;
+      return existedImages;
     } catch (e) {
       this.logger.error(e);
       throw new Error('Insert data image failed !!', e);
@@ -106,7 +108,7 @@ export class CrawlImageService implements BeforeApplicationShutdown {
       minioUploadHistory.fileName = uploadInfo?.fileName;
       minioUploadHistory.url = uploadInfo?.fileUrl;
       await minioUploadHistory.save();
-      newImage.minioUploadHistory = minioUploadHistory;
+      newImage.minioUploadHistory = Promise.resolve(minioUploadHistory);
 
       newImage.url = uploadInfo?.fileUrl;
       newImage.originUrls = uploadInfo?.originUrls;

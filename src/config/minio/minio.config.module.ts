@@ -10,9 +10,9 @@ import { EnvName } from '@/common/constant/env';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         return {
-          endPoint: configService.get(EnvName.MINIO_ENDPOINT, 'localhost'),
-          useSSL: false,
-          port: +configService.get(EnvName.MINIO_PORT, 9000),
+          endPoint: configService.get(EnvName.MINIO_ENDPOINT),
+          useSSL: configService.get(EnvName.MINIO_USE_SSL),
+          port: +configService.get(EnvName.MINIO_PORT),
           accessKey: configService.get(EnvName.MINIO_ACCESS_KEY, null),
           secretKey: configService.get(EnvName.MINIO_SECRET_KEY, null),
         };
@@ -20,4 +20,4 @@ import { EnvName } from '@/common/constant/env';
     }),
   ],
 })
-export class MinioConnectModule {}
+export class MinioConfigModule {}
