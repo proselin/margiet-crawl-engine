@@ -20,12 +20,11 @@ export interface UpdateComicJobData {
 }
 
 export interface CrawlChapterImages {
-  chapterId: number;
-  goto: string;
-  images: {
-    imageUrls: string[];
-    position: number;
-  }[];
+  images: RawImage[];
+}
+export interface RawImage {
+  imageUrls: string[];
+  position: number;
 }
 
 export interface CrawlThumbImage {

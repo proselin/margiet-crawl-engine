@@ -33,7 +33,17 @@ export type UploadMinioResponse = {
   bucketName: string;
 };
 
-export type CrawlUploadResponse = (Partial<UploadMinioResponse> & {
-  position: number;
-  originUrls: string[];
-})[];
+export type CrawlUploadResponse = Array<Partial<UploadMinioResponse> & {
+  position: number,
+  originUrls: string[],
+}>
+
+export type ResultHandleImageUrls$V1 = {
+  buffer: Buffer;
+  headers: Record<string, string>
+}
+
+export type ResultHandleImageUrls$V2 = {
+  contentType: string;
+  buffer: Buffer;
+}

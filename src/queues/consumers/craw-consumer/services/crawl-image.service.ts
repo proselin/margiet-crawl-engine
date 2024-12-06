@@ -8,21 +8,18 @@ import {
   CrawlChapterImages,
   CrawlThumbImage,
   CrawlUploadResponse,
+  RawImage,
   UploadMinioResponse,
 } from '@/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { ChapterEntity } from '@/entities/chapter';
-import { Repository } from 'typeorm';
+import { QueryRunner } from 'typeorm';
 
 @Injectable()
 export class CrawlImageService implements BeforeApplicationShutdown {
   private logger = new Logger(CrawlImageService.name);
 
   constructor(
-    @InjectRepository(ChapterEntity)
-    private chapterRepository: Repository<ChapterEntity>,
     private crawlUploadService: CrawlUploadService,
-
     @InjectBrowser()
     private browser: Browser,
   ) {}
@@ -41,16 +38,14 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     });
   }
 
-  async crawlAndUploadChapterImage(page: Page, jobData: CrawlChapterImages) {
+  async crawlAndUploadChapterImage(
+    chapter: ChapterEntity,
+    rawImages: RawImage[],
+    queryRunner?: QueryRunner,
+  ) {
     try {
-      const chapter = await this.chapterRepository.findOne({
-        where: {
-          id: jobData.chapterId,
-        },
-      });
-
       const uploadedImages = await this.crawlUploadService
-        .crawlAndUploadMulti(page, `c-${jobData.chapterId}`, jobData.images)
+        .crawlAndUploadMulti(`c-${chapter.id}`, rawImages)
         .catch((error) => {
           throw error;
         });
@@ -67,22 +62,26 @@ export class CrawlImageService implements BeforeApplicationShutdown {
             uploadMinioHistory.url = uploadedImage?.fileUrl;
             uploadMinioHistory.fileName = uploadedImage?.fileName;
             uploadMinioHistory.bucketName = uploadedImage?.bucketName;
-            await uploadMinioHistory.save();
+            await (queryRunner
+              ? queryRunner.manager.save(uploadMinioHistory)
+              : uploadMinioHistory.save());
 
             image.minioUploadHistory = Promise.resolve(uploadMinioHistory);
-            await image.save();
+            await (queryRunner
+              ? queryRunner.manager.save(image)
+              : image.save());
             return image;
           },
         ),
       );
 
-      const existedImages = (await chapter.images) ?? [];
+      const existedImages = (await chapter?.images) ?? [];
       existedImages.push(...images);
       chapter.images = Promise.resolve(existedImages);
-      await chapter.save();
+      // await chapter.save();
 
       this.logger.log(`Create ${uploadedImages.length} uploaded images`);
-      this.logger.log(`Update chapter id ${jobData.chapterId}`);
+      this.logger.log(`Update chapter id ${chapter.id}`);
       return existedImages;
     } catch (e) {
       this.logger.error(e);

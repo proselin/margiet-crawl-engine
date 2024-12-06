@@ -38,15 +38,9 @@ export class CrawlChapterService {
         }),
       );
 
-      const comic = await this.comicRepository.findOne({
-        where: {
-          id: job.data.comicId,
-        },
+      const comic = await this.comicRepository.findOneByOrFail({
+        id: job.data.comicId,
       });
-
-      if (!comic) {
-        throw new Error('Missing comic !!!');
-      }
 
       const chapter = new ChapterEntity();
 
@@ -58,29 +52,31 @@ export class CrawlChapterService {
 
       chapter.comic = Promise.resolve(comic);
 
-      await chapter.save();
+      await queryRunner.manager.save(chapter)
 
-      const uploadedImage: ImageEntity[] =
-        await this.crawlImageService.crawlAndUploadChapterImage(page, {
-          chapterId: chapter.id,
-          goto: job.data.url,
-          images: imgServerUrls.map((imageUrls, index) => {
-            return {
-              imageUrls,
-              position: index,
-            };
-          }),
-        });
+      const images = imgServerUrls.map((imageUrls, index) => ({
+        imageUrls,
+        position: index,
+      }));
+
+      const imageEntities: ImageEntity[] =
+        await this.crawlImageService.crawlAndUploadChapterImage(
+          chapter,
+          images,
+          queryRunner
+        );
+
+      await queryRunner.manager.save(chapter)
       await queryRunner.commitTransaction();
-      return {
+
+      const result : CrawlChapterResultModel =   {
         chapter,
-        images: uploadedImage,
-      } as CrawlChapterResultModel;
+        images: imageEntities,
+      }
+      return result;
     } catch (e) {
       await queryRunner.rollbackTransaction();
-      this.logger.error(`Crawl job ${job.token} Fail :=`);
-      this.logger.error(e);
-      throw e;
+      throw new Error(`Crawl job ${job.token} Fail :=`, e)
     } finally {
       await queryRunner.release();
       await page.close();

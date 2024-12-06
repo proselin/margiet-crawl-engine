@@ -1,8 +1,8 @@
 {
   "name": "@margiet-gr/crawl-engine",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "A crawling comic from nettruyen.com",
+  "author": "Hung Nguyen Quoc (Proselin)",
   "private": true,
   "license": "MIT",
   "scripts": {
@@ -64,7 +64,6 @@
     "@nestjs/cli": "^10.4.8",
     "@nestjs/schematics": "^10.2.3",
     "@nestjs/testing": "^10.4.9",
-    "@types/better-sqlite3": "^7.6.12",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.17.7",
