@@ -5,7 +5,6 @@ import { Browser, Page } from 'puppeteer';
 import { ImageEntity } from '@/entities/image';
 import { MinioUploadHistory } from '@/entities/minio-upload-history';
 import {
-  CrawlChapterImages,
   CrawlThumbImage,
   CrawlUploadResponse,
   RawImage,
@@ -27,7 +26,6 @@ export class CrawlImageService implements BeforeApplicationShutdown {
   async handleCrawlThumbUrl(page: Page, jobData: CrawlThumbImage) {
     const imageUploadedInfo =
       await this.crawlUploadService.crawlAndUploadImageToStore(
-        page,
         `cm-${Date.now()}`,
         jobData.imageUrls,
       );

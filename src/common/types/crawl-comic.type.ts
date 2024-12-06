@@ -27,6 +27,11 @@ export interface RawImage {
   position: number;
 }
 
+export type ExecuteCurlResult = {
+  fileBuffer: Buffer;
+  contentType: string;
+};
+
 export interface CrawlThumbImage {
   imageUrls: string[];
   goto: string;

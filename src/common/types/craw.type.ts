@@ -38,11 +38,6 @@ export type CrawlUploadResponse = Array<Partial<UploadMinioResponse> & {
   originUrls: string[],
 }>
 
-export type ResultHandleImageUrls$V1 = {
-  buffer: Buffer;
-  headers: Record<string, string>
-}
-
 export type ResultHandleImageUrls$V2 = {
   contentType: string;
   buffer: Buffer;
