@@ -12,9 +12,6 @@ ENV NODE_OPTIONS="--max_old_space_size=4096"
 # Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 
-# add NPMrc
-COPY .npmrc ./.npmrc
-
 ADD node_temp /tmp
 COPY libs /tmp/libs
 RUN cd /tmp

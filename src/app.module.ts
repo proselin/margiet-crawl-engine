@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { LoggerConfigModule } from 'src/config/logger';
+import { LoggerConfigModule } from '@/config/logger';
 import { ConfigModule } from '@nestjs/config';
-import { BullmqConfigModule } from 'src/config/bullmq';
+import { BullmqConfigModule } from '@/config/bullmq';
 import { CrawlConsumerModule } from '@/queues/consumers/craw-consumer';
 import { CrawlProducerModule } from '@/queues/producers/crawl-producer';
-import { DatabaseConfigModule } from 'src/config/database';
+import { DatabaseConfigModule } from '@/config/database';
 import { CrawlModule } from '@/crawl';
 import { RefreshComicModule } from '@/cronjob/refresh-comic';
 import { envValidation } from '@/config';

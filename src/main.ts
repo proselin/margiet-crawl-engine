@@ -4,7 +4,7 @@ import { AppModule } from './app.module';
 import { createApp, SwaggerConfig } from './config';
 
 import { Logger } from '@nestjs/common';
-import { DEFAULT } from '@/common';
+import { DEFAULT } from 'src/common';
 import { EnvName } from '@/common/constant/env';
 
 async function bootstrap() {

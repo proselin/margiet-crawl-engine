@@ -6,7 +6,6 @@ import { Versions } from '@/constant';
 
 @ApiTags('crawl')
 @Controller({
-  path: 'crawl',
   version: Versions.V1,
 })
 export class CrawlController {
