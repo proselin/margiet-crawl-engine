@@ -1,4 +1,4 @@
-export abstract class JobUtils {
+export abstract class Utils {
   public static extensionMap: Record<string, string> = {
     jpg: 'image/jpeg',
     png: 'image/png',
@@ -22,6 +22,6 @@ export abstract class JobUtils {
   public static getFileExtensionFromContentType(
     contentType: string,
   ): string | null {
-    return JobUtils.contentTypeMap[contentType] || null;
+    return Utils.contentTypeMap[contentType] || null;
   }
 }

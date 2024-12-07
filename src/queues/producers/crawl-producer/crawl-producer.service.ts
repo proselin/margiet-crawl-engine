@@ -127,16 +127,8 @@ export class CrawlProducerService {
     const syncComicMessageData = new SyncComicMessageData();
     syncComicMessageData.comicId = comic.id;
 
-    syncComicMessageData.author = {
-      name: (await comic.author)?.title,
-      id: (await comic.author).id.toString(),
-    };
-    syncComicMessageData.tags = (await comic.tags).map((tag) => {
-      return {
-        name: tag?.title,
-        id: tag?.id.toString(),
-      };
-    });
+    syncComicMessageData.author = comic.author;
+    syncComicMessageData.tags = comic.tags;
     syncComicMessageData.status = comic.status;
     syncComicMessageData.title = comic.title;
     syncComicMessageData.description = comic.description;

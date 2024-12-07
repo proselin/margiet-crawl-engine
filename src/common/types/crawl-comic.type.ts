@@ -1,3 +1,5 @@
+import { RawCrawledChapter } from '@/common';
+
 export interface CrawlComicJobData {
   href: string;
 }
@@ -39,8 +41,29 @@ export interface CrawlThumbImage {
 
 export interface CrawlChapterData {
   url: string;
-  dataId: string;
   chapNumber: string;
   comicId: number;
   position: number;
 }
+
+export type InfoExtractedResult$1 = {
+  totalChapter: number;
+  thumbUrl: string;
+  title: string;
+  chapters: Array<RawCrawledChapter>;
+};
+
+export type CrawlComicExecuteCurlResult$1 = {
+  headers: {
+    original: string;
+    statusCode: number;
+  };
+  body: string;
+};
+
+export type ExtractChapterInfoResultItem$1 = {
+  imageUrls: [string, string];
+  position: number;
+};
+
+export type ExtractChapterInfoResult$1 = Array<ExtractChapterInfoResultItem$1>;

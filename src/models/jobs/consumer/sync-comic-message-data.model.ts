@@ -1,9 +1,7 @@
-import { ShortData } from '@/models/jobs/consumer/short-data.model';
-
 export class SyncComicMessageData {
   comicId: number;
-  tags: ShortData[];
-  author: ShortData;
+  tags: string[];
+  author: string;
   status: string;
   title: string;
   description: string;

@@ -1,4 +1,3 @@
-import { AuthorModule } from '@/entities/author/author.module';
 import { CrawlChapterService } from '@/queues/consumers/craw-consumer/services/crawl-chapter.service';
 import { CrawlComicService } from '@/queues/consumers/craw-consumer/services/crawl-comic.service';
 import { CrawlImageService } from '@/queues/consumers/craw-consumer/services/crawl-image.service';
@@ -7,10 +6,8 @@ import { CrawlProducerModule } from '@/queues/producers/crawl-producer';
 import { ChapterModule } from '@/entities/chapter/chapter.module';
 import { ComicModule } from '@/entities/comic/comic.module';
 import { ImageModule } from '@/entities/image/image.module';
-import { TagModule } from '@/entities/tag/tag.module';
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
-import { PuppeteerModule } from 'nestjs-puppeteer';
 import { CrawlJobProcessor } from './crawl-job.processor';
 import { MinioConfigModule } from '@/config/minio';
 import { QueueName } from '@/common';
@@ -27,12 +24,10 @@ import { QueueName } from '@/common';
       name: QueueName.QUEUE_SYNC_NAME,
     }),
     MinioConfigModule,
-    PuppeteerModule.forFeature([]),
     CrawlProducerModule,
-    ChapterModule,
-    AuthorModule,
+
     ComicModule,
-    TagModule,
+    ChapterModule,
     ImageModule,
   ],
   providers: [

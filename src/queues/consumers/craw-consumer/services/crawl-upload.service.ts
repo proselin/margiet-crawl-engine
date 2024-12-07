@@ -4,9 +4,10 @@ import { Client as MinioClient } from 'minio';
 import { nanoid } from 'nanoid';
 import { InjectMinio } from '@margiet-libs/minio';
 import { EnvName } from '@/common/constant/env';
-import { JobUtils } from '@/utils/job-utils';
+import { Utils } from '@/utils/utils';
 import {
-  CrawlUploadResponse, ExecuteCurlResult,
+  CrawlUploadResponse,
+  ExecuteCurlResult,
   RawImage,
   ResultHandleImageUrls$V2,
   UploadMinioResponse,
@@ -39,7 +40,6 @@ export class CrawlUploadService {
     return Promise.all(
       data.map(async (item) => {
         try {
-
           const { buffer, contentType } = await this.handleImageUrls(
             item.imageUrls,
           );
@@ -136,11 +136,8 @@ export class CrawlUploadService {
     });
   }
 
-
-  private async executeCurl(
-    url: string
-  ): Promise<ExecuteCurlResult> {
-    return new Promise<ExecuteCurlResult>((resolve, reject) =>  {
+  private async executeCurl(url: string): Promise<ExecuteCurlResult> {
+    return new Promise<ExecuteCurlResult>((resolve, reject) => {
       exec(
         `curl -s -i ${url} \
                 -H 'accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8' \
@@ -173,7 +170,9 @@ export class CrawlUploadService {
             this.logger.error(
               'No data returned. The image might not have been fetched correctly.',
             );
-            reject('No data returned. The image might not have been fetched correctly.');
+            reject(
+              'No data returned. The image might not have been fetched correctly.',
+            );
             return;
           }
 
@@ -188,7 +187,7 @@ export class CrawlUploadService {
           // Extract HTTP status code from the first line of the response
           const statusLine = headers.split('\r\n')[0];
           const statusCode = statusLine.split(' ')[1]; // The status code is the second part
-          let contentType = null
+          let contentType = null;
 
           this.logger.log(`URL ${url} HTTP Status Code: ${statusCode}`);
           if (Number.isInteger(+statusCode) && +statusCode === 200) {
@@ -199,33 +198,32 @@ export class CrawlUploadService {
             }
 
             // Extract Content-Type from headers
-            const contentTypeMatch =
-              headers.match(/content-type:\s*(.*)/);
+            const contentTypeMatch = headers.match(/content-type:\s*(.*)/);
             if (contentTypeMatch && contentTypeMatch[1]) {
               contentType = contentTypeMatch[1].trim();
             } else {
               this.logger.error(
                 'Content-Type not found in the response headers.',
               );
-              reject( 'Content-Type not found in the response headers.')
+              reject('Content-Type not found in the response headers.');
               return;
             }
             resolve({
               fileBuffer,
-              contentType
+              contentType,
             });
             return;
           }
 
           this.logger.error(`URL ${url} error with status ${statusCode}`);
-          reject(`URL ${url} error with status ${statusCode}`)
+          reject(`URL ${url} error with status ${statusCode}`);
         },
       );
-    })
+    });
   }
 
   private async generateFileName(prefixFileName: string, contentType: string) {
-    const extension = JobUtils.getFileExtensionFromContentType(contentType);
+    const extension = Utils.getFileExtensionFromContentType(contentType);
     if (!extension) {
       throw new Error('Unsupported content type');
     }

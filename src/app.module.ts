@@ -10,7 +10,8 @@ import { RefreshComicModule } from '@/cronjob/refresh-comic';
 import { envValidation } from '@/config';
 import redisConfig from '@/config/redis.config';
 import databaseConfig from '@/config/database/database.config';
-import { PuppeteerConfigModule } from '@/config/pupeteer';
+
+// import { PuppeteerConfigModule } from '@/config/pupeteer';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { PuppeteerConfigModule } from '@/config/pupeteer';
       load: [redisConfig, databaseConfig],
     }),
     LoggerConfigModule,
-    PuppeteerConfigModule,
+    // PuppeteerConfigModule,
     BullmqConfigModule,
     DatabaseConfigModule,
     CrawlConsumerModule,

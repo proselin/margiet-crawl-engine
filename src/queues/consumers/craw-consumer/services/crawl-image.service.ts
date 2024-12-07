@@ -1,15 +1,8 @@
 import { CrawlUploadService } from '@/queues/consumers/craw-consumer/services/crawl-upload.service';
 import { BeforeApplicationShutdown, Injectable, Logger } from '@nestjs/common';
-import { InjectBrowser } from 'nestjs-puppeteer';
-import { Browser, Page } from 'puppeteer';
 import { ImageEntity } from '@/entities/image';
 import { MinioUploadHistory } from '@/entities/minio-upload-history';
-import {
-  CrawlThumbImage,
-  CrawlUploadResponse,
-  RawImage,
-  UploadMinioResponse,
-} from '@/common';
+import { CrawlUploadResponse, RawImage } from '@/common';
 import { ChapterEntity } from '@/entities/chapter';
 import { QueryRunner } from 'typeorm';
 
@@ -17,22 +10,18 @@ import { QueryRunner } from 'typeorm';
 export class CrawlImageService implements BeforeApplicationShutdown {
   private logger = new Logger(CrawlImageService.name);
 
-  constructor(
-    private crawlUploadService: CrawlUploadService,
-    @InjectBrowser()
-    private browser: Browser,
-  ) {}
+  constructor(private crawlUploadService: CrawlUploadService) {}
 
-  async handleCrawlThumbUrl(page: Page, jobData: CrawlThumbImage) {
+  async handleCrawlThumbUrl(imageUrls: string[]): Promise<ImageEntity> {
     const imageUploadedInfo =
       await this.crawlUploadService.crawlAndUploadImageToStore(
         `cm-${Date.now()}`,
-        jobData.imageUrls,
+        imageUrls,
       );
     return this.createImageDocument({
       ...imageUploadedInfo,
       position: 0,
-      originUrls: jobData.imageUrls,
+      originUrls: imageUrls,
     });
   }
 
@@ -42,37 +31,19 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     queryRunner?: QueryRunner,
   ) {
     try {
-      const uploadedImages = await this.crawlUploadService
-        .crawlAndUploadMulti(`c-${chapter.id}`, rawImages)
-        .catch((error) => {
-          throw error;
-        });
-
+      this.logger.log(`Start crawl and upload chapter image`);
+      const uploadedImages = await this.crawlUploadService.crawlAndUploadMulti(
+        `c-${chapter.id}`,
+        rawImages,
+      );
       const images = await Promise.all(
         uploadedImages.map(
           async (uploadedImage: CrawlUploadResponse[number]) => {
-            const image = new ImageEntity();
-            image.url = uploadedImage?.fileUrl ?? '';
-            image.originUrls = uploadedImage.originUrls;
-            image.position = uploadedImage.position;
-
-            const uploadMinioHistory = new MinioUploadHistory();
-            uploadMinioHistory.url = uploadedImage?.fileUrl;
-            uploadMinioHistory.fileName = uploadedImage?.fileName;
-            uploadMinioHistory.bucketName = uploadedImage?.bucketName;
-            await (queryRunner
-              ? queryRunner.manager.save(uploadMinioHistory)
-              : uploadMinioHistory.save());
-
-            image.minioUploadHistory = Promise.resolve(uploadMinioHistory);
-            await (queryRunner
-              ? queryRunner.manager.save(image)
-              : image.save());
-            return image;
+            return this.createImageDocument(uploadedImage, queryRunner);
           },
         ),
       );
-
+      this.logger.log(`Found ${images.length} chapter images`);
       const existedImages = (await chapter?.images) ?? [];
       existedImages.push(...images);
       chapter.images = Promise.resolve(existedImages);
@@ -87,41 +58,40 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     }
   }
 
-  async beforeApplicationShutdown() {
-    await this.browser.close();
-  }
+  async beforeApplicationShutdown() {}
 
   private async createImageDocument(
-    uploadInfo: {
-      position: number;
-      originUrls: string[];
-    } & Partial<UploadMinioResponse>,
+    uploadedImage: CrawlUploadResponse[number],
+    queryRunner?: QueryRunner,
   ) {
     try {
-      const newImage = new ImageEntity();
-      const minioUploadHistory = new MinioUploadHistory();
+      this.logger.log(
+        `[${this.createImageDocument.name}]: START create image with file name ${uploadedImage.fileName}`,
+      );
+      const image = new ImageEntity();
+      image.url = uploadedImage?.fileUrl ?? '';
+      image.originUrls = uploadedImage.originUrls;
+      image.position = uploadedImage.position;
 
-      minioUploadHistory.bucketName = uploadInfo?.bucketName;
-      minioUploadHistory.fileName = uploadInfo?.fileName;
-      minioUploadHistory.url = uploadInfo?.fileUrl;
-      await minioUploadHistory.save();
-      newImage.minioUploadHistory = Promise.resolve(minioUploadHistory);
+      const uploadMinioHistory = new MinioUploadHistory();
+      uploadMinioHistory.url = uploadedImage?.fileUrl;
+      uploadMinioHistory.fileName = uploadedImage?.fileName;
+      uploadMinioHistory.bucketName = uploadedImage?.bucketName ?? '';
+      await (queryRunner
+        ? queryRunner.manager.save(uploadMinioHistory)
+        : uploadMinioHistory.save());
 
-      newImage.url = uploadInfo?.fileUrl;
-      newImage.originUrls = uploadInfo?.originUrls;
-      newImage.position = uploadInfo?.position;
-
-      await newImage.save();
+      image.minioUploadHistory = Promise.resolve(uploadMinioHistory);
+      await (queryRunner ? queryRunner.manager.save(image) : image.save());
 
       this.logger.log(
-        `[${this.createImageDocument.name}]: create image id: ${newImage.id} and url`,
-        uploadInfo,
+        `[${this.createImageDocument.name}]: DONE create image with file name ${uploadedImage.fileName}`,
       );
-      return newImage;
+      return image;
     } catch (e) {
       this.logger.error(
         `[${this.createImageDocument.name}]: Failed to create image with uploaded url `,
-        uploadInfo,
+        uploadedImage,
       );
       throw e;
     }

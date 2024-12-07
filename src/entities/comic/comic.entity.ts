@@ -1,7 +1,5 @@
-import { TagEntity } from '@/entities/tag';
 import { CommonEntity } from '@/common/entity/common.entity';
-import { Column, Entity, ManyToOne, OneToMany, OneToOne } from 'typeorm';
-import { AuthorEntity } from '@/entities/author';
+import { Column, Entity, OneToMany, OneToOne } from 'typeorm';
 import { ChapterEntity } from '@/entities/chapter';
 import { ImageEntity } from '@/entities/image';
 
@@ -45,15 +43,17 @@ export class ComicEntity extends CommonEntity {
   })
   shouldRefresh: boolean;
 
-  @OneToMany(() => TagEntity, (tag) => tag.comic, {
-    lazy: true,
+  @Column({
+    type: 'simple-array',
+    default: [],
   })
-  tags: Promise<TagEntity[]>;
+  tags: string[];
 
-  @ManyToOne(() => AuthorEntity, (author) => author.comics, {
-    lazy: true,
+  @Column({
+    type: 'varchar',
+    default: [],
   })
-  author: Promise<AuthorEntity>;
+  author: string;
 
   @OneToMany(() => ChapterEntity, (chapter) => chapter.comic, {
     lazy: true,

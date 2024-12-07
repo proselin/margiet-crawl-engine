@@ -5,9 +5,6 @@ import { CommonEntity } from '@/common/entity/common.entity';
 
 @Entity('chapter')
 export class ChapterEntity extends CommonEntity {
-  @Column()
-  dataId: string;
-
   @Column({
     name: 'chapter_num',
   })

@@ -4,13 +4,19 @@ import { CommonEntity } from '@/common';
 
 @Entity('minio-upload-history')
 export class MinioUploadHistory extends CommonEntity {
-  @Column()
+  @Column({
+    nullable: true,
+  })
   bucketName: string;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   fileName: string;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   url: string;
 
   @OneToOne(() => ImageEntity, (img) => img.minioUploadHistory, {

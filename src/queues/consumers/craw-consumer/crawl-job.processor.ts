@@ -34,7 +34,7 @@ export class CrawlJobProcessor extends WorkerHost {
     this.logger.log(`Start process ${job.name} with token ${job.token} >>`);
     switch (job.name) {
       case JobName.CRAWL_COMIC_JOB_NAME: {
-        return this.crawlComicService.crawlComicInformation(
+        return this.crawlComicService.crawlComicInfo(
           job as Job<CrawlComicJobData>,
         );
       }

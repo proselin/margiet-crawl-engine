@@ -1,30 +1,6 @@
-import { NullAble } from '@/utils';
-
-export type ImageRawDataCrawl = {
-  alt: string;
-  dataSv1: string;
-  dataSv2: string;
-};
-
 export type RawCrawledChapter = {
-  dataId: string;
-  url: string;
-  chapNumber: string;
-};
-
-export type ComicTagsPre = {
-  title: string;
-  id: NullAble<string>;
-};
-
-export type RawCrawledComic = {
-  author: string;
-  title: string;
-  status: string;
-  totalChapter: number;
-  tags: string[];
-  thumbUrl: string;
-  chapters: RawCrawledChapter[];
+  href: string;
+  chapterNumber: string;
 };
 
 export type UploadMinioResponse = {
@@ -33,12 +9,14 @@ export type UploadMinioResponse = {
   bucketName: string;
 };
 
-export type CrawlUploadResponse = Array<Partial<UploadMinioResponse> & {
-  position: number,
-  originUrls: string[],
-}>
+export type CrawlUploadResponse = Array<
+  Partial<UploadMinioResponse> & {
+    position: number;
+    originUrls: string[];
+  }
+>;
 
 export type ResultHandleImageUrls$V2 = {
   contentType: string;
   buffer: Buffer;
-}
+};

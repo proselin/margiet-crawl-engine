@@ -1,7 +1,7 @@
 import { ComicEntity } from '@/entities/comic';
-import { RawCrawledChapter } from '@/common';
+import { InfoExtractedResult$1 } from '@/common';
 
 export class CrawlComicResultModel {
   comic: ComicEntity;
-  chapters: RawCrawledChapter[];
+  chapters: InfoExtractedResult$1['chapters'];
 }
