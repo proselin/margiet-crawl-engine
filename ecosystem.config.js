@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'margiet-app',
       script: './dist/main.js',
-      instances: '3',
+      instances: '6',
       exec_mode: 'cluster',
       log_date_format: 'YYYY-MM-DD HH:mm:ss',
       error_file: './logs/pm2-error.log',

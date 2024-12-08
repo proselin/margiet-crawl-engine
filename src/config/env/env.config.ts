@@ -21,7 +21,7 @@ export function envValidation(config: Record<string, unknown>) {
   };
 
   const minioEnv = {
-    [EnvName.MINIO_ENDPOINT]: Joi.string().ip().default(DEFAULT.MINIO_ENDPOINT),
+    [EnvName.MINIO_ENDPOINT]: Joi.string().default(DEFAULT.MINIO_ENDPOINT),
     [EnvName.MINIO_PORT]: Joi.number().port().default(DEFAULT.MINIO_PORT),
     [EnvName.MINIO_USE_SSL]: Joi.boolean().default(DEFAULT.MINIO_USE_SSL),
     [EnvName.MINIO_ACCESS_KEY]: Joi.string().required(),
