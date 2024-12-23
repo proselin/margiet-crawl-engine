@@ -5,7 +5,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { Versions } from '@/constant';
+import { Versions } from '@/common';
 import {
   LoggingInterceptor,
   TimeoutInterceptor,

@@ -1,5 +1,5 @@
 import { CommonEntity } from '@/common/entity/common.entity';
-import { Column, Entity, ManyToOne, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 import { DriverUploadHistory } from '@/entities/driver-upload-history';
 import { MinioUploadHistory } from '@/entities/minio-upload-history/minio-upload-history.entity';
 import { ChapterEntity } from '@/entities/chapter';
@@ -24,11 +24,13 @@ export class ImageEntity extends CommonEntity {
   @OneToOne(() => DriverUploadHistory, {
     lazy: true,
   })
+  @JoinColumn()
   driverUploadHistory: Promise<DriverUploadHistory>;
 
   @OneToOne(() => MinioUploadHistory, {
     lazy: true,
   })
+  @JoinColumn()
   minioUploadHistory: Promise<MinioUploadHistory>;
 
   @ManyToOne(() => ChapterEntity, (chapter) => chapter.images)

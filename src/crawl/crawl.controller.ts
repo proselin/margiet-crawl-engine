@@ -2,7 +2,7 @@ import { BadRequestException, Controller, Get, Req } from '@nestjs/common';
 import { ApiProperty, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { CrawlService } from './crawl.service';
-import { Versions } from '@/constant';
+import { Versions } from '@/common';
 
 @ApiTags('crawl')
 @Controller({
