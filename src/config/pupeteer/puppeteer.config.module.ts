@@ -1,8 +1,8 @@
 // import { Module } from '@nestjs/common';
 // import { PuppeteerModule } from 'nestjs-puppeteer';
 // import { ConfigService } from '@nestjs/config';
-// import { NODE_ENV } from '@/common';
-// import { EnvName } from '@/common/constant/env';
+// import { NODE_ENV } from 'src/common';
+// import { EnvName } from 'src/common/constant/env';
 //
 // @Module({
 //   imports: [

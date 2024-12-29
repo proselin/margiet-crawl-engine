@@ -1,6 +1,7 @@
-import { EnvName } from '@/common/constant/env';
-import { NODE_ENV } from '@/common';
 import { DataSourceOptions } from 'typeorm';
+
+import { EnvName } from '../../common/constant/env';
+import { NODE_ENV } from '../../common';
 
 const ormConfig: DataSourceOptions = {
   type: 'postgres',

@@ -1,4 +1,4 @@
-import { RawCrawledChapter } from '@/common';
+import { RawCrawledChapter } from './craw.type';
 
 export interface CrawlComicJobData {
   href: string;

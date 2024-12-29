@@ -14,10 +14,5 @@
     "noImplicitAny": false,
     "sourceMap": true,
     "allowSyntheticDefaultImports": true,
-    "paths": {
-      "@/*": [
-        "src/*"
-      ]
-    }
   }
 }

@@ -1,5 +1,5 @@
-import { ComicEntity } from '@/entities/comic';
-import { InfoExtractedResult$1 } from '@/common';
+import { ComicEntity } from '../../../entities/comic';
+import { InfoExtractedResult$1 } from '../../../common';
 
 export class CrawlComicResultModel {
   comic: ComicEntity;

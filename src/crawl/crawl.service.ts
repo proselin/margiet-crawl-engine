@@ -1,5 +1,6 @@
-import { CrawlProducerService } from '@/queues/producers/crawl-producer';
 import { Injectable, Logger } from '@nestjs/common';
+
+import { CrawlProducerService } from '../queues/producers/crawl-producer';
 
 @Injectable()
 export class CrawlService {

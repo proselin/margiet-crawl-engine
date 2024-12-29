@@ -1,16 +1,17 @@
-import { CrawlChapterService } from '@/queues/consumers/craw-consumer/services/crawl-chapter.service';
-import { CrawlComicService } from '@/queues/consumers/craw-consumer/services/crawl-comic.service';
-import { CrawlImageService } from '@/queues/consumers/craw-consumer/services/crawl-image.service';
-import { CrawlUploadService } from '@/queues/consumers/craw-consumer/services/crawl-upload.service';
-import { CrawlProducerModule } from '@/queues/producers/crawl-producer';
-import { ChapterModule } from '@/entities/chapter/chapter.module';
-import { ComicModule } from '@/entities/comic/comic.module';
-import { ImageModule } from '@/entities/image/image.module';
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
+
 import { CrawlJobProcessor } from './crawl-job.processor';
-import { MinioConfigModule } from '@/config/minio';
-import { QueueName } from '@/common';
+import { QueueName } from '../../../common';
+import { MinioConfigModule } from '../../../config/minio';
+import { CrawlProducerModule } from '../../producers/crawl-producer';
+import { ComicModule } from '../../../entities/comic';
+import { ChapterModule } from '../../../entities/chapter';
+import { ImageModule } from '../../../entities/image';
+import { CrawlImageService } from './services/crawl-image.service';
+import { CrawlComicService } from './services/crawl-comic.service';
+import { CrawlUploadService } from './services/crawl-upload.service';
+import { CrawlChapterService } from './services/crawl-chapter.service';
 
 @Module({
   imports: [
@@ -25,7 +26,6 @@ import { QueueName } from '@/common';
     }),
     MinioConfigModule,
     CrawlProducerModule,
-
     ComicModule,
     ChapterModule,
     ImageModule,

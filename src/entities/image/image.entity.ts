@@ -1,9 +1,10 @@
-import { CommonEntity } from '@/common/entity/common.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
-import { DriverUploadHistory } from '@/entities/driver-upload-history';
-import { MinioUploadHistory } from '@/entities/minio-upload-history/minio-upload-history.entity';
-import { ChapterEntity } from '@/entities/chapter';
-import { ComicEntity } from '@/entities/comic';
+
+import { CommonEntity } from '../../common';
+import { DriverUploadHistory } from '../driver-upload-history';
+import { MinioUploadHistory } from '../minio-upload-history';
+import { ChapterEntity } from '../chapter';
+import { ComicEntity } from '../comic';
 
 @Entity('image')
 export class ImageEntity extends CommonEntity {

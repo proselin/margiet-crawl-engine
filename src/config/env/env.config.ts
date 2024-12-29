@@ -1,6 +1,7 @@
 import Joi from 'joi';
-import { DEFAULT, NODE_ENV } from '@/common';
-import { EnvName } from '@/common/constant/env';
+
+import { EnvName } from '../../common/constant/env';
+import { DEFAULT, NODE_ENV } from '../../common';
 
 export function envValidation(config: Record<string, unknown>) {
   const appEnv = {

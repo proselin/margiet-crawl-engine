@@ -1,22 +1,25 @@
-import { CrawlProducerService } from '@/queues/producers/crawl-producer';
-import { ComicEntity } from '@/entities/comic/comic.entity';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { CrawlImageService } from '@/queues/consumers/craw-consumer/services/crawl-image.service';
-import { CrawlComicResultModel } from '@/models/jobs/consumer/crawl-comic-result.model';
 import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { exec } from 'node:child_process';
+
+import { ComicEntity } from '../../../../entities/comic';
+import { CrawlProducerService } from '../../../producers/crawl-producer';
+import { CrawlImageService } from './crawl-image.service';
 import {
   CrawlComicExecuteCurlResult$1,
   CrawlComicJobData,
   InfoExtractedResult$1,
   RawCrawledChapter,
   UpdateComicJobData,
-} from '@/common';
-import { ImageEntity } from '@/entities/image';
-import { UpdateComicResultModel } from '@/models/jobs/consumer/update-comic-result.model';
-import { exec } from 'node:child_process';
-import { LinkCrawlModel } from '@/models/jobs/consumer/link-crawl.model';
+} from '../../../../common';
+import {
+  CrawlComicResultModel,
+  LinkCrawlModel,
+  UpdateComicResultModel,
+} from '../../../../models/jobs';
+import { ImageEntity } from '../../../../entities/image';
 
 @Injectable()
 export class CrawlComicService {

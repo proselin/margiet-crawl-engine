@@ -1,17 +1,36 @@
 import { Module } from '@nestjs/common';
-import { LoggerConfigModule } from '@/config/logger';
 import { ConfigModule } from '@nestjs/config';
-import { BullmqConfigModule } from '@/config/bullmq';
-import { CrawlConsumerModule } from '@/queues/consumers/craw-consumer';
-import { CrawlProducerModule } from '@/queues/producers/crawl-producer';
-import { DatabaseConfigModule } from '@/config/database';
-import { CrawlModule } from '@/crawl';
-import { RefreshComicModule } from '@/cronjob/refresh-comic';
-import { envValidation } from '@/config';
-import redisConfig from '@/config/redis.config';
-import databaseConfig from '@/config/database/database.config';
 
-// import { PuppeteerConfigModule } from '@/config/pupeteer';
+import { NODE_ENV } from './common';
+import { configDotenv } from 'dotenv';
+import { envValidation } from './config';
+import redisConfig from './config/redis.config';
+import databaseConfig from './config/database/database.config';
+import { LoggerConfigModule } from './config/logger';
+import { BullmqConfigModule } from './config/bullmq';
+import { DatabaseConfigModule } from './config/database';
+import { CrawlConsumerModule } from './queues/consumers/craw-consumer';
+import { CrawlProducerModule } from './queues/producers/crawl-producer';
+import { CrawlModule } from './crawl';
+import { RefreshComicModule } from './cronjob/refresh-comic';
+
+function loadEnv() {
+  switch (process.env.NODE_ENV) {
+    case NODE_ENV.PRODUCTION: {
+      configDotenv({
+        path: '.env.prod',
+      });
+    }
+    case NODE_ENV.DEVELOPMENT:
+    default: {
+      configDotenv({
+        path: '.env.local',
+      });
+    }
+  }
+}
+
+loadEnv();
 
 @Module({
   imports: [
@@ -30,4 +49,6 @@ import databaseConfig from '@/config/database/database.config';
     RefreshComicModule,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  constructor() {}
+}

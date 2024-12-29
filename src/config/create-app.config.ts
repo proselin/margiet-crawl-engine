@@ -1,26 +1,20 @@
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { Versions } from '@/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
+
 import {
   LoggingInterceptor,
   TimeoutInterceptor,
   TransformInterceptor,
-} from '@/intercept';
-import { AllExceptionsFilter } from '@/exception/filter/all-exeptions.filter';
+} from '../intercept';
+import { Versions } from '../common';
+import { AllExceptionsFilter } from '../exception/filter/all-exeptions.filter';
 
 export async function createApp(appModule: any) {
-  const app = await NestFactory.create<NestFastifyApplication>(
-    appModule,
-    new FastifyAdapter({ logger: true }),
-    {
-      bufferLogs: true,
-    },
-  );
+  const app = await NestFactory.create<NestExpressApplication>(appModule, {
+    bufferLogs: true,
+  });
 
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 

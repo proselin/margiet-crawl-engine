@@ -1,19 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ComicEntity } from '@/entities/comic';
-import { ChapterEntity } from '@/entities/chapter/chapter.entity';
-import { CrawlImageService } from '@/queues/consumers/craw-consumer/services/crawl-image.service';
-import { CrawlChapterResultModel } from '@/models/jobs/consumer/crawl-chapter-result.model';
+import { DataSource, Repository } from 'typeorm';
+import { exec } from 'node:child_process';
+
+import { ComicEntity } from '../../../../entities/comic';
+import { CrawlImageService } from './crawl-image.service';
 import {
   CrawlChapterData,
   CrawlComicExecuteCurlResult$1,
   ExtractChapterInfoResult$1,
   ExtractChapterInfoResultItem$1,
-} from '@/common';
-import { DataSource, Repository } from 'typeorm';
-import { ImageEntity } from '@/entities/image';
-import { exec } from 'node:child_process';
+} from '../../../../common';
+import { ChapterEntity } from '../../../../entities/chapter';
+import { ImageEntity } from '../../../../entities/image';
+import { CrawlChapterResultModel } from '../../../../models/jobs';
 
 @Injectable()
 export class CrawlChapterService {

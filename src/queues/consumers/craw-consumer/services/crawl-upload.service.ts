@@ -3,16 +3,17 @@ import { ConfigService } from '@nestjs/config';
 import { Client as MinioClient } from 'minio';
 import { nanoid } from 'nanoid';
 import { InjectMinio } from '@margiet-libs/minio';
-import { EnvName } from '@/common/constant/env';
-import { Utils } from '@/utils/utils';
+import { exec } from 'node:child_process';
+
+import { EnvName } from '../../../../common/constant/env';
 import {
   CrawlUploadResponse,
   ExecuteCurlResult,
   RawImage,
   ResultHandleImageUrls$V2,
   UploadMinioResponse,
-} from '@/common';
-import { exec } from 'node:child_process';
+} from '../../../../common';
+import { Utils } from '../../../../utils';
 
 @Injectable()
 export class CrawlUploadService {

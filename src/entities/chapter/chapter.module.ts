@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ChapterEntity } from '@/entities/chapter/chapter.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { ChapterEntity } from './chapter.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ChapterEntity])],

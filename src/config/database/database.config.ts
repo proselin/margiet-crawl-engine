@@ -1,7 +1,8 @@
 import { registerAs } from '@nestjs/config';
-import { EnvName } from '@/common/constant/env';
-import { NODE_ENV } from '@/common';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+
+import { EnvName } from '../../common/constant/env';
+import { NODE_ENV } from '../../common';
 
 export default registerAs('database', () => {
   return {

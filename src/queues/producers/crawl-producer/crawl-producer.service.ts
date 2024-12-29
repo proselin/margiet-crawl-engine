@@ -1,18 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
+import { BulkJobOptions, Job, Queue } from 'bullmq';
+
 import {
   CrawlChapterData,
   CrawlComicJobData,
   JobName,
   QueueName,
   UpdateComicJobData,
-} from '@/common';
-import { BulkJobOptions, Job, Queue } from 'bullmq';
-import { UploadImageToDriveJobModel } from '@/models/jobs/producer/upload-image-to-drive-job.model';
-import { SyncComicMessageData } from '@/models/jobs/consumer/sync-comic-message-data.model';
-import { ComicEntity } from '@/entities/comic';
-import { ChapterEntity } from '@/entities/chapter';
-import { SyncChapterMessageData } from '@/models/jobs/consumer/sync-chapter-message-data.model';
+} from '../../../common';
+import { UploadImageToDriveJobModel } from '../../../models/jobs/producer/upload-image-to-drive-job.model';
+import { ComicEntity } from '../../../entities/comic';
+import {
+  SyncChapterMessageData,
+  SyncComicMessageData,
+} from '../../../models/jobs';
+import { ChapterEntity } from '../../../entities/chapter';
 
 @Injectable()
 export class CrawlProducerService {

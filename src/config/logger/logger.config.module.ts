@@ -6,8 +6,9 @@ import {
 import { ConfigService } from '@nestjs/config';
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import { EnvName } from '@/common/constant/env';
-import { NODE_ENV } from '@/common';
+
+import { EnvName } from '../../common/constant/env';
+import { NODE_ENV } from '../../common';
 
 const winstonConfigProduction: winston.LoggerOptions = {
   level: 'info',

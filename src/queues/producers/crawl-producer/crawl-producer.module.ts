@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { CrawlProducerService } from './crawl-producer.service';
 import { BullModule } from '@nestjs/bullmq';
-import { QueueName } from '@/common';
+
+import { QueueName } from '../../../common';
 
 @Module({
   imports: [

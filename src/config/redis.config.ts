@@ -1,5 +1,6 @@
 import { registerAs } from '@nestjs/config';
-import { EnvName } from '@/common/constant/env';
+
+import { EnvName } from '../common/constant/env';
 
 export default registerAs('redis', () => {
   return {

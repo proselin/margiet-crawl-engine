@@ -1,7 +1,8 @@
-import { ImageEntity } from '@/entities/image';
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
-import { ComicEntity } from '@/entities/comic';
-import { CommonEntity } from '@/common/entity/common.entity';
+
+import { CommonEntity } from '../../common';
+import { ComicEntity } from '../comic';
+import { ImageEntity } from '../image';
 
 @Entity('chapter')
 export class ChapterEntity extends CommonEntity {

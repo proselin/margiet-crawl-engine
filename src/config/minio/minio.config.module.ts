@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestMinioModule } from '@margiet-libs/minio';
-import { EnvName } from '@/common/constant/env';
+
+import { EnvName } from '../../common/constant/env';
 
 @Module({
   imports: [

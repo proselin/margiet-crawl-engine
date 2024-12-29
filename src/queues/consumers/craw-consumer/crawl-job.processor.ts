@@ -1,20 +1,23 @@
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
+
 import { CrawlComicService } from './services/crawl-comic.service';
-import { CrawlChapterService } from '@/queues/consumers/craw-consumer/services/crawl-chapter.service';
-import { CrawlProducerService } from '@/queues/producers/crawl-producer';
+import { CrawlChapterService } from './services/crawl-chapter.service';
 import {
   CrawlChapterData,
   CrawlComicJobData,
   JobName,
   QueueName,
   UpdateComicJobData,
-} from '@/common';
-import { CrawlComicResultModel } from '@/models/jobs/consumer/crawl-comic-result.model';
-import { CrawlChapterResultModel } from '@/models/jobs/consumer/crawl-chapter-result.model';
-import { UploadImageToDriveJobModel } from '@/models/jobs/producer/upload-image-to-drive-job.model';
-import { UpdateComicResultModel } from '@/models/jobs/consumer/update-comic-result.model';
+} from '../../../common';
+import { CrawlProducerService } from '../../producers/crawl-producer';
+import {
+  CrawlChapterResultModel,
+  CrawlComicResultModel,
+  UpdateComicResultModel,
+} from '../../../models/jobs';
+import { UploadImageToDriveJobModel } from '../../../models/jobs/producer/upload-image-to-drive-job.model';
 
 @Processor(QueueName.QUEUE_CRAWL_NAME)
 export class CrawlJobProcessor extends WorkerHost {

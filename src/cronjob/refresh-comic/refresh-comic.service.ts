@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { CrawlProducerService } from '@/queues/producers/crawl-producer';
-import { ComicEntity } from '@/entities/comic/comic.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThan, Repository } from 'typeorm';
+
+import { ComicEntity } from '../../entities/comic';
+import { CrawlProducerService } from '../../queues/producers/crawl-producer';
 
 @Injectable()
 export class RefreshComicService {

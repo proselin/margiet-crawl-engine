@@ -1,10 +1,11 @@
-import { CrawlUploadService } from '@/queues/consumers/craw-consumer/services/crawl-upload.service';
 import { BeforeApplicationShutdown, Injectable, Logger } from '@nestjs/common';
-import { ImageEntity } from '@/entities/image';
-import { MinioUploadHistory } from '@/entities/minio-upload-history';
-import { CrawlUploadResponse, RawImage } from '@/common';
-import { ChapterEntity } from '@/entities/chapter';
 import { QueryRunner } from 'typeorm';
+
+import { CrawlUploadService } from './crawl-upload.service';
+import { ImageEntity } from '../../../../entities/image';
+import { ChapterEntity } from '../../../../entities/chapter';
+import { CrawlUploadResponse, RawImage } from '../../../../common';
+import { MinioUploadHistory } from '../../../../entities/minio-upload-history';
 
 @Injectable()
 export class CrawlImageService implements BeforeApplicationShutdown {
