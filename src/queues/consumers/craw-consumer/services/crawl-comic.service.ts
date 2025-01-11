@@ -74,8 +74,7 @@ export class CrawlComicService {
       } satisfies CrawlComicResultModel;
     } catch (e) {
       await queryRunner.rollbackTransaction();
-      this.logger.error('Crawl Comic failed >>');
-      this.logger.error(e);
+      this.logger.error('Crawl Comic failed >>', e);
       throw e;
     } finally {
       await queryRunner.release();
@@ -123,6 +122,8 @@ export class CrawlComicService {
         await LinkCrawlModel.validateAsync(item);
         chapters.push(item);
       }
+      //Reverse list because display the latest chapter is on top
+      chapters.reverse();
 
       //Extract thumb url
       const thumbImageRegex = /<img[^>]*data-src=["']([^"]*)["']/g;
@@ -168,10 +169,6 @@ export class CrawlComicService {
 
       const rawData = await this.extractInfo(job.data.newUrl);
       const lastedChapter = comic.chapterCount;
-      this.logger.log(
-        `[${this.updateComicCrawled.name}]::= Found comic and update what it changed`,
-      );
-
       let refresh: 1 | 0 = 0;
 
       if (rawData.title != comic.title) {
@@ -192,8 +189,7 @@ export class CrawlComicService {
       } as UpdateComicResultModel;
     } catch (e) {
       await queryRunner.rollbackTransaction();
-      this.logger.error(`[${this.updateComicCrawled.name}]::= Fail`);
-      this.logger.error(e);
+      this.logger.error(`[${this.updateComicCrawled.name}]::= Fail`, e);
     } finally {
       await queryRunner.release();
     }

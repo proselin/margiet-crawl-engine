@@ -88,7 +88,6 @@ export class CrawlUploadService {
     await this.minioClient.putObject(bucketName, fileName, file, undefined, {
       'Content-Type': contentType,
     });
-    this.logger.log(`Put Object to Minio Complete with name ${fileName}`);
     const fileUrl = await this.getObjectUrl(bucketName, fileName);
     return {
       fileName,
@@ -190,7 +189,6 @@ export class CrawlUploadService {
           const statusCode = statusLine.split(' ')[1]; // The status code is the second part
           let contentType = null;
 
-          this.logger.log(`URL ${url} HTTP Status Code: ${statusCode}`);
           if (Number.isInteger(+statusCode) && +statusCode === 200) {
             if (stdout && stdout.length < 1024) {
               this.logger.error(`URL ${url} response too small`);

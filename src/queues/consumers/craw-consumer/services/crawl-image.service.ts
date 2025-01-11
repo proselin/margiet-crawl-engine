@@ -92,7 +92,7 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     } catch (e) {
       this.logger.error(
         `[${this.createImageDocument.name}]: Failed to create image with uploaded url `,
-        uploadedImage,
+        e,
       );
       throw e;
     }
