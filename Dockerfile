@@ -1,37 +1,37 @@
-# Stage 1: Build the application
-FROM node:22 AS build
+FROM node:22 AS base
 
-# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if available)
-COPY package*.json ./
-
-ADD node_temp /tmp
-COPY libs /tmp/libs
-RUN cd /tmp
-RUN npm install --prefix /tmp -verbose 
-RUN cp -a /tmp/node_modules /app/
-
-# Copy the rest of the application code
 COPY . .
 
-# Build the NestJS application
-RUN npm run build 
+FROM node:22 AS install
 
-# Stage 2: Run the application
-FROM node:22
-
-# Set the working directory
 WORKDIR /app
 
-# Copy the built application and node_modules from the build stage
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/package*.json ./
+COPY --from=base /app/libs ./libs
+COPY --from=base /app/package*.json ./
 
-# Expose the port your NestJS app runs on (default is 3000)
-EXPOSE 3005
+RUN npm install --production
+
+FROM node:22 AS build
+WORKDIR /app
+COPY --from=base /app/* .
+COPY --from=install /app/node_modules ./node_modules
+COPY --from=install /app/package-lock.json .
+
+RUN npm i @nestjs/cli
+
+RUN npm run build
+
+FROM node:22-alpine AS release
+
+WORKDIR /app
+
+COPY --from=build /app/dist ./dist
+COPY --from=install /app/node_modules ./node_modules
+COPY --from=install /app/package*.json ./
+
+EXPOSE 3000
 
 # Start the application
 CMD ["node", "dist/main"]
