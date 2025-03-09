@@ -1,7 +1,5 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
-
-import { CrawlJobProcessor } from './crawl-job.processor';
 import { QueueName } from '../../../common';
 import { MinioConfigModule } from '../../../config/minio';
 import { CrawlProducerModule } from '../../producers/crawl-producer';
@@ -12,6 +10,9 @@ import { CrawlImageService } from './services/crawl-image.service';
 import { CrawlComicService } from './services/crawl-comic.service';
 import { CrawlUploadService } from './services/crawl-upload.service';
 import { CrawlChapterService } from './services/crawl-chapter.service';
+import { NettruyenHttpService } from './services/nettruyen-http.service';
+import { CrawlJobProcessor } from './crawl-job.processor';
+import { NettruyenExtractor } from './extractor/nettruyen.extractor';
 
 @Module({
   imports: [
@@ -32,10 +33,12 @@ import { CrawlChapterService } from './services/crawl-chapter.service';
   ],
   providers: [
     CrawlJobProcessor,
-    CrawlImageService,
-    CrawlComicService,
-    CrawlUploadService,
+    NettruyenHttpService,
     CrawlChapterService,
+    CrawlImageService,
+    CrawlUploadService,
+    CrawlComicService,
+    NettruyenExtractor
   ],
 })
 export class CrawlConsumerModule {}

@@ -3,17 +3,15 @@ import { ConfigService } from '@nestjs/config';
 import { Client as MinioClient } from 'minio';
 import { nanoid } from 'nanoid';
 import { InjectMinio } from '@margiet-libs/minio';
-import { exec } from 'node:child_process';
 
-import { EnvName } from '../../../../common/constant/env';
 import {
   CrawlUploadResponse,
-  ExecuteCurlResult,
   RawImage,
   ResultHandleImageUrls$V2,
   UploadMinioResponse,
 } from '../../../../common';
 import { Utils } from '../../../../utils';
+import { NettruyenHttpService } from './nettruyen-http.service';
 
 @Injectable()
 export class CrawlUploadService {
@@ -22,27 +20,35 @@ export class CrawlUploadService {
   constructor(
     private configService: ConfigService,
     @InjectMinio() private readonly minioClient: MinioClient,
-  ) {
-    console.log(configService.get(EnvName.MINIO_BUCKET));
+    private nettruyenHttService: NettruyenHttpService,
+  ) {}
+
+  get minioBucket() {
+    return this.configService.get('minio.bucket');
   }
 
-  async crawlAndUploadImageToStore(prefixFileName: string, svUrls: string[]) {
-    const { buffer, contentType } = await this.handleImageUrls(svUrls);
+  async crawlAndUploadImageToStore(
+    prefixFileName: string,
+    svUrls: string[],
+    domain: string,
+  ) {
+    const { buffer, contentType } = await this.handleImageUrls(svUrls, domain);
     const fileName = await this.generateFileName(prefixFileName, contentType);
-    const minioBucket = this.configService.get(EnvName.MINIO_BUCKET);
-    return this.uploadToMinio(buffer, contentType, fileName, minioBucket);
+
+    return this.uploadToMinio(buffer, contentType, fileName, this.minioBucket);
   }
 
   async crawlAndUploadMulti(
     prefixFileName: string,
     data: RawImage[],
+    domain: string,
   ): Promise<CrawlUploadResponse> {
-    const minioBucket: string = this.configService.get(EnvName.MINIO_BUCKET);
     return Promise.all(
       data.map(async (item) => {
         try {
           const { buffer, contentType } = await this.handleImageUrls(
             item.imageUrls,
+            domain,
           );
           const fileName = await this.generateFileName(
             prefixFileName,
@@ -53,7 +59,7 @@ export class CrawlUploadService {
             buffer,
             contentType,
             fileName,
-            minioBucket,
+            this.minioBucket,
           );
           return {
             ...uploadResponse,
@@ -100,7 +106,7 @@ export class CrawlUploadService {
     const existed = await this.minioClient.bucketExists(bucket);
     if (!existed) {
       throw new Error(
-        `Dont existed bucket name ${this.configService.get(EnvName.MINIO_BUCKET)} create new one`,
+        `Dont existed bucket name ${this.configService.get('minio.bucket')} create new one`,
       );
     }
   }
@@ -109,7 +115,7 @@ export class CrawlUploadService {
     return this.minioClient.presignedGetObject(bucketName, objectName);
   }
 
-  private async handleImageUrls(imageUrls: string[]) {
+  private async handleImageUrls(imageUrls: string[], domain: string) {
     return new Promise<ResultHandleImageUrls$V2>(async (resolve, reject) => {
       try {
         const tries = imageUrls.concat([]);
@@ -119,10 +125,16 @@ export class CrawlUploadService {
         while (tries.length > 0) {
           if (buffer) break;
           const url = tries.pop();
-          await this.executeCurl(url).then((r) => {
-            buffer = r.fileBuffer;
-            contentType = r.contentType;
-          });
+          // await this.nettruyenHttService.executeCurl(url, domain).then((r) => {
+          //   buffer = r.fileBuffer;
+          //   contentType = r.contentType;
+          // });
+          await this.nettruyenHttService.getImages(url, domain).then(
+            r => {
+              buffer = r.data
+              contentType = r.headers['content-type']
+            }
+          )
         }
         if (!buffer)
           throw new Error(`Not result found on ${JSON.stringify(imageUrls)}`);
@@ -133,91 +145,6 @@ export class CrawlUploadService {
       } catch (e) {
         reject(e);
       }
-    });
-  }
-
-  private async executeCurl(url: string): Promise<ExecuteCurlResult> {
-    return new Promise<ExecuteCurlResult>((resolve, reject) => {
-      exec(
-        `curl -s -i ${url} \
-                -H 'accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8' \
-                -H 'accept-language: en-US,en;q=0.9,vi;q=0.8,vi-VN;q=0.7' \
-                -H 'dnt: 1' \
-                -H 'priority: u=1, i' \
-                -H 'referer: https://nettruyenww.com/' \
-                -H 'sec-ch-ua: "Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"' \
-                -H 'sec-ch-ua-mobile: ?0' \
-                -H 'sec-ch-ua-platform: "Linux"' \
-                -H 'sec-fetch-dest: image' \
-                -H 'sec-fetch-mode: no-cors' \
-                -H 'sec-fetch-site: cross-site' \
-                -H 'user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'`,
-        { encoding: 'buffer', maxBuffer: 10 * 1024 * 1024 }, // Increase maxBuffer to 10 MB
-        (error, stdout, stderr) => {
-          if (error) {
-            this.logger.error(`URL error ${url}`);
-            reject(error);
-            return;
-          }
-          if (stderr && stderr.length > 0) {
-            this.logger.error(`URL stderr`);
-            reject(stderr.toString());
-            return;
-          }
-
-          if (!stdout || stdout.length === 0) {
-            // If no data was returned, the fetch might have failed
-            this.logger.error(
-              'No data returned. The image might not have been fetched correctly.',
-            );
-            reject(
-              'No data returned. The image might not have been fetched correctly.',
-            );
-            return;
-          }
-
-          // Convert buffer to string for header extraction, but keep it raw for the body
-          const response = stdout.toString('utf8'); // Decode headers to string for easier parsing
-
-          // Split headers and body
-          const headersEndIndex = response.indexOf('\r\n\r\n');
-          const headers = response.substring(0, headersEndIndex);
-          const fileBuffer = stdout.subarray(headersEndIndex + 4); // Extract the body as raw buffer
-
-          // Extract HTTP status code from the first line of the response
-          const statusLine = headers.split('\r\n')[0];
-          const statusCode = statusLine.split(' ')[1]; // The status code is the second part
-          let contentType = null;
-
-          if (Number.isInteger(+statusCode) && +statusCode === 200) {
-            if (stdout && stdout.length < 1024) {
-              this.logger.error(`URL ${url} response too small`);
-              reject(`URL ${url} response too small`);
-              return;
-            }
-
-            // Extract Content-Type from headers
-            const contentTypeMatch = headers.match(/content-type:\s*(.*)/);
-            if (contentTypeMatch && contentTypeMatch[1]) {
-              contentType = contentTypeMatch[1].trim();
-            } else {
-              this.logger.error(
-                'Content-Type not found in the response headers.',
-              );
-              reject('Content-Type not found in the response headers.');
-              return;
-            }
-            resolve({
-              fileBuffer,
-              contentType,
-            });
-            return;
-          }
-
-          this.logger.error(`URL ${url} error with status ${statusCode}`);
-          reject(`URL ${url} error with status ${statusCode}`);
-        },
-      );
     });
   }
 

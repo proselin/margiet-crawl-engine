@@ -7,7 +7,6 @@ import { ConfigService } from '@nestjs/config';
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
-import { EnvName } from '../../common/constant/env';
 import { NODE_ENV } from '../../common';
 
 const winstonConfigProduction: winston.LoggerOptions = {
@@ -115,7 +114,7 @@ const winstonConfigDevelopment = {
     WinstonModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        if (configService.get(EnvName.NODE_ENV) == NODE_ENV.DEVELOPMENT) {
+        if (configService.get('node_env') == NODE_ENV.DEVELOPMENT) {
           return winstonConfigDevelopment;
         }
         return winstonConfigProduction;

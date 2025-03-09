@@ -65,3 +65,5 @@ package-lock.json
 
 node_temp
 data/db.sqlite
+
+env.yaml

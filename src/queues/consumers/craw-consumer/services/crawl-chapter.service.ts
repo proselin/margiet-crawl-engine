@@ -33,7 +33,7 @@ export class CrawlChapterService {
     await queryRunner.startTransaction();
 
     try {
-      const imgUrls = await this.extractChapterInfo(job.data.url);
+      const {domain, image} = await this.extractChapterInfo(job.data.url);
 
       const comic = await this.comicRepository.findOneByOrFail({
         id: job.data.comicId,
@@ -54,18 +54,17 @@ export class CrawlChapterService {
       const imageEntities: ImageEntity[] =
         await this.crawlImageService.crawlAndUploadChapterImage(
           chapter,
-          imgUrls,
-          queryRunner,
+          image,
+          domain
         );
 
       await queryRunner.manager.save(chapter);
       await queryRunner.commitTransaction();
 
-      const result: CrawlChapterResultModel = {
+      return {
         chapter,
         images: imageEntities,
       };
-      return result;
     } catch (e) {
       await queryRunner.rollbackTransaction();
       throw new Error(`Crawl job ${job.token} Fail :=`, e);
@@ -78,13 +77,17 @@ export class CrawlChapterService {
     url: string,
   ): Promise<ExtractChapterInfoResult$1> {
     const { body } = await this.executeCurl(url);
+    const domain = (new URL(url)).origin
     const imageRegex =
       /data-sv1=['"]([^'"]*)['"][^>]*data-sv2=['"]([^'"]*)['"]/g;
-    const results: ExtractChapterInfoResult$1 = [];
+    const results: ExtractChapterInfoResult$1 = {
+      image : [],
+      domain : domain,
+    };
     let dataUrls;
     let count = 0;
     while ((dataUrls = imageRegex.exec(body)) !== null) {
-      results.push({
+      results.image.push({
         imageUrls: [dataUrls[1] ?? '', dataUrls[2] ?? ''],
         position: count,
       } satisfies ExtractChapterInfoResultItem$1);

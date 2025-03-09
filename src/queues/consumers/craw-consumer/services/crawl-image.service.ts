@@ -1,5 +1,4 @@
 import { BeforeApplicationShutdown, Injectable, Logger } from '@nestjs/common';
-import { QueryRunner } from 'typeorm';
 
 import { CrawlUploadService } from './crawl-upload.service';
 import { ImageEntity } from '../../../../entities/image';
@@ -13,34 +12,22 @@ export class CrawlImageService implements BeforeApplicationShutdown {
 
   constructor(private crawlUploadService: CrawlUploadService) {}
 
-  async handleCrawlThumbUrl(imageUrls: string[]): Promise<ImageEntity> {
-    const imageUploadedInfo =
-      await this.crawlUploadService.crawlAndUploadImageToStore(
-        `cm-${Date.now()}`,
-        imageUrls,
-      );
-    return this.createImageDocument({
-      ...imageUploadedInfo,
-      position: 0,
-      originUrls: imageUrls,
-    });
-  }
-
   async crawlAndUploadChapterImage(
     chapter: ChapterEntity,
     rawImages: RawImage[],
-    queryRunner?: QueryRunner,
+    domain: string,
   ) {
     try {
       this.logger.log(`Start crawl and upload chapter image`);
       const uploadedImages = await this.crawlUploadService.crawlAndUploadMulti(
         `c-${chapter.id}`,
         rawImages,
+        domain,
       );
       const images = await Promise.all(
         uploadedImages.map(
           async (uploadedImage: CrawlUploadResponse[number]) => {
-            return this.createImageDocument(uploadedImage, queryRunner);
+            return this.createImageDocument(uploadedImage);
           },
         ),
       );
@@ -59,11 +46,27 @@ export class CrawlImageService implements BeforeApplicationShutdown {
     }
   }
 
+  async handleCrawlThumbUrl(
+    imageUrls: string[],
+    domain: string,
+  ): Promise<ImageEntity> {
+    const imageUploadedInfo =
+      await this.crawlUploadService.crawlAndUploadImageToStore(
+        `cm-${Date.now()}`,
+        imageUrls,
+        domain,
+      );
+    return this.createImageDocument({
+      ...imageUploadedInfo,
+      position: 0,
+      originUrls: imageUrls,
+    });
+  }
+
   async beforeApplicationShutdown() {}
 
   private async createImageDocument(
     uploadedImage: CrawlUploadResponse[number],
-    queryRunner?: QueryRunner,
   ) {
     try {
       this.logger.log(
@@ -78,12 +81,10 @@ export class CrawlImageService implements BeforeApplicationShutdown {
       uploadMinioHistory.url = uploadedImage?.fileUrl;
       uploadMinioHistory.fileName = uploadedImage?.fileName;
       uploadMinioHistory.bucketName = uploadedImage?.bucketName ?? '';
-      await (queryRunner
-        ? queryRunner.manager.save(uploadMinioHistory)
-        : uploadMinioHistory.save());
+      await uploadMinioHistory.save();
 
       image.minioUploadHistory = Promise.resolve(uploadMinioHistory);
-      await (queryRunner ? queryRunner.manager.save(image) : image.save());
+      await image.save();
 
       this.logger.log(
         `[${this.createImageDocument.name}]: DONE create image with file name ${uploadedImage.fileName}`,

@@ -16,6 +16,13 @@ export class ComicEntity extends CommonEntity {
   chapterCount: number;
 
   @Column({
+    name: "origin_id",
+    unique: true,
+    nullable: false,
+  })
+  originId: string;
+
+  @Column({
     nullable: true,
   })
   status: string;

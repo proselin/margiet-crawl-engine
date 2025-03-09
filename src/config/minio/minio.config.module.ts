@@ -2,8 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestMinioModule } from '@margiet-libs/minio';
 
-import { EnvName } from '../../common/constant/env';
-
 @Module({
   imports: [
     NestMinioModule.registerAsync({
@@ -11,11 +9,11 @@ import { EnvName } from '../../common/constant/env';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         return {
-          endPoint: configService.get(EnvName.MINIO_ENDPOINT),
-          useSSL: configService.get(EnvName.MINIO_USE_SSL),
-          port: +configService.get(EnvName.MINIO_PORT),
-          accessKey: configService.get(EnvName.MINIO_ACCESS_KEY, null),
-          secretKey: configService.get(EnvName.MINIO_SECRET_KEY, null),
+          endPoint: configService.get('minio.endpoint'),
+          useSSL: !!configService.get('minio.ssl'),
+          port: +configService.get('minio.port'),
+          accessKey: configService.get('minio.access-key', null),
+          secretKey: configService.get('minio.secret-key', null),
         };
       },
     }),

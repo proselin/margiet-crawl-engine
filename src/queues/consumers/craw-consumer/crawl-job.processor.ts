@@ -20,7 +20,7 @@ import {
 import { UploadImageToDriveJobModel } from '../../../models/jobs/producer/upload-image-to-drive-job.model';
 
 @Processor(QueueName.QUEUE_CRAWL_NAME, {
-  concurrency: 3,
+  concurrency: 6,
 })
 export class CrawlJobProcessor extends WorkerHost {
   private logger = new Logger(CrawlJobProcessor.name);

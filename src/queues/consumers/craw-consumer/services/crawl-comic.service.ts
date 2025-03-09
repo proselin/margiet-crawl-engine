@@ -2,13 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { exec } from 'node:child_process';
 
 import { ComicEntity } from '../../../../entities/comic';
 import { CrawlProducerService } from '../../../producers/crawl-producer';
 import { CrawlImageService } from './crawl-image.service';
 import {
-  CrawlComicExecuteCurlResult$1,
   CrawlComicJobData,
   InfoExtractedResult$1,
   RawCrawledChapter,
@@ -16,10 +14,11 @@ import {
 } from '../../../../common';
 import {
   CrawlComicResultModel,
-  LinkCrawlModel,
   UpdateComicResultModel,
 } from '../../../../models/jobs';
 import { ImageEntity } from '../../../../entities/image';
+import { NettruyenHttpService } from './nettruyen-http.service';
+import { NettruyenExtractor } from '../extractor/nettruyen.extractor';
 
 @Injectable()
 export class CrawlComicService {
@@ -29,8 +28,10 @@ export class CrawlComicService {
     @InjectRepository(ComicEntity)
     private readonly comicRepository: Repository<ComicEntity>,
     private readonly crawlProducerService: CrawlProducerService,
-    private crawlImageService: CrawlImageService,
-    private dataSource: DataSource,
+    private readonly crawlImageService: CrawlImageService,
+    private readonly dataSource: DataSource,
+    private readonly nettruyenHttpService: NettruyenHttpService,
+    private readonly nettruyenExtractor: NettruyenExtractor,
   ) {}
 
   async crawlComicInfo(job: Job<CrawlComicJobData>) {
@@ -39,25 +40,31 @@ export class CrawlComicService {
     await queryRunner.startTransaction();
 
     try {
+
       const crawledInformation = await this.extractInfo(job.data.href);
+      await this.comicRepository.existsBy({originId: crawledInformation.comicId}).then(
+        r => {
+          if(r) throw new Error("comic is already exists");
+        }
+      )
 
       const comic: ComicEntity = new ComicEntity();
       comic.urlHistory = [job.data.href];
       comic.originUrl = job.data.href;
-
       await job.updateProgress(10);
+
+      comic.originId = crawledInformation.comicId
+
       if (crawledInformation.title) {
         comic.title = crawledInformation.title;
       }
 
-      if (crawledInformation.totalChapter) {
-        comic.chapterCount = +crawledInformation.totalChapter;
-        await job.updateProgress(15);
-      }
+      comic.chapterCount = +crawledInformation.chapters.length;
+      await job.updateProgress(15);
 
       if (crawledInformation.thumbUrl) {
         comic.thumbImage = Promise.resolve(
-          this.updateThumbImageComic(comic, crawledInformation.thumbUrl),
+          this.updateThumbImageComic(comic, crawledInformation.thumbUrl, crawledInformation.domain),
         );
         await comic.thumbImage;
         await job.updateProgress(55);
@@ -74,7 +81,8 @@ export class CrawlComicService {
       } satisfies CrawlComicResultModel;
     } catch (e) {
       await queryRunner.rollbackTransaction();
-      this.logger.error('Crawl Comic failed >>', e);
+      this.logger.error('Crawl Comic failed >>');
+      this.logger.error(e);
       throw e;
     } finally {
       await queryRunner.release();
@@ -82,66 +90,9 @@ export class CrawlComicService {
   }
 
   async extractInfo(url: string): Promise<InfoExtractedResult$1> {
-    try {
-      const { body } = await this.executeCurl(url);
-
-      // Extract the <h1> content with class="title-detail"
-      const h1Regex = /<h1[^>]*class="title-detail"[^>]*>(.*?)<\/h1>/;
-      const h1Match = h1Regex.exec(body);
-
-      if (!h1Match) throw new Error('Header is not found !!');
-
-      const title = h1Match[1].trim();
-
-      const ulRegex =
-        /<ul[^>]*style="[^"]*display:\s*block[^"]*"[^>]*>([\s\S]*?)<\/ul>/;
-
-      // Match the specific <ul>
-      const ulMatch = ulRegex.exec(body);
-
-      if (!ulMatch) {
-        throw new Error('No <ul> with display:block found.');
-      }
-
-      const ulContent = ulMatch[1]; // Content inside the specific <ul>
-
-      // Regex to match <a> tags within the extracted <ul>
-      const linkRegex =
-        /<a\s+href="([^"]+)"\s+data-id="([^"]+)">Chapter\s+(\d+)<\/a>/g;
-
-      // Array to store the results
-      const chapters: InfoExtractedResult$1['chapters'] = [];
-
-      // Extract data from <a> tags within the specific <ul>
-      let linkMatch;
-      while ((linkMatch = linkRegex.exec(ulContent)) !== null) {
-        const item: InfoExtractedResult$1['chapters'][number] = {
-          href: linkMatch[1],
-          chapterNumber: linkMatch[3],
-        };
-        await LinkCrawlModel.validateAsync(item);
-        chapters.push(item);
-      }
-      //Reverse list because display the latest chapter is on top
-      chapters.reverse();
-
-      //Extract thumb url
-      const thumbImageRegex = /<img[^>]*data-src=["']([^"]*)["']/g;
-      const thumbMatch = thumbImageRegex.exec(body);
-      if (!thumbMatch || !thumbMatch[1]) {
-        throw new Error('Not found thumb url !!');
-      }
-      const thumbUrl = thumbMatch[1];
-
-      return {
-        title,
-        totalChapter: chapters.length,
-        thumbUrl,
-        chapters,
-      } satisfies InfoExtractedResult$1;
-    } catch (e) {
-      throw e;
-    }
+    const response = await this.nettruyenHttpService.get(url);
+    const body = response.data;
+    return this.nettruyenExtractor.init(body, url).extract();
   }
 
   /**
@@ -177,7 +128,7 @@ export class CrawlComicService {
       }
 
       let updateChapters = [];
-      if (rawData.totalChapter > lastedChapter) {
+      if (rawData.chapters.length > lastedChapter) {
         updateChapters = rawData.chapters.filter((_, i) => i > lastedChapter);
       }
       comic.shouldRefresh = !!refresh;
@@ -212,69 +163,10 @@ export class CrawlComicService {
   private async updateThumbImageComic(
     comic: ComicEntity,
     thumbUrl: string,
+    domain: string,
   ): Promise<ImageEntity> {
     comic.thumbImage = null;
     this.logger.log('Process crawl image-fe thumb url');
-    return this.crawlImageService.handleCrawlThumbUrl([thumbUrl]);
-  }
-
-  private async executeCurl(url: string) {
-    return new Promise<CrawlComicExecuteCurlResult$1>(
-      async (resolve, reject) => {
-        exec(
-          `curl -s -i ${url} \
-            -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' \
-            -H 'accept-language: en-US,en;q=0.9,vi;q=0.8,vi-VN;q=0.7' \
-            -H 'cookie: _ga=GA1.1.1791487263.1733478889; location=VN; _location_evoads_=VN; _ip_evoads_=2001%3Aee0%3A4161%3Aa938%3Af651%3A4398%3A651c%3A7e80; _ga_9QE79X1JWX=GS1.1.1733581738.3.0.1733581738.0.0.0; _location=VN; _puTimeAccess_evoads_=1733581738207' \
-            -H 'dnt: 1' \
-            -H 'priority: u=0, i' \
-            -H 'sec-ch-ua: "Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"' \
-            -H 'sec-ch-ua-mobile: ?0' \
-            -H 'sec-ch-ua-platform: "Linux"' \
-            -H 'sec-fetch-dest: document' \
-            -H 'sec-fetch-mode: navigate' \
-            -H 'sec-fetch-site: same-origin' \
-            -H 'sec-fetch-user: ?1' \
-            -H 'upgrade-insecure-requests: 1' \
-            -H 'user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
-         `,
-          { encoding: 'utf-8' },
-          (error, response, stderr) => {
-            try {
-              if (error) {
-                throw new Error(`Error fetching URL: ${url}`, error);
-              }
-
-              if (stderr) {
-                throw new Error(`Error fetching URL: ${stderr}`);
-              }
-
-              // Separate headers and body
-              const [headers, body] = response.split('\r\n\r\n', 2);
-
-              // Extract status code
-              const statusLine = headers.split('\r\n')[0];
-              const statusCode = parseInt(statusLine.split(' ')[1], 10);
-
-              // Check status code
-              if (Number.isInteger(statusCode) && statusCode !== 200) {
-                throw new Error(`URL response Status Code: ${statusCode}`);
-              }
-
-              resolve({
-                headers: {
-                  original: headers,
-                  statusCode,
-                },
-                body,
-              } satisfies CrawlComicExecuteCurlResult$1);
-            } catch (error) {
-              this.logger.error('Error executing curl:', error);
-              reject(error);
-            }
-          },
-        );
-      },
-    );
+    return this.crawlImageService.handleCrawlThumbUrl([thumbUrl], domain);
   }
 }
