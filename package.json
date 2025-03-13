@@ -8,7 +8,7 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start ",
+    "start": "dotenv -e .env.development -- nest start ",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug",
     "start:prod": "NODE_ENV=product node dist/main",
@@ -67,6 +67,7 @@
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
+    "dotenv-cli": "^8.0.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.3",

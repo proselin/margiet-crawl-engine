@@ -8,13 +8,13 @@ import { CrawlProducerModule } from './queues/producers/crawl-producer';
 import { CrawlModule } from './crawl';
 import { RefreshComicModule } from './cronjob/refresh-comic';
 import { HttpModule } from '@nestjs/axios';
-import envConfig from './config/env/env.config';
+import { envValidation } from './config/env';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [envConfig],
+      validate: envValidation,
     }),
     LoggerConfigModule,
     BullmqConfigModule,

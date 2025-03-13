@@ -18,9 +18,10 @@ import {
   UpdateComicResultModel,
 } from '../../../models/jobs';
 import { UploadImageToDriveJobModel } from '../../../models/jobs/producer/upload-image-to-drive-job.model';
+import {performance} from "node:perf_hooks"
 
 @Processor(QueueName.QUEUE_CRAWL_NAME, {
-  concurrency: 6,
+  concurrency: 2,
 })
 export class CrawlJobProcessor extends WorkerHost {
   private logger = new Logger(CrawlJobProcessor.name);
@@ -52,9 +53,6 @@ export class CrawlJobProcessor extends WorkerHost {
         return this.crawlComicService.updateComicCrawled(
           job as Job<UpdateComicJobData>,
         );
-      }
-      default: {
-        throw new Error('Missing job handler');
       }
     }
   }

@@ -1,10 +1,10 @@
-FROM node:22 AS base
+FROM node:22-alpine AS base
 
 WORKDIR /app
 
 COPY . .
 
-FROM node:22 AS install
+FROM node:22-alpine AS install
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ COPY --from=base /app/package*.json ./
 
 RUN npm install --production
 
-FROM node:22 AS build
+FROM node:22-alpine AS build
 WORKDIR /app
 COPY --from=base /app/* .
 COPY --from=install /app/node_modules ./node_modules
