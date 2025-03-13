@@ -1,29 +1,33 @@
-FROM node:22-alpine AS base
+FROM oven/bun AS base
 
 WORKDIR /app
 
 COPY . .
 
-FROM node:22-alpine AS install
+FROM oven/bun AS install
 
 WORKDIR /app
 
 COPY --from=base /app/libs ./libs
 COPY --from=base /app/package*.json ./
 
-RUN npm install --omit=dev
+RUN bun install --production
 
-FROM node:22-alpine AS build
+FROM oven/bun AS build
+
 WORKDIR /app
+
 COPY --from=base /app/* .
+COPY --from=base /app/libs ./libs
 COPY --from=install /app/node_modules ./node_modules
 COPY --from=install /app/package-lock.json .
 
-RUN npm i @nestjs/cli
+RUN bun install @nestjs/cli
 
-RUN npm run build
+RUN bun run build
 
-FROM node:22-alpine AS release
+
+FROM oven/bun AS release
 
 WORKDIR /app
 
@@ -34,4 +38,4 @@ COPY --from=install /app/package*.json ./
 EXPOSE 3000
 
 # Start the application
-CMD ["node", "dist/main"]
+CMD ["bun", "dist/main"]
