@@ -92,7 +92,7 @@ export class CrawlComicService {
   async extractInfo(url: string): Promise<InfoExtractedResult$1> {
     const response = await this.nettruyenHttpService.get(url);
     const body = response.data;
-    return this.nettruyenExtractor.init(body, url).extract();
+    return this.nettruyenExtractor.extract(body, url);
   }
 
   /**

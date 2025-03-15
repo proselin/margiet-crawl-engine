@@ -1,3 +1,3 @@
 export interface Extractor<T> {
-  extract(url: string): T  | Promise<T>;
+  extract(...args: any[]): T  | Promise<T>;
 }

@@ -1,14 +1,16 @@
 import { Extractor } from './extractor.abstract';
-import { InfoExtractedResult$1 } from '../../../../common';
-import { LinkCrawlModel } from '../../../../models/jobs';
+import { InfoExtractedResult$1, RawCrawledChapter } from '../../../../common';
 import { Injectable } from '@nestjs/common';
+import { NettruyenHttpService } from '../services/nettruyen-http.service';
 
 @Injectable()
 export class NettruyenExtractor implements Extractor<InfoExtractedResult$1> {
   private htmlContent?: string;
   private domain?: string;
+  private comicId?: string;
+  private comicSlug?: string;
 
-  constructor() {}
+  constructor(private readonly nettruyenHttpService: NettruyenHttpService) {}
 
   private extractSlug() {
     const slugPattern = /gOpts\.comicSlug\s*=\s*['"]([^'"]*)['"];/g;
@@ -31,50 +33,22 @@ export class NettruyenExtractor implements Extractor<InfoExtractedResult$1> {
     return idMatch[1];
   }
 
-  async extractChapter() {
-    const ulRegexs = [
-      /<ul[^>]*style="[^"]*display:\s*block[^"]*"[^>]*>([\s\S]*?)<\/ul>/,
-      /<ul[^>]*id="chapter_list"[^>]*>([\s\S]*?)<\/ul>/,
-    ];
+  async extractChapter(): Promise<RawCrawledChapter[]> {
+    return this.nettruyenHttpService
+      .getChapterList(this.domain,this.comicSlug, this.comicId)
+      .then((r) => {
+        return r.data.data.map((item) => {
+          return {
+            href: `${this.domain}/${this.generateChapterUrl(this.comicSlug, item.chapter_slug)}`,
+            chapterNumber: item.chapter_num + '',
+          } satisfies RawCrawledChapter;
+        });
+      });
+  }
 
-    let ulMatch
-    for (const regex of ulRegexs) {
-      const regexResult = regex.exec(this.htmlContent);
-      if(!!regexResult) {
-        ulMatch = regexResult
-        break;
-      }
-    }
-
-    // Match the specific <ul>
-
-    if (!ulMatch) {
-      throw new Error('No <ul> with display:block found.');
-    }
-
-    const ulContent = ulMatch[1]; // Content inside the specific <ul>
-
-    // Regex to match <a> tags within the extracted <ul>
-    const linkRegex =
-      /<a\s+href="([^"]+)"\s+data-id="([^"]+)">Chapter\s+(\d+)<\/a>/g;
-
-    // Array to store the results
-    const chapters: InfoExtractedResult$1['chapters'] = [];
-
-    // Extract data from <a> tags within the specific <ul>
-    let linkMatch;
-    while ((linkMatch = linkRegex.exec(ulContent)) !== null) {
-      const item: InfoExtractedResult$1['chapters'][number] = {
-        href: linkMatch[1],
-        chapterNumber: linkMatch[3],
-      };
-      await LinkCrawlModel.validateAsync(item);
-      chapters.push(item);
-    }
-    //Reverse list because display the latest chapter is on top
-    chapters.reverse();
-    if(!chapters) throw new Error("No Chapter were founded")
-    return chapters;
+  // from main.js nettruyen
+  private generateChapterUrl(comicSlug: string, chapter_slug: string) {
+    return `/truyen-tranh/${comicSlug}/${chapter_slug}`;
   }
 
   extractThumb() {
@@ -87,20 +61,19 @@ export class NettruyenExtractor implements Extractor<InfoExtractedResult$1> {
     return thumbMatch[1];
   }
 
-  init(htmlContent: string, url: string) {
+  async extract(htmlContent: string, url: string) {
     this.htmlContent = htmlContent;
-    this.domain = (new URL(url)).origin;
-    return this;
-  }
+    this.domain = new URL(url).origin;
 
-  async extract() {
+    this.comicId = this.extractId();
+    this.comicSlug = this.extractSlug();
     const chapters = await this.extractChapter();
     return {
       title: this.extractTitle(),
       thumbUrl: this.extractThumb(),
       chapters,
       slug: this.extractSlug(),
-      comicId: this.extractId(),
+      comicId: this.comicId,
       domain: this.domain,
     } satisfies InfoExtractedResult$1;
   }

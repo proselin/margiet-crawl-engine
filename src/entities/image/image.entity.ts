@@ -5,6 +5,7 @@ import { DriverUploadHistory } from '../driver-upload-history';
 import { MinioUploadHistory } from '../minio-upload-history';
 import { ChapterEntity } from '../chapter';
 import { ComicEntity } from '../comic';
+import { ImageType } from '../../common/constant/image';
 
 @Entity('image')
 export class ImageEntity extends CommonEntity {
@@ -18,6 +19,13 @@ export class ImageEntity extends CommonEntity {
     type: 'integer',
   })
   position: number;
+
+  @Column({
+    type: 'enum',
+    enum:ImageType,
+    default: ImageType.CHAPTER_IMAGE
+  })
+  type: ImageType;
 
   @Column({ type: 'simple-array', name: 'origin_urls' })
   originUrls: string[];

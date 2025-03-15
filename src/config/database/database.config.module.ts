@@ -15,7 +15,7 @@ import { NODE_ENV } from '../../common';
         return {
           autoLoadEntities: true,
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
-          logging: isDevelopment,
+          logging: false,
           password: configService.getOrThrow('database.password'),
           retryAttempts: 3,
           retryDelay: 3000,

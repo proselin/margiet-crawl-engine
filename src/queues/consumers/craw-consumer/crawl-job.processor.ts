@@ -18,10 +18,9 @@ import {
   UpdateComicResultModel,
 } from '../../../models/jobs';
 import { UploadImageToDriveJobModel } from '../../../models/jobs/producer/upload-image-to-drive-job.model';
-import {performance} from "node:perf_hooks"
 
 @Processor(QueueName.QUEUE_CRAWL_NAME, {
-  concurrency: 2,
+  concurrency: 6,
 })
 export class CrawlJobProcessor extends WorkerHost {
   private logger = new Logger(CrawlJobProcessor.name);

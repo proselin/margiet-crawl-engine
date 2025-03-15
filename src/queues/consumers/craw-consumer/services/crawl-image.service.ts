@@ -5,6 +5,7 @@ import { ImageEntity } from '../../../../entities/image';
 import { ChapterEntity } from '../../../../entities/chapter';
 import { CrawlUploadResponse, RawImage } from '../../../../common';
 import { MinioUploadHistory } from '../../../../entities/minio-upload-history';
+import { ImageType } from '../../../../common/constant/image';
 
 @Injectable()
 export class CrawlImageService implements BeforeApplicationShutdown {
@@ -27,7 +28,10 @@ export class CrawlImageService implements BeforeApplicationShutdown {
       const images = await Promise.all(
         uploadedImages.map(
           async (uploadedImage: CrawlUploadResponse[number]) => {
-            return this.createImageDocument(uploadedImage);
+            return this.createImageDocument(
+              uploadedImage,
+              ImageType.CHAPTER_IMAGE,
+            );
           },
         ),
       );
@@ -56,17 +60,21 @@ export class CrawlImageService implements BeforeApplicationShutdown {
         imageUrls,
         domain,
       );
-    return this.createImageDocument({
-      ...imageUploadedInfo,
-      position: 0,
-      originUrls: imageUrls,
-    });
+    return this.createImageDocument(
+      {
+        ...imageUploadedInfo,
+        position: 0,
+        originUrls: imageUrls,
+      },
+      ImageType.THUMB,
+    );
   }
 
   async beforeApplicationShutdown() {}
 
   private async createImageDocument(
     uploadedImage: CrawlUploadResponse[number],
+    type: ImageType,
   ) {
     try {
       this.logger.log(
@@ -76,6 +84,7 @@ export class CrawlImageService implements BeforeApplicationShutdown {
       image.url = uploadedImage?.fileUrl ?? '';
       image.originUrls = uploadedImage.originUrls;
       image.position = uploadedImage.position;
+      image.type = type;
 
       const uploadMinioHistory = new MinioUploadHistory();
       uploadMinioHistory.url = uploadedImage?.fileUrl;
