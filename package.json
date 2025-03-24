@@ -7,19 +7,17 @@
   "license": "MIT",
   "scripts": {
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "dotenv -e .env.development -- nest start ",
+    "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
+    "start": "dotenv -e .env.development -- nest start",
     "start:dev": "dotenv -e .env.development -- nest start --watch",
     "start:debug": "dotenv -e .env.development -- nest start --debug",
-    "start:prod": "NODE_ENV=product node dist/main",
+    "start:prod": "node dist/apps/crawl-engine/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix ",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
-    "pm2:dev": "pm2 start ",
-    "pm2:prod": "pm2 start ",
+    "test:e2e": "jest --config apps/crawl-engine/test/jest-e2e.json",
     "docker:build": "sh build.sh"
   },
   "dependencies": {
@@ -73,6 +71,7 @@
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.6",
+    "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.2"
@@ -83,7 +82,7 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
@@ -91,8 +90,23 @@
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "coverageDirectory": "./coverage",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/apps/",
+      "<rootDir>/libs/"
+    ],
+    "moduleNameMapper": {
+      "^@libs/common/common(|/.*)$": "<rootDir>/libs/common/src/$1",
+      "^@libs/bullmq/bull-module(|/.*)$": "<rootDir>/libs/bull-module/src/$1",
+      "^@libs/db/db(|/.*)$": "<rootDir>/libs/database/src/$1",
+      "^@libs/config(|/.*)$": "<rootDir>/libs/config/src/$1",
+      "^@libs/http(|/.*)$": "<rootDir>/libs/http/src/$1",
+      "^@libs/swagger(|/.*)$": "<rootDir>/libs/swagger/src/$1",
+      "^@libs/minio(|/.*)$": "<rootDir>/libs/minio/src/$1",
+      "^@libs/logger(|/.*)$": "<rootDir>/libs/logger/src/$1",
+      "^@modules/crawl-engine(|/.*)$": "<rootDir>/libs/crawl-engine/src/$1"
+    }
   },
   "config": {
     "puppeteer_skip_chromium_download": true
