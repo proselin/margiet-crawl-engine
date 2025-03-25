@@ -15,59 +15,83 @@
     "sourceMap": true,
     "allowSyntheticDefaultImports": true,
     "paths": {
-      "@libs/common": [
-        "libs/common/src"
-      ],
-      "@libs/common/*": [
-        "libs/common/src/*"
-      ],
-      "@libs/bullmq": [
-        "libs/bull-module/src"
-      ],
-      "@libs/bullmq/*": [
-        "libs/bull-module/src/*"
-      ],
-      "@libs/database": [
-        "libs/database/src"
-      ],
-      "@libs/database/*": [
-        "libs/database/src/*"
-      ],
-      "@libs/config": [
-        "libs/config/src"
-      ],
-      "@libs/config/*": [
-        "libs/config/src/*"
-      ],
-      "@libs/http": [
-        "libs/http/src"
-      ],
-      "@libs/http/*": [
-        "libs/http/src/*"
-      ],
-      "@libs/swagger": [
-        "libs/swagger/src"
-      ],
-      "@libs/swagger/*": [
-        "libs/swagger/src/*"
-      ],
-      "@libs/minio": [
-        "libs/minio/src"
-      ],
-      "@libs/minio/*": [
-        "libs/minio/src/*"
-      ],
-      "@libs/logger": [
-        "libs/logger/src"
-      ],
-      "@libs/logger/*": [
-        "libs/logger/src/*"
-      ],
       "@modules/crawl-engine": [
-        "libs/crawl-engine/src"
+        "libs/modules/crawl-engine/src"
       ],
       "@modules/crawl-engine/*": [
-        "libs/crawl-engine/src/*"
+        "libs/modules/crawl-engine/src/*"
+      ],
+      "@modules/core": [
+        "libs/modules/core/src"
+      ],
+      "@modules/core/*": [
+        "libs/modules/core/src/*"
+      ],
+      "@shared/bullmq": [
+        "libs/shared/bullmq/src"
+      ],
+      "@shared/bullmq/*": [
+        "libs/shared/bullmq/src/*"
+      ],
+      "@shared/cache": [
+        "libs/shared/cache/src"
+      ],
+      "@shared/cache/*": [
+        "libs/shared/cache/src/*"
+      ],
+      "@shared/common": [
+        "libs/shared/common/src"
+      ],
+      "@shared/common/*": [
+        "libs/shared/common/src/*"
+      ],
+      "@shared/config": [
+        "libs/shared/config/src"
+      ],
+      "@shared/config/*": [
+        "libs/shared/config/src/*"
+      ],
+      "@shared/database": [
+        "libs/shared/database/src"
+      ],
+      "@shared/database/*": [
+        "libs/shared/database/src/*"
+      ],
+      "@shared/graphql": [
+        "libs/shared/graphql/src"
+      ],
+      "@shared/graphql/*": [
+        "libs/shared/graphql/src/*"
+      ],
+      "@shared/http": [
+        "libs/shared/http/src"
+      ],
+      "@shared/http/*": [
+        "libs/shared/http/src/*"
+      ],
+      "@shared/logger": [
+        "libs/shared/logger/src"
+      ],
+      "@shared/logger/*": [
+        "libs/shared/logger/src/*"
+      ],
+      "@shared/middlewares": [
+        "libs/shared/middlewares/src"
+      ],
+      "@shared/middlewares/*": [
+        "libs/shared/middlewares/src/*"
+      ],
+      "@shared/minio": [
+        "libs/shared/minio/src"
+      ],
+      "@shared/minio/*": [
+        "libs/shared/minio/src/*"
+      ],
+      "@shared/swagger": [
+        "libs/shared/swagger/src"
+      ],
+      "@shared/swagger/*": [
+        "libs/shared/swagger/src/*"
       ]
     }
   }

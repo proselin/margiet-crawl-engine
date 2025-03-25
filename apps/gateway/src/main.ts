@@ -2,22 +2,28 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
-import {
-  DEFAULT,
-  LoggingInterceptor,
-  TimeoutInterceptor,
-  TransformInterceptor,
-  Versions,
-} from '@libs/common';
 import { ConfigService } from '@nestjs/config';
 import { GatewayModule } from './gateway.module';
 import { AllExceptionsFilter } from '@modules/crawl-engine/exception';
-import { SwaggerConfig } from '@libs/swagger';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import compression from 'compression';
+import {
+  DEFAULT,
+  LoggingInterceptor,
+  NODE_ENV,
+  TimeoutInterceptor,
+  TransformInterceptor,
+  Versions,
+} from '@shared/common';
+import { CsrfMiddleware } from '@shared/middlewares';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(GatewayModule, {
     bufferLogs: true,
   });
+
+  const config = app.get<ConfigService>(ConfigService);
 
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
@@ -38,22 +44,54 @@ async function bootstrap() {
 
   app.useGlobalFilters(new AllExceptionsFilter());
 
-  const configService = app.get(ConfigService);
-  const port = +configService.get('server.port', DEFAULT.SERVER_PORT);
-  const host = configService.get('server.host', DEFAULT.SERVER_HOST);
-  const prefix = configService.get('server.prefix', DEFAULT.SERVER_PREFIX);
-  const swaggerPrefix = configService.get(
-    'server.doc-prefix',
-    DEFAULT.SERVER_API_DOCUMENT_PREFIX,
+  app.use(cookieParser());
+
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+    credentials: true,
+  });
+
+  app.use(
+    helmet({
+      crossOriginEmbedderPolicy: false,
+      contentSecurityPolicy: {
+        directives: {
+          imgSrc: [
+            `'self'`,
+            'data:',
+            'apollo-server-landing-page.cdn.apollographql.com',
+          ],
+          scriptSrc: [`'self'`, `https: 'unsafe-inline'`],
+          manifestSrc: [
+            `'self'`,
+            'apollo-server-landing-page.cdn.apollographql.com',
+          ],
+          frameSrc: [`'self'`, 'sandbox.embed.apollographql.com'],
+        },
+      },
+    }),
   );
+  if (config.getOrThrow('node_env') === NODE_ENV.PRODUCTION) {
+    app.use(app.get(CsrfMiddleware).use);
+  }
+  app.use(compression());
+
+  app.enableShutdownHooks();
+
+  const configService = app.get(ConfigService);
+  const port = +configService.get('server.port');
+  const host = configService.get('server.host');
+  const prefix = configService.get('server.prefix', DEFAULT.SERVER_PREFIX);
 
   app.setGlobalPrefix(prefix);
-  SwaggerConfig.setupOpenApi(app);
 
   app.listen(port, host, () => {
-    Logger.log('🚀 Application is running on: ' + host + ':' + port);
     Logger.log(
-      ' Swagger is running on: ' + host + ':' + port + '/' + swaggerPrefix,
+      '🚀 Application is running on: ' + host + ':' + port,
+      'Bootstrap',
     );
   });
 }

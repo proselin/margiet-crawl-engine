@@ -10,6 +10,60 @@
   "monorepo": true,
   "root": "apps/gateway",
   "projects": {
+    "bullmq": {
+      "type": "library",
+      "root": "libs/shared/bullmq",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared/bullmq/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared/bullmq/tsconfig.lib.json"
+      }
+    },
+    "cache": {
+      "type": "library",
+      "root": "libs/shared/cache",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared/cache/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared/cache/tsconfig.lib.json"
+      }
+    },
+    "common": {
+      "type": "library",
+      "root": "libs/shared/common",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared/common/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared/common/tsconfig.lib.json"
+      }
+    },
+    "config": {
+      "type": "library",
+      "root": "libs/shared/config",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared/config/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared/config/tsconfig.lib.json"
+      }
+    },
+    "crawl-engine": {
+      "type": "library",
+      "root": "libs/modules/crawl-engine",
+      "entryFile": "index",
+      "sourceRoot": "libs/modules/crawl-engine/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/modules/crawl-engine/tsconfig.lib.json"
+      }
+    },
+    "database": {
+      "type": "library",
+      "root": "libs/shared/database",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared/database/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared/database/tsconfig.lib.json"
+      }
+    },
     "gateway": {
       "type": "application",
       "root": "apps/gateway",
@@ -19,85 +73,58 @@
         "tsConfigPath": "apps/gateway/tsconfig.app.json"
       }
     },
-    "common": {
+    "graphql": {
       "type": "library",
-      "root": "libs/common",
+      "root": "libs/shared/graphql",
       "entryFile": "index",
-      "sourceRoot": "libs/common/src",
+      "sourceRoot": "libs/shared/graphql/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/common/tsconfig.lib.json"
-      }
-    },
-    "bull-module": {
-      "type": "library",
-      "root": "libs/bull-module",
-      "entryFile": "index",
-      "sourceRoot": "libs/bull-module/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/bull-module/tsconfig.lib.json"
-      }
-    },
-    "database": {
-      "type": "library",
-      "root": "libs/database",
-      "entryFile": "index",
-      "sourceRoot": "libs/database/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/database/tsconfig.lib.json"
-      }
-    },
-    "config": {
-      "type": "library",
-      "root": "libs/config",
-      "entryFile": "index",
-      "sourceRoot": "libs/config/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/config/tsconfig.lib.json"
+        "tsConfigPath": "libs/shared/graphql/tsconfig.lib.json"
       }
     },
     "http": {
       "type": "library",
-      "root": "libs/http",
+      "root": "libs/shared/http",
       "entryFile": "index",
-      "sourceRoot": "libs/http/src",
+      "sourceRoot": "libs/shared/http/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/http/tsconfig.lib.json"
-      }
-    },
-    "swagger": {
-      "type": "library",
-      "root": "libs/swagger",
-      "entryFile": "index",
-      "sourceRoot": "libs/swagger/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/swagger/tsconfig.lib.json"
-      }
-    },
-    "minio": {
-      "type": "library",
-      "root": "libs/minio",
-      "entryFile": "index",
-      "sourceRoot": "libs/minio/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/minio/tsconfig.lib.json"
+        "tsConfigPath": "libs/shared/http/tsconfig.lib.json"
       }
     },
     "logger": {
       "type": "library",
-      "root": "libs/logger",
+      "root": "libs/shared/logger",
       "entryFile": "index",
-      "sourceRoot": "libs/logger/src",
+      "sourceRoot": "libs/shared/logger/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/logger/tsconfig.lib.json"
+        "tsConfigPath": "libs/shared/logger/tsconfig.lib.json"
       }
     },
-    "crawl-engine": {
+    "middlewares": {
       "type": "library",
-      "root": "libs/crawl-engine",
+      "root": "libs/shared/middlewares",
       "entryFile": "index",
-      "sourceRoot": "libs/crawl-engine/src",
+      "sourceRoot": "libs/shared/middlewares/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/crawl-engine/tsconfig.lib.json"
+        "tsConfigPath": "libs/shared/middlewares/tsconfig.lib.json"
+      }
+    },
+    "minio": {
+      "type": "library",
+      "root": "libs/shared/minio",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared/minio/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared/minio/tsconfig.lib.json"
+      }
+    },
+    "modules/core": {
+      "type": "library",
+      "root": "libs/modules/core",
+      "entryFile": "index",
+      "sourceRoot": "libs/modules/core/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/modules/core/tsconfig.lib.json"
       }
     }
   }
