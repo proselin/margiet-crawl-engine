@@ -1,1 +1,1 @@
-export * from './minio.config.module';
+export * from "./minio.config.module";

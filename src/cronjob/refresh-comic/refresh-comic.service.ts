@@ -1,10 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThan, Repository } from 'typeorm';
+import { Injectable, Logger } from "@nestjs/common";
+import { Cron, CronExpression } from "@nestjs/schedule";
+import { InjectRepository } from "@nestjs/typeorm";
+import { MoreThan, Repository } from "typeorm";
 
-import { ComicEntity } from '../../entities/comic';
-import { CrawlProducerService } from '../../queues/producers/crawl-producer';
+import { ComicEntity } from "../../entities/comic";
+import { CrawlProducerService } from "../../producers/crawl-producer";
 
 @Injectable()
 export class RefreshComicService {
@@ -18,9 +18,7 @@ export class RefreshComicService {
 
   @Cron(CronExpression.EVERY_DAY_AT_10AM)
   public async runTaskUpdateComic() {
-    this.logger.log(
-      `${this.runTaskUpdateComic.name}|:== Time to refresh comic !!`,
-    );
+    this.logger.log(`${this.runTaskUpdateComic.name}|:== Time to refresh comic !!`);
 
     // Calculate the date for 1 day ago
     const oneDayAgo = new Date();
@@ -33,8 +31,6 @@ export class RefreshComicService {
       updatedAt: MoreThan(oneDayAgo),
     });
 
-    return this.crawlProducerService.updateCrawlComicJob(
-      entities.map((comic) => comic.id),
-    );
+    return this.crawlProducerService.updateCrawlComicJob(entities.map(comic => comic.id));
   }
 }

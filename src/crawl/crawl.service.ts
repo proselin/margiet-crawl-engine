@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from "@nestjs/common";
 
-import { CrawlProducerService } from '../queues/producers/crawl-producer';
+import { CrawlProducerService } from "../producers/crawl-producer";
 
 @Injectable()
 export class CrawlService {
@@ -17,7 +17,7 @@ export class CrawlService {
     return this.producerService
       .addCrawlComicJob(href)
       .then(() => {})
-      .catch((error) => {
+      .catch(error => {
         throw error;
       });
   }
@@ -28,14 +28,11 @@ export class CrawlService {
    * @param newUrl
    * @returns Job
    */
-  async updateCrawlComicJob(
-    comicId: number,
-    newUrl: string | null,
-  ): Promise<void> {
+  async updateCrawlComicJob(comicId: number, newUrl: string | null): Promise<void> {
     return this.producerService
       .updateOneCrawlComicJob(comicId, newUrl)
       .then(() => {})
-      .catch((error) => {
+      .catch(error => {
         throw error;
       });
   }

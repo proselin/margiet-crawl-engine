@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { NestMinioModule } from '@margiet-libs/minio';
+import { Module } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { NestMinioModule } from "@margiet-libs/minio";
 
 @Module({
   imports: [
@@ -9,11 +9,11 @@ import { NestMinioModule } from '@margiet-libs/minio';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         return {
-          endPoint: configService.get('minio.endpoint'),
-          useSSL: !!configService.get('minio.ssl'),
-          port: +configService.get('minio.port'),
-          accessKey: configService.get('minio.access-key', null),
-          secretKey: configService.get('minio.secret-key', null),
+          endPoint: configService.get("minio.endpoint"),
+          useSSL: !!configService.get("minio.ssl"),
+          port: +configService.get("minio.port"),
+          accessKey: configService.get("minio.access-key", null),
+          secretKey: configService.get("minio.secret-key", null),
         };
       },
     }),

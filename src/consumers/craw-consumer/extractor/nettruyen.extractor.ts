@@ -1,7 +1,7 @@
-import { Extractor } from './extractor.abstract';
-import { InfoExtractedResult$1, RawCrawledChapter } from '../../../../common';
-import { Injectable } from '@nestjs/common';
-import { NettruyenHttpService } from '../services/nettruyen-http.service';
+import { Extractor } from "./extractor.abstract";
+import { InfoExtractedResult$1, RawCrawledChapter } from "../../../common";
+import { Injectable } from "@nestjs/common";
+import { NettruyenHttpService } from "../services/nettruyen-http.service";
 
 @Injectable()
 export class NettruyenExtractor implements Extractor<InfoExtractedResult$1> {
@@ -15,35 +15,33 @@ export class NettruyenExtractor implements Extractor<InfoExtractedResult$1> {
   private extractSlug() {
     const slugPattern = /gOpts\.comicSlug\s*=\s*['"]([^'"]*)['"];/g;
     const slugMatch = slugPattern.exec(this.htmlContent);
-    if (!slugMatch || !slugMatch[1]) throw new Error('slug is not found !!');
+    if (!slugMatch || !slugMatch[1]) throw new Error("slug is not found !!");
     return slugMatch[1];
   }
 
   private extractTitle() {
     const namePattern = /gOpts\.comicName\s*=\s*['"]([^'"]*)['"];/g;
     const nameMatch = namePattern.exec(this.htmlContent);
-    if (!nameMatch || !nameMatch[1]) throw new Error('Header is not found !!');
+    if (!nameMatch || !nameMatch[1]) throw new Error("Header is not found !!");
     return nameMatch[1];
   }
 
   private extractId() {
     const idPattern = /gOpts\.comicId\s*=\s*['"]([^'"]*)['"];/g;
     const idMatch = idPattern.exec(this.htmlContent);
-    if (!idMatch || !idMatch[1]) throw new Error('comicId is not found !!');
+    if (!idMatch || !idMatch[1]) throw new Error("comicId is not found !!");
     return idMatch[1];
   }
 
   async extractChapter(): Promise<RawCrawledChapter[]> {
-    return this.nettruyenHttpService
-      .getChapterList(this.domain,this.comicSlug, this.comicId)
-      .then((r) => {
-        return r.data.data.map((item) => {
-          return {
-            href: `${this.domain}/${this.generateChapterUrl(this.comicSlug, item.chapter_slug)}`,
-            chapterNumber: item.chapter_num + '',
-          } satisfies RawCrawledChapter;
-        });
+    return this.nettruyenHttpService.getChapterList(this.domain, this.comicSlug, this.comicId).then(r => {
+      return r.data.data.map(item => {
+        return {
+          href: `${this.domain}/${this.generateChapterUrl(this.comicSlug, item.chapter_slug)}`,
+          chapterNumber: item.chapter_num + "",
+        } satisfies RawCrawledChapter;
       });
+    });
   }
 
   // from main.js nettruyen
@@ -56,7 +54,7 @@ export class NettruyenExtractor implements Extractor<InfoExtractedResult$1> {
     const thumbImageRegex = /<img[^>]*data-src=["']([^"]*)["']/g;
     const thumbMatch = thumbImageRegex.exec(this.htmlContent);
     if (!thumbMatch || !thumbMatch[1]) {
-      throw new Error('Not found thumb url !!');
+      throw new Error("Not found thumb url !!");
     }
     return thumbMatch[1];
   }

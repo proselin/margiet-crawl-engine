@@ -1,2 +1,2 @@
-export * from './drive-upload-history.module';
-export * from './drive-upload-history.entity';
+export * from "./drive-upload-history.module";
+export * from "./drive-upload-history.entity";

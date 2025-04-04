@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bullmq';
-import { ConfigService } from '@nestjs/config';
-import { QueueOptions } from 'bullmq';
+import { Module } from "@nestjs/common";
+import { BullModule } from "@nestjs/bullmq";
+import { ConfigService } from "@nestjs/config";
+import { QueueOptions } from "bullmq";
 
 @Module({
   imports: [
@@ -10,9 +10,9 @@ import { QueueOptions } from 'bullmq';
       useFactory: (configService: ConfigService) => {
         return {
           connection: {
-            host: configService.getOrThrow('redis.host'),
-            port: +configService.getOrThrow('redis.port'),
-          } ,
+            host: configService.getOrThrow("redis.host"),
+            port: +configService.getOrThrow("redis.port"),
+          },
         } as QueueOptions;
       },
     }),

@@ -1,1 +1,1 @@
-export * from './common.entity';
+export * from "./common.entity";

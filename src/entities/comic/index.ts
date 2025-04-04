@@ -1,2 +1,2 @@
-export * from './comic.module';
-export * from './comic.entity';
+export * from "./comic.module";
+export * from "./comic.entity";

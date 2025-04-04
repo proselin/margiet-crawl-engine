@@ -1,17 +1,17 @@
-import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from "typeorm";
 
-import { CommonEntity } from '../../common';
-import { ImageEntity } from '../image';
-import { ChapterEntity } from '../chapter';
+import { CommonEntity, CrawlingStatus } from "../../common";
+import { ImageEntity } from "../image";
+import { ChapterEntity } from "../chapter";
 
-@Entity('comic')
+@Entity("comic")
 export class ComicEntity extends CommonEntity {
   @Column()
   title: string;
 
   @Column({
-    name: 'chapter_count',
-    type: 'integer',
+    name: "chapter_count",
+    type: "integer",
   })
   chapterCount: number;
 
@@ -33,44 +33,51 @@ export class ComicEntity extends CommonEntity {
   description: string;
 
   @Column({
-    name: 'origin_url',
+    name: "origin_url",
   })
   originUrl: string;
 
   @Column({
-    type: 'simple-array',
-    name: 'url_history',
+    type: "simple-array",
+    name: "url_history",
     nullable: true,
   })
   urlHistory: string[];
 
   @Column({
-    name: 'should_refresh',
-    type: 'boolean',
+    name: "should_refresh",
+    type: "boolean",
     default: false,
   })
   shouldRefresh: boolean;
 
   @Column({
-    type: 'simple-array',
+    type: "simple-array",
     default: [],
   })
   tags: string[];
 
   @Column({
-    type: 'varchar',
+    type: "varchar",
     default: [],
   })
   author: string;
 
-  @OneToMany(() => ChapterEntity, (chapter) => chapter.comic, {
+  @Column({
+    type: "enum",
+    enum: CrawlingStatus,
+    name: "crawling_status",
+  })
+  crawlStatus: CrawlingStatus;
+
+  @OneToMany(() => ChapterEntity, chapter => chapter.comic, {
     lazy: true,
   })
-  chapters: Promise<ChapterEntity[]>;
+  chapters: ChapterEntity[];
 
   @OneToOne(() => ImageEntity, {
     lazy: true,
   })
   @JoinColumn()
-  thumbImage: Promise<ImageEntity>;
+  thumbImage: ImageEntity;
 }

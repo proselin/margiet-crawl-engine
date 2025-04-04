@@ -1,1 +1,1 @@
-export * from "./env.valid"
+export * from "./env.valid";
