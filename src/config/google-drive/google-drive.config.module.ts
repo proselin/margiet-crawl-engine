@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { GoogleDriveConfig, GoogleDriveModule } from "@margiet-libs/google-drive";
+import { GoogleDriveConfig, GoogleDriveModule } from "@libs/google-drive";
 import { ConfigService } from "@nestjs/config";
 
 @Module({

@@ -5,11 +5,7 @@ import { ImageEntity } from "../image";
 
 @Entity("drive-upload-history")
 export class DriverUploadHistory extends CommonEntity {
-  @Column({
-    name: "drive-id",
-  })
-  driverId: string;
-
+  
   @Column({
     name: "file-name",
   })

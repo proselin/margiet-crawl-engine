@@ -1,19 +1,13 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Client as MinioClient } from "minio";
-import { nanoid } from "nanoid";
-import { InjectMinio } from "@margiet-libs/minio";
 
-import { UploadMinioResponse } from "../../../common";
+import { nanoid } from "nanoid";
+import { UploadDriveResponse } from "../../../common";
 import { Utils } from "../../../utils";
+import { GoogleDriveService } from "@libs/google-drive";
 
 interface IUploadService {
-  uploadToPublicMinio(
-    file: Buffer,
-    contentType: string,
-    fileName: string,
-    bucketName: string,
-  ): Promise<UploadMinioResponse>;
+  uploadToDriveGoogle(file: Buffer, contentType: string, fileName: string): Promise<UploadDriveResponse>;
 
   generateFileName(prefixFileName: string, contentType: string): Promise<string>;
 }
@@ -24,44 +18,29 @@ export class UploadService implements IUploadService {
 
   constructor(
     private configService: ConfigService,
-    @InjectMinio() private readonly minioClient: MinioClient,
+    private googleDriveService: GoogleDriveService,
   ) {}
 
-  private get minioBucket() {
-    return this.configService.get("minio.bucket");
+  private get driverUploadImageFolder() {
+    return this.configService.get("google-drive.upload-image-folder-id");
   }
 
-  async uploadToPublicMinio(
-    file: Buffer,
-    contentType: string,
-    fileName: string,
-    bucketName: string = this.minioBucket,
-  ): Promise<UploadMinioResponse> {
-    this.logger.log(
-      `Start uploading minio bucket from publicMinio with params contentType=${contentType} fileName=${fileName} bucketName=${bucketName}`,
-    );
-    await this.checkBucketIsExist(bucketName);
-    await this.minioClient.putObject(bucketName, fileName, file, undefined, {
-      "Content-Type": contentType,
+  async uploadToDriveGoogle(file: Buffer, contentType: string, fileName: string): Promise<UploadDriveResponse> {
+    const response = await this.googleDriveService.uploadFile({
+      fileName,
+      body: GoogleDriveService.bufferToStream(file),
+      mimeType: contentType,
+      folderId: this.driverUploadImageFolder,
     });
-    const fileUrl = await this.getObjectUrl(bucketName, fileName);
-    this.logger.log(`Done uploading minio bucket from publicMinio`);
+    if (response.status !== 200) {
+      throw new Error("Fail to upload to drive");
+    }
+
     return {
       fileName,
-      bucketName,
-      fileUrl,
+      fileUrl: await this.googleDriveService.getFileURL(response.data.id),
+      parentFolderId: this.driverUploadImageFolder,
     };
-  }
-
-  private async checkBucketIsExist(bucket: string) {
-    const existed = await this.minioClient.bucketExists(bucket);
-    if (!existed) {
-      throw new Error(`Dont existed bucket name ${this.configService.get("minio.bucket")} create new one`);
-    }
-  }
-
-  private getObjectUrl(bucketName: string, objectName: string) {
-    return this.minioClient.presignedGetObject(bucketName, objectName);
   }
 
   async generateFileName(prefixFileName: string, contentType: string) {

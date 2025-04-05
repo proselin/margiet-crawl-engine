@@ -1,7 +1,6 @@
 import { BullModule } from "@nestjs/bullmq";
 import { Module } from "@nestjs/common";
 import { QueueName } from "../../common";
-import { MinioConfigModule } from "../../config/minio";
 import { CrawlProducerModule } from "../../producers/crawl-producer";
 import { ComicModule } from "../../entities/comic";
 import { ChapterModule } from "../../entities/chapter";
@@ -19,7 +18,6 @@ import { NettruyenExtractor } from "./extractor/nettruyen.extractor";
     BullModule.registerQueue({
       name: QueueName.QUEUE_CRAWL,
     }),
-    MinioConfigModule,
     CrawlProducerModule,
     ComicModule,
     ChapterModule,

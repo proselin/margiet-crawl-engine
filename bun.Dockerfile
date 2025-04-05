@@ -11,7 +11,10 @@ WORKDIR /app
 COPY --from=base /app/libs ./libs
 COPY --from=base /app/package*.json ./
 
+RUN chmod +rw package.json package-lock.json
+
 RUN bun install --production
+
 
 FROM oven/bun AS build
 
@@ -20,7 +23,7 @@ WORKDIR /app
 COPY --from=base /app/* .
 COPY --from=base /app/libs ./libs
 COPY --from=install /app/node_modules ./node_modules
-COPY --from=install /app/package-lock.json .
+COPY --from=install /app/package*.json .
 
 RUN bun install @nestjs/cli
 

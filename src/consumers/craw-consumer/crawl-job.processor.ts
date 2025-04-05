@@ -15,7 +15,11 @@ import {
 import { CrawlImageService } from "./services/crawl-image.service";
 
 @Processor(QueueName.QUEUE_CRAWL, {
-  concurrency: 12,
+  autorun: true,
+  concurrency: +(process.env['queue.crawl.concurrency'] ?? 1),
+  removeOnComplete: {
+    age: 3600
+  }
 })
 export class CrawlJobProcessor extends WorkerHost {
   private logger = new Logger(CrawlJobProcessor.name);
@@ -39,6 +43,7 @@ export class CrawlJobProcessor extends WorkerHost {
     >,
   ): Promise<any> {
     this.logger.log(`Start process ${job.name} with token ${job.token} >>`);
+    await job.log(`Start process ${job.name} with token ${job.token} >>`)
     switch (job.name) {
       case JobName.CRAWL_COMIC: {
         return this.crawlComicService.handleCrawlComic(job as Job<CrawlComicJobData>);
@@ -47,7 +52,8 @@ export class CrawlJobProcessor extends WorkerHost {
         return this.crawlChapterService.handleCrawlChapter(job as Job<CrawlChapterData>);
       }
       case JobName.CRAWL_IMAGE: {
-        return this.crawlImageService.handleCrawlImage(job as Job<CrawlImageJobData>);
+        // return this.crawlImageService.handleCrawlImage(job as Job<CrawlImageJobData>);
+        return this.crawlImageService.handleCrawlImageToDrive(job as Job<CrawlImageJobData>);
       }
       case JobName.UPDATE_STATUS_CRAWLING_CHAPTER_DONE: {
         return this.crawlChapterService.handleUpdateStatusChapterToDone(job as Job<{ chapterId: number }>);

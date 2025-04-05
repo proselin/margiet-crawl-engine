@@ -3,6 +3,18 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "webpack": true
+  },
+  "projects": {
+    "google-drive": {
+      "type": "library",
+      "root": "libs/google-drive",
+      "entryFile": "index",
+      "sourceRoot": "libs/google-drive/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/google-drive/tsconfig.lib.json"
+      }
+    }
   }
 }

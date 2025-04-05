@@ -17,14 +17,10 @@ export function envValidation(config: Record<string, unknown>) {
     ["redis.password"]: Joi.string().allow(""),
   };
 
-  const minioEnv = {
-    ["minio.endpoint"]: Joi.string().default(DEFAULT.MINIO_ENDPOINT),
-    ["minio.port"]: Joi.number().port().default(DEFAULT.MINIO_PORT),
-    ["minio.ssl"]: Joi.boolean().default(DEFAULT.MINIO_USE_SSL),
-    ["minio.access-key"]: Joi.string().required(),
-    ["minio.secret-key"]: Joi.string().required(),
-    ["minio.bucket"]: Joi.string().default(DEFAULT.MINIO_BUCKET),
-  };
+  const googleEnv = {
+
+  }
+
   const databaseEnv = {
     ["database.host"]: Joi.string().required(),
     ["database.port"]: Joi.number().port(),
@@ -38,7 +34,6 @@ export function envValidation(config: Record<string, unknown>) {
   const { value, error } = Joi.object({
     ...appEnv,
     ...redisEnv,
-    ...minioEnv,
     ...queueEnv,
     ...databaseEnv,
   })
