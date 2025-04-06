@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Module } from "@nestjs/common";
 
-import { RefreshComicService } from './refresh-comic.service';
-import { CrawlProducerModule } from '../../queues/producers/crawl-producer';
-import { ComicModule } from '../../entities/comic';
+import { RefreshComicService } from "./refresh-comic.service";
+import { CrawlProducerModule } from "../../producers/crawl-producer";
+import { ComicModule } from "../../entities/comic";
 
 @Module({
   imports: [CrawlProducerModule, ComicModule],

@@ -9,6 +9,12 @@ export type UploadMinioResponse = {
   bucketName: string;
 };
 
+export type UploadDriveResponse = {
+  fileUrl: string;
+  fileName: string;
+  parentFolderId: string;
+};
+
 export type CrawlUploadResponse = Array<
   Partial<UploadMinioResponse> & {
     position: number;

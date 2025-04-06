@@ -1,2 +1,2 @@
-export * from './chapter.module';
-export * from './chapter.entity';
+export * from "./chapter.module";
+export * from "./chapter.entity";

@@ -1,4 +1,4 @@
-import { ComicEntity } from '../../../entities/comic';
+import { ComicEntity } from "../../../entities/comic";
 
 export class UpdateComicResultModel {
   comic: ComicEntity;

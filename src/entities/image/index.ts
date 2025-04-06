@@ -1,2 +1,2 @@
-export * from './image.module';
-export * from './image.entity';
+export * from "./image.module";
+export * from "./image.entity";

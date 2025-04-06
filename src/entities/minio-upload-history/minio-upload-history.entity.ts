@@ -1,9 +1,9 @@
-import { Column, Entity, OneToOne } from 'typeorm';
+import { Column, Entity, OneToOne } from "typeorm";
 
-import { CommonEntity } from '../../common';
-import { ImageEntity } from '../image';
+import { CommonEntity } from "../../common";
+import { ImageEntity } from "../image";
 
-@Entity('minio-upload-history')
+@Entity("minio-upload-history")
 export class MinioUploadHistory extends CommonEntity {
   @Column({
     nullable: true,
@@ -20,8 +20,8 @@ export class MinioUploadHistory extends CommonEntity {
   })
   url: string;
 
-  @OneToOne(() => ImageEntity, (img) => img.minioUploadHistory, {
+  @OneToOne(() => ImageEntity, img => img.minioUploadHistory, {
     lazy: true,
   })
-  image: Promise<ImageEntity>;
+  image: ImageEntity;
 }

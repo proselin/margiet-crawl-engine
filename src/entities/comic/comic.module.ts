@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
 
-import { ComicEntity } from './comic.entity';
+import { ComicEntity } from "./comic.entity";
 
 @Module({
   imports: [TypeOrmModule.forFeature([ComicEntity])],

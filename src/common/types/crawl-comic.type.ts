@@ -1,4 +1,5 @@
-import { RawCrawledChapter } from './craw.type';
+import { RawCrawledChapter } from "./craw.type";
+import { ImageType } from "../constant/image";
 
 export interface CrawlComicJobData {
   href: string;
@@ -69,26 +70,34 @@ export type ExtractChapterInfoResultItem$1 = {
 };
 
 export type ExtractChapterInfoResult$1 = {
-  image:  Array<ExtractChapterInfoResultItem$1>,
-  domain: string
+  image: Array<ExtractChapterInfoResultItem$1>;
+  domain: string;
 };
 
 export interface IResponseGetChapterList {
   data: {
-    comic_id: number
-    chapter_id: number
-    chapter_name: string
-    chapter_slug: string
-    updated_at: string
-    chapter_num: number
-    data_cdn: number
-    webp: number
-    reported_at: string
-    cdn_sv: number
-    image_type: string
-    image_num: number,
+    comic_id: number;
+    chapter_id: number;
+    chapter_name: string;
+    chapter_slug: string;
+    updated_at: string;
+    chapter_num: number;
+    data_cdn: number;
+    webp: number;
+    reported_at: string;
+    cdn_sv: number;
+    image_type: string;
+    image_num: number;
     // Not by response
-    chapter_link: string
-  }[]
+    chapter_link: string;
+  }[];
 }
 
+export interface CrawlImageJobData {
+  domain: string;
+  dataUrls: string[];
+  position: number;
+  type: ImageType;
+  comicId?: number;
+  chapterId?: number;
+}
