@@ -5,7 +5,6 @@ import { GOOGLE_DRIVE_CONFIG } from "./google-drive.constant";
 import { GDUploadFileRequest, GoogleDriveConfig } from "./types";
 import { Logger } from "@nestjs/common";
 import { Duplex } from "node:stream";
-import { error } from "node:console";
 
 @Injectable()
 export class GoogleDriveService {

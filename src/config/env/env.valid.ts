@@ -36,6 +36,7 @@ export function envValidation(config: Record<string, unknown>) {
     ...redisEnv,
     ...queueEnv,
     ...databaseEnv,
+    ...googleEnv,
   })
     .unknown(true)
     .validate(config);
